@@ -4,12 +4,12 @@ import 'dart:io';
 
 class ChatbotService {
   static const String _apiKey =
-      'YOUR_GOOGLE_AI_API_KEY'; // Replace with your actual API key
+      'YOUR_GOOGLE_AI_API_KEY'; 
   late GenerativeModel _model;
 
   ChatbotService() {
     _model = GenerativeModel(
-      model: 'gemini-pro',
+      model: 'gemini-2.5-preview',
       apiKey: _apiKey,
       generationConfig: GenerationConfig(
         temperature: 0.7,
@@ -22,7 +22,7 @@ class ChatbotService {
 
   Future<String> sendMessage(String message) async {
     try {
-      // Add context about Sri Lankan law to the prompt
+      
       final contextualPrompt = '''
 You are LawLink AI, a specialized legal assistant for Sri Lankan law. You have expertise in:
 - Consumer Affairs Authority Act
