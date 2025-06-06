@@ -32,8 +32,25 @@ dependencies:
     sdk: flutter
   read_pdf_text: ^0.3.1
   path_provider: ^2.1.2
-  cloud_firestore: ^4.15.5
-  firebase_core: ^2.31.0
+  cloud_firestore: ^5.6.8
+  firebase_core: ^3.6.0
+  
+  # Flutter AI Toolkit & Chatbot dependencies
+  dash_chat_2: ^0.0.21
+  flutter_chat_ui: ^1.6.12
+  google_generative_ai: ^0.4.3
+  speech_to_text: ^6.3.0
+  flutter_tts: ^3.8.5
+  file_picker: ^6.1.1
+  image_picker: ^1.0.4
+  permission_handler: ^11.0.1
+  audioplayers: ^5.2.1
+  record: ^5.0.4
+  http: ^1.1.0
+  uuid: ^4.1.0
+  intl: ^0.19.0
+  flutter_markdown: ^0.7.3
+  url_launcher: ^6.2.5
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
