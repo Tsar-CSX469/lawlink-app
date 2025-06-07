@@ -44,7 +44,7 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'your-web-api-key',
+    apiKey: 'web-api-key',
     appId: '1:245228608969:web:your-web-app-id',
     messagingSenderId: '245228608969',
     projectId: 'gold-gateway-397319',
@@ -60,7 +60,7 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'your-ios-api-key',
+    apiKey: 'ios-api-key',
     appId: '1:245228608969:ios:your-ios-app-id',
     messagingSenderId: '245228608969',
     projectId: 'gold-gateway-397319',
@@ -69,7 +69,7 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'your-macos-api-key',
+    apiKey: 'macos-api-key',
     appId: '1:245228608969:macos:your-macos-app-id',
     messagingSenderId: '245228608969',
     projectId: 'gold-gateway-397319',
