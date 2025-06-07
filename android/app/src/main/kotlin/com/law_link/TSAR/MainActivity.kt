@@ -1,4 +1,4 @@
-package com.example.lawlink
+package com.law_link.TSAR
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "245228608969",
+    "project_id": "gold-gateway-397319",
+    "storage_bucket": "gold-gateway-397319.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:245228608969:android:3728606c3f555c70ef1c18",
+        "android_client_info": {
+          "package_name": "com.law_link.TSAR"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "245228608969-2n9dsu17hcth2147g7f7ae7dijvpdt2h.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBzsWIzS2MrAWkz9KDFRaMmqlNqn4xSwps"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "245228608969-2n9dsu17hcth2147g7f7ae7dijvpdt2h.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
