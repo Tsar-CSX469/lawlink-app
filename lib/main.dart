@@ -3,6 +3,11 @@ import 'package:lawlink/act_list_page.dart'; // Import your Act List Page
 import 'package:firebase_core/firebase_core.dart';
 import 'package:lawlink/add_act_page.dart'; // Import your Add Act Page
 import 'package:lawlink/widgets/floating_chatbot_button.dart';
+import 'package:lawlink/screens/auth_wrapper.dart';
+import 'package:lawlink/screens/login_page.dart';
+import 'package:lawlink/screens/register_page.dart';
+import 'package:lawlink/screens/user_profile_page.dart';
+import 'package:lawlink/services/auth_service.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -13,13 +18,18 @@ void main() async {
 
 class LegalQuizGame extends StatelessWidget {
   const LegalQuizGame({super.key});
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Sri Lanka Law Quiz',
       theme: ThemeData(primarySwatch: Colors.blue),
-      home: const QuizPage(),
+      home: const AuthWrapper(),
+      routes: {
+        '/login': (context) => const LoginPage(),
+        '/register': (context) => const RegisterPage(),
+        '/home': (context) => const QuizPage(),
+        '/profile': (context) => const UserProfilePage(),
+      },
     );
   }
 }
@@ -87,6 +97,18 @@ class QuizPageState extends State<QuizPage> {
           title: const Text('Sri Lanka Law Quiz'),
           actions: [
             IconButton(
+              icon: const Icon(Icons.person),
+              tooltip: 'Profile',
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const UserProfilePage(),
+                  ),
+                );
+              },
+            ),
+            IconButton(
               icon: const Icon(Icons.menu_book),
               tooltip: 'View Acts',
               onPressed: () {
@@ -94,6 +116,17 @@ class QuizPageState extends State<QuizPage> {
                   context,
                   MaterialPageRoute(builder: (context) => ActListPage()),
                 );
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.logout),
+              tooltip: 'Logout',
+              onPressed: () async {
+                final authService = AuthService();
+                await authService.signOut();
+                if (context.mounted) {
+                  Navigator.of(context).pushReplacementNamed('/login');
+                }
               },
             ),
           ],
