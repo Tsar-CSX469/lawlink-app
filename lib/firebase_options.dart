@@ -44,8 +44,8 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'web-api-key',
-    appId: '1:245228608969:web:your-web-app-id',
+    apiKey: 'AIzaSyD_5lCmYoDmsmW05jq2BjEEM7CyXpXcVZM',
+    appId: '1:245228608969:web:e295ce7a53260598ef1c18',
     messagingSenderId: '245228608969',
     projectId: 'gold-gateway-397319',
     authDomain: 'gold-gateway-397319.firebaseapp.com',
