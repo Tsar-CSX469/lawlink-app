@@ -102,7 +102,7 @@ class _LoginPageState extends State<LoginPage> {
               const Icon(Icons.gavel, size: 80, color: Colors.blue),
               const SizedBox(height: 16),
               const Text(
-                'Sri Lanka Law Quiz',
+                'Lawlink',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 28,

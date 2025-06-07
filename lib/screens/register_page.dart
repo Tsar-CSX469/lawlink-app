@@ -120,7 +120,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
               // Title
               const Text(
-                'Join Sri Lanka Law Quiz',
+                'Join Lawlink',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 24,
