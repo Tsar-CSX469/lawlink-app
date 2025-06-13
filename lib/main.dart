@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:lawlink/act_list_page.dart'; // Import your Act List Page
 import 'package:firebase_core/firebase_core.dart';
-import 'package:lawlink/add_act_page.dart'; // Import your Add Act Page
+
+import 'firebase_options.dart';
+import 'package:lawlink/act_list_page.dart';
+import 'package:lawlink/add_act_page.dart';
 import 'package:lawlink/widgets/floating_chatbot_button.dart';
 import 'package:lawlink/screens/auth_wrapper.dart';
 import 'package:lawlink/screens/login_page.dart';
 import 'package:lawlink/screens/register_page.dart';
 import 'package:lawlink/screens/user_profile_page.dart';
 import 'package:lawlink/services/auth_service.dart';
-import 'firebase_options.dart';
+import 'package:lawlink/screens/LegalProceduresPage.dart'; 
+import 'package:lawlink/screens/ProcedureDetailPage.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,13 +25,19 @@ class LegalQuizGame extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Sri Lanka Law Quiz',
-      theme: ThemeData(primarySwatch: Colors.blue),
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        useMaterial3: true, // ✅ Keep Material 3
+      ),
       home: const AuthWrapper(),
       routes: {
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
         '/home': (context) => const QuizPage(),
         '/profile': (context) => const UserProfilePage(),
+        '/legal-procedures': (context) => const LegalProceduresPage(), 
+        // Remove the procedureDetail route since it requires parameters
+        // Navigate directly using MaterialPageRoute instead
       },
     );
   }
@@ -41,7 +50,6 @@ class QuizPage extends StatefulWidget {
 }
 
 class QuizPageState extends State<QuizPage> {
-  // Example questions (replace with real legal content)
   final List<Map<String, Object>> _questions = [
     {
       'question':
@@ -63,7 +71,7 @@ class QuizPageState extends State<QuizPage> {
       'explanation':
           'According to the Consumer Affairs Authority Act, shops must provide receipts for purchases.',
     },
-    // Add more questions as needed
+    // Add more questions here
   ];
 
   int _currentQuestion = 0;
@@ -119,6 +127,13 @@ class QuizPageState extends State<QuizPage> {
               },
             ),
             IconButton(
+              icon: const Icon(Icons.gavel),
+              tooltip: 'Legal Procedures',
+              onPressed: () {
+                Navigator.pushNamed(context, '/legal-procedures'); // ✅ NEW
+              },
+            ),
+            IconButton(
               icon: const Icon(Icons.logout),
               tooltip: 'Logout',
               onPressed: () async {
@@ -144,16 +159,13 @@ class QuizPageState extends State<QuizPage> {
                 ),
               ),
               const SizedBox(height: 24),
-              ...(question['answers'] as List<Map<String, Object>>).map((
-                answer,
-              ) {
+              ...(question['answers'] as List<Map<String, Object>>).map((answer) {
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 6.0),
                   child: ElevatedButton(
-                    onPressed:
-                        _answered
-                            ? null
-                            : () => _answerQuestion(
+                    onPressed: _answered
+                        ? null
+                        : () => _answerQuestion(
                               answer['correct'] as bool,
                               question['explanation'] as String,
                             ),
@@ -183,7 +195,6 @@ class QuizPageState extends State<QuizPage> {
                   ],
                 ),
               const SizedBox(height: 24),
-              // Optional: Add a button at the bottom as well
               ElevatedButton.icon(
                 icon: const Icon(Icons.menu_book),
                 label: const Text('View Acts List'),
@@ -197,7 +208,6 @@ class QuizPageState extends State<QuizPage> {
             ],
           ),
         ),
-        // FloatingActionButton for adding new acts
         floatingActionButton: FloatingActionButton(
           onPressed: () {
             Navigator.push(
