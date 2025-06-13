@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class LegalProceduresPage extends StatelessWidget {
-  final CollectionReference proceduresRef =
+  const LegalProceduresPage({Key? key}) : super(key: key);
+
+  // Move this to a getter method since we can't have instance fields with const constructor
+  CollectionReference get proceduresRef =>
       FirebaseFirestore.instance.collection('legal_procedures');
 
   @override
@@ -49,11 +52,11 @@ class LegalProceduresPage extends StatelessWidget {
 class ProcedureDetailPage extends StatelessWidget {
   final Map<String, dynamic> data;
 
-  ProcedureDetailPage({required this.data});
+  const ProcedureDetailPage({required this.data, Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final List steps = data['steps'] ?? [];
+    final List<dynamic> steps = data['steps'] ?? [];
 
     return Scaffold(
       appBar: AppBar(title: Text(data['title'] ?? 'Procedure')),
@@ -61,20 +64,31 @@ class ProcedureDetailPage extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: ListView(
           children: [
-            Text(data['description'] ?? '', style: TextStyle(fontSize: 16)),
+            Text(
+              data['description'] ?? '',
+              style: const TextStyle(fontSize: 16),
+            ),
             const SizedBox(height: 20),
-            Text("Steps:", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            ...steps.map((step) => ListTile(
-                  leading: const Icon(Icons.check),
-                  title: Text(step),
-                )),
+            Text(
+              "Steps:",
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            ...steps.map(
+              (step) =>
+                  ListTile(leading: const Icon(Icons.check), title: Text(step)),
+            ),
             const SizedBox(height: 20),
             if (data['prerequisites'] != null)
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text("Prerequisites:", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  ...List<String>.from(data['prerequisites']).map((item) => Text("- $item"))
+                  const Text(
+                    "Prerequisites:",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  ...List<String>.from(
+                    data['prerequisites'],
+                  ).map((item) => Text("- $item")),
                 ],
               ),
             const SizedBox(height: 20),
@@ -82,8 +96,13 @@ class ProcedureDetailPage extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text("Comments:", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  ...List<String>.from(data['comments']).map((item) => Text("• $item"))
+                  const Text(
+                    "Comments:",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  ...List<String>.from(
+                    data['comments'],
+                  ).map((item) => Text("• $item")),
                 ],
               ),
           ],
