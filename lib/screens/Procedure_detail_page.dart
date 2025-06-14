@@ -73,6 +73,7 @@ class _ProcedureDetailPageState extends State<ProcedureDetailPage> {
               'comment': data['comment'] ?? '',
               'userId': data['userId'] ?? '',
               'timestamp': data['timestamp'],
+              'userEmail': data['userEmail'] ?? 'Unknown User',
             };
           }).toList();
         });
@@ -134,6 +135,7 @@ class _ProcedureDetailPageState extends State<ProcedureDetailPage> {
           .collection('comments')
           .add({
         'userId': user.uid,
+        'userEmail': user.email ?? 'Unknown User',
         'comment': _commentController.text.trim(),
         'timestamp': FieldValue.serverTimestamp(),
       });
@@ -160,6 +162,58 @@ class _ProcedureDetailPageState extends State<ProcedureDetailPage> {
         });
       }
     }
+  }
+
+  Future<void> _deleteComment(String commentId) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('procedures')
+          .doc(widget.procedureId)
+          .collection('comments')
+          .doc(commentId)
+          .delete();
+
+      await _loadComments(); // Refresh comments
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Comment deleted successfully')),
+        );
+      }
+    } catch (e) {
+      print('Error deleting comment: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to delete comment')),
+        );
+      }
+    }
+  }
+
+  void _showDeleteCommentDialog(String commentId) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete Comment'),
+          content: const Text('Are you sure you want to delete this comment?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _deleteComment(commentId);
+              },
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -322,17 +376,29 @@ class _ProcedureDetailPageState extends State<ProcedureDetailPage> {
             
             // Display comments
             if (comments.isNotEmpty)
-              ...comments.map((comment) => Card(
-                    margin: const EdgeInsets.symmetric(vertical: 4.0),
-                    child: ListTile(
-                      leading: const Icon(Icons.comment),
-                      title: Text(comment['comment']),
-                      subtitle: Text(
-                        'User: ${comment['userId']}',
-                        style: const TextStyle(fontSize: 12),
-                      ),
+              ...comments.map((comment) {
+                final currentUser = FirebaseAuth.instance.currentUser;
+                final isCurrentUserComment = currentUser?.uid == comment['userId'];
+                
+                return Card(
+                  margin: const EdgeInsets.symmetric(vertical: 4.0),
+                  child: ListTile(
+                    leading: const Icon(Icons.comment),
+                    title: Text(comment['comment']),
+                    subtitle: Text(
+                      'By: ${comment['userEmail']}',
+                      style: const TextStyle(fontSize: 12),
                     ),
-                  ))
+                    trailing: isCurrentUserComment
+                        ? IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: () => _showDeleteCommentDialog(comment['id']),
+                            tooltip: 'Delete comment',
+                          )
+                        : null,
+                  ),
+                );
+              })
             else
               const Card(
                 child: ListTile(

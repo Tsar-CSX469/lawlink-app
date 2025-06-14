@@ -10,8 +10,7 @@ import 'package:lawlink/screens/login_page.dart';
 import 'package:lawlink/screens/register_page.dart';
 import 'package:lawlink/screens/user_profile_page.dart';
 import 'package:lawlink/services/auth_service.dart';
-import 'package:lawlink/screens/LegalProceduresPage.dart'; 
-import 'package:lawlink/screens/ProcedureDetailPage.dart';
+import 'package:lawlink/screens/legal_procedures_page.dart'; 
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,7 +26,7 @@ class LegalQuizGame extends StatelessWidget {
       title: 'Sri Lanka Law Quiz',
       theme: ThemeData(
         primarySwatch: Colors.blue,
-        useMaterial3: true, // ✅ Keep Material 3
+        useMaterial3: true, 
       ),
       home: const AuthWrapper(),
       routes: {
@@ -36,8 +35,6 @@ class LegalQuizGame extends StatelessWidget {
         '/home': (context) => const QuizPage(),
         '/profile': (context) => const UserProfilePage(),
         '/legal-procedures': (context) => const LegalProceduresPage(), 
-        // Remove the procedureDetail route since it requires parameters
-        // Navigate directly using MaterialPageRoute instead
       },
     );
   }
