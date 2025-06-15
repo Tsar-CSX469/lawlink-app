@@ -3,7 +3,7 @@ import 'package:lawlink/services/auth_service.dart';
 
 class QuizPage extends StatefulWidget {
   const QuizPage({super.key});
-  
+
   @override
   QuizPageState createState() => QuizPageState();
 }
@@ -62,8 +62,13 @@ class QuizPageState extends State<QuizPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Law Quiz'),
-        backgroundColor: Colors.blue.shade700,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.blue.shade50,
+        titleTextStyle: const TextStyle(
+          color: Colors.blue,
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+        ),
+        iconTheme: const IconThemeData(color: Colors.blue),
         elevation: 0,
       ),
       body: Container(
@@ -120,61 +125,80 @@ class QuizPageState extends State<QuizPage> {
                 const SizedBox(height: 24),
 
                 // Answer options
-                ...(question['answers'] as List<Map<String, Object>>).map(
-                  (answer) {
-                    final isCorrect = answer['correct'] as bool;
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 6.0),
-                      child: AnimatedOpacity(
-                        opacity: _answered ? (isCorrect ? 1.0 : 0.7) : 1.0,
-                        duration: const Duration(milliseconds: 300),
-                        child: ElevatedButton(
-                          onPressed: _answered
-                              ? null
-                              : () => _answerQuestion(
-                                    isCorrect,
-                                    question['explanation'] as String,
-                                  ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: _answered
-                                ? (isCorrect ? Colors.green.shade100 : Colors.red.shade50)
-                                : Colors.white,
-                            foregroundColor: Colors.black87,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              side: BorderSide(
-                                color: _answered
-                                    ? (isCorrect ? Colors.green : Colors.red.withOpacity(0.3))
-                                    : Colors.grey.shade300,
-                                width: 1,
-                              ),
-                            ),
-                          ),
-                          child: Text(
-                            answer['text'] as String,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: _answered && isCorrect ? FontWeight.bold : FontWeight.normal,
-                              color: _answered && isCorrect ? Colors.green.shade800 : Colors.black87,
+                ...(question['answers'] as List<Map<String, Object>>).map((
+                  answer,
+                ) {
+                  final isCorrect = answer['correct'] as bool;
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 6.0),
+                    child: AnimatedOpacity(
+                      opacity: _answered ? (isCorrect ? 1.0 : 0.7) : 1.0,
+                      duration: const Duration(milliseconds: 300),
+                      child: ElevatedButton(
+                        onPressed:
+                            _answered
+                                ? null
+                                : () => _answerQuestion(
+                                  isCorrect,
+                                  question['explanation'] as String,
+                                ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              _answered
+                                  ? (isCorrect
+                                      ? Colors.green.shade100
+                                      : Colors.red.shade50)
+                                  : Colors.white,
+                          foregroundColor: Colors.black87,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: BorderSide(
+                              color:
+                                  _answered
+                                      ? (isCorrect
+                                          ? Colors.green
+                                          : Colors.red.withOpacity(0.3))
+                                      : Colors.grey.shade300,
+                              width: 1,
                             ),
                           ),
                         ),
+                        child: Text(
+                          answer['text'] as String,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight:
+                                _answered && isCorrect
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                            color:
+                                _answered && isCorrect
+                                    ? Colors.green.shade800
+                                    : Colors.black87,
+                          ),
+                        ),
                       ),
-                    );
-                  },
-                ).toList(),
-                
+                    ),
+                  );
+                }).toList(),
+
                 const SizedBox(height: 24),
-                
+
                 if (_answered)
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: _isCorrect ? Colors.green.shade50 : Colors.red.shade50,
+                      color:
+                          _isCorrect
+                              ? Colors.green.shade50
+                              : Colors.red.shade50,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: _isCorrect ? Colors.green.shade200 : Colors.red.shade200,
+                        color:
+                            _isCorrect
+                                ? Colors.green.shade200
+                                : Colors.red.shade200,
                         width: 1,
                       ),
                     ),
@@ -192,7 +216,10 @@ class QuizPageState extends State<QuizPage> {
                             Text(
                               _isCorrect ? 'Correct!' : 'Incorrect.',
                               style: TextStyle(
-                                color: _isCorrect ? Colors.green.shade800 : Colors.red.shade800,
+                                color:
+                                    _isCorrect
+                                        ? Colors.green.shade800
+                                        : Colors.red.shade800,
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -229,9 +256,9 @@ class QuizPageState extends State<QuizPage> {
                       ],
                     ),
                   ),
-                
+
                 const Spacer(),
-                
+
                 // Progress indicator
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 8),
@@ -245,9 +272,10 @@ class QuizPageState extends State<QuizPage> {
                           margin: const EdgeInsets.symmetric(horizontal: 4),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: i == _currentQuestion
-                                ? Colors.blue.shade600
-                                : Colors.grey.shade300,
+                            color:
+                                i == _currentQuestion
+                                    ? Colors.blue.shade600
+                                    : Colors.grey.shade300,
                           ),
                         ),
                     ],

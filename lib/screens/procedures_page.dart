@@ -11,7 +11,8 @@ class _ProceduresPageState extends State<ProceduresPage> {
   final List<Map<String, dynamic>> _procedures = [
     {
       'title': 'Filing a Consumer Complaint',
-      'description': 'Steps to file a complaint about consumer rights violations.',
+      'description':
+          'Steps to file a complaint about consumer rights violations.',
       'icon': Icons.receipt_long,
       'color': Colors.blue,
       'steps': [
@@ -19,8 +20,8 @@ class _ProceduresPageState extends State<ProceduresPage> {
         'Contact the business in writing',
         'If unresolved, file a complaint with the Consumer Affairs Authority',
         'Follow up on your complaint',
-        'If needed, seek legal assistance'
-      ]
+        'If needed, seek legal assistance',
+      ],
     },
     {
       'title': 'Small Claims Process',
@@ -33,22 +34,22 @@ class _ProceduresPageState extends State<ProceduresPage> {
         'File the claim at your local court',
         'Pay the filing fee',
         'Serve notice to the defendant',
-        'Attend the hearing'
-      ]
+        'Attend the hearing',
+      ],
     },
     {
       'title': 'Property Registration',
       'description': 'Steps to register property ownership legally.',
       'icon': Icons.home,
-      'color': Colors.purple,
+      'color': Colors.blue.shade700,
       'steps': [
         'Verify property ownership status',
         'Obtain a lawyer to draft deed',
         'Conduct a title search',
         'Pay stamp duty and registration fees',
         'Submit documents to Land Registry',
-        'Collect registration certificate'
-      ]
+        'Collect registration certificate',
+      ],
     },
     {
       'title': 'Marriage Registration',
@@ -61,8 +62,8 @@ class _ProceduresPageState extends State<ProceduresPage> {
         'Pay registration fee',
         'Choose a wedding date within 3 months of notice',
         'Have the ceremony performed by a registrar',
-        'Obtain marriage certificate'
-      ]
+        'Obtain marriage certificate',
+      ],
     },
     {
       'title': 'Business Registration',
@@ -75,8 +76,8 @@ class _ProceduresPageState extends State<ProceduresPage> {
         'Complete registration forms',
         'Submit forms to the Department of Registrar of Companies',
         'Pay registration fees',
-        'Obtain business registration certificate'
-      ]
+        'Obtain business registration certificate',
+      ],
     },
   ];
 
@@ -86,7 +87,13 @@ class _ProceduresPageState extends State<ProceduresPage> {
       appBar: AppBar(
         title: const Text('Legal Procedures'),
         elevation: 0,
-        backgroundColor: Colors.blue,
+        backgroundColor: Colors.blue.shade50,
+        titleTextStyle: const TextStyle(
+          color: Colors.blue,
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+        ),
+        iconTheme: const IconThemeData(color: Colors.blue),
       ),
       body: Container(
         decoration: BoxDecoration(
@@ -103,18 +110,12 @@ class _ProceduresPageState extends State<ProceduresPage> {
             children: [
               const Text(
                 'Common Legal Procedures',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               const Text(
                 'Step-by-step guides for everyday legal matters',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey,
-                ),
+                style: TextStyle(fontSize: 16, color: Colors.grey),
               ),
               const SizedBox(height: 20),
               Expanded(
@@ -193,128 +194,130 @@ class _ProceduresPageState extends State<ProceduresPage> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(24),
-            topRight: Radius.circular(24),
-          ),
-        ),
-        padding: const EdgeInsets.all(24),
-        child: DraggableScrollableSheet(
-          expand: false,
-          initialChildSize: 0.7,
-          maxChildSize: 0.9,
-          minChildSize: 0.4,
-          builder: (context, scrollController) => SingleChildScrollView(
-            controller: scrollController,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Container(
-                    width: 60,
-                    height: 5,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: procedure['color'].withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        procedure['icon'],
-                        color: procedure['color'],
-                        size: 32,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Text(
-                        procedure['title'],
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  procedure['description'],
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey.shade700,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  'Steps to Follow',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                ...List.generate(
-                  procedure['steps'].length,
-                  (index) => Padding(
-                    padding: const EdgeInsets.only(bottom: 16.0),
-                    child: Row(
+      builder:
+          (context) => Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(24),
+                topRight: Radius.circular(24),
+              ),
+            ),
+            padding: const EdgeInsets.all(24),
+            child: DraggableScrollableSheet(
+              expand: false,
+              initialChildSize: 0.7,
+              maxChildSize: 0.9,
+              minChildSize: 0.4,
+              builder:
+                  (context, scrollController) => SingleChildScrollView(
+                    controller: scrollController,
+                    child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          width: 28,
-                          height: 28,
-                          decoration: BoxDecoration(
-                            color: procedure['color'],
-                            shape: BoxShape.circle,
-                          ),
-                          child: Center(
-                            child: Text(
-                              '${index + 1}',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
+                        Center(
+                          child: Container(
+                            width: 60,
+                            height: 5,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade300,
+                              borderRadius: BorderRadius.circular(20),
                             ),
                           ),
                         ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Text(
-                            procedure['steps'][index],
-                            style: const TextStyle(fontSize: 16),
+                        const SizedBox(height: 20),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: procedure['color'].withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Icon(
+                                procedure['icon'],
+                                color: procedure['color'],
+                                size: 32,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Text(
+                                procedure['title'],
+                                style: const TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          procedure['description'],
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey.shade700,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        const Text(
+                          'Steps to Follow',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        ...List.generate(
+                          procedure['steps'].length,
+                          (index) => Padding(
+                            padding: const EdgeInsets.only(bottom: 16.0),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  width: 28,
+                                  height: 28,
+                                  decoration: BoxDecoration(
+                                    color: procedure['color'],
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      '${index + 1}',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Text(
+                                    procedure['steps'][index],
+                                    style: const TextStyle(fontSize: 16),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        const Text(
+                          '* This information is for general guidance only and may not apply to all situations.',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                            fontStyle: FontStyle.italic,
                           ),
                         ),
                       ],
                     ),
                   ),
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  '* This information is for general guidance only and may not apply to all situations.',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-              ],
             ),
           ),
-        ),
-      ),
     );
   }
 }
