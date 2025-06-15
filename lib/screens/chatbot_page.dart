@@ -771,7 +771,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
         margin: const EdgeInsets.only(top: 8, bottom: 8),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Colors.white.withOpacity(0.9),
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
@@ -815,7 +815,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
         margin: const EdgeInsets.only(top: 8, bottom: 8),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: isUser ? Colors.blue[700] : Colors.white,
+          color: isUser ? Colors.blue.shade700 : Colors.white.withOpacity(0.9),
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
@@ -946,10 +946,21 @@ class _ChatbotPageState extends State<ChatbotPage> {
   }
 
   Widget _buildInputArea() {
+    // Calculate bottom padding to account for the notch/home indicator if present
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+      padding: EdgeInsets.only(
+        left: 8,
+        right: 8,
+        top: 16,
+        bottom:
+            16 +
+            bottomPadding, // Add extra padding at bottom to account for system notch
+      ),
+      width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Colors.white.withOpacity(0.9),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -1037,11 +1048,23 @@ class _ChatbotPageState extends State<ChatbotPage> {
               onPressed: _showAttachmentOptions,
               color: Colors.blue[700],
             ),
-          ), // Send button with animated container
+          ),
+          // Send button with animated container
           Container(
             decoration: BoxDecoration(
-              color: Colors.blue,
+              gradient: LinearGradient(
+                colors: [Colors.blue.shade800, Colors.blue.shade300],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
               borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.blue.withOpacity(0.3),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: IconButton(
               icon: const Icon(Icons.send_rounded),
@@ -1084,114 +1107,177 @@ class _ChatbotPageState extends State<ChatbotPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('LawLink AI'),
-        backgroundColor: Colors.white,
-        elevation: 1,
-        centerTitle: false,
-        titleTextStyle: TextStyle(
-          color: Colors.black,
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-        ),
-        iconTheme: IconThemeData(color: Colors.black),
-        actions: [
-          // Language Selector
-          DropdownButton<String>(
-            value: _selectedLanguage,
-            icon: const Icon(Icons.language, color: Colors.black, size: 19),
-            underline: Container(),
-            isDense: true, // Makes the button compact
-            itemHeight: 48, // Smaller item height
-            style: const TextStyle(
-              fontSize: 13, // Smaller font size
-              color: Colors.black,
-            ),
-            onChanged: (String? newValue) {
-              if (newValue != null && newValue != _selectedLanguage) {
-                setState(() {
-                  _selectedLanguage = newValue;
-                });
-                _setLanguageSystemPrompt(newValue);
-              }
-            },
-            items:
-                <String>['English', 'සිංහල'] // English, Sinhala
-                .map<DropdownMenuItem<String>>((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-          ),
-          const SizedBox(
-            width: 4,
-          ), // Smaller gap between language selector and refresh button
-          IconButton(
-            onPressed: () {
-              setState(() {
-                _messages.clear();
-              });
-              _addWelcomeMessage();
-            },
-            icon: const Icon(Icons.refresh),
-            tooltip: 'Clear chat',
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Status indicator
-          if (_isListening || _isRecording)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(8),
-              color: Colors.red.shade100,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    _isListening ? Icons.mic : Icons.mic_none,
-                    color: Colors.red,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    _isListening
-                        ? 'Listening...'
-                        : _isRecording
-                        ? 'Recording...'
-                        : '',
-                    style: const TextStyle(color: Colors.red),
-                  ),
-                ],
+      extendBodyBehindAppBar: true,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: Container(
+          decoration: BoxDecoration(
+            // Only add a subtle bottom border
+            border: Border(
+              bottom: BorderSide(
+                color: Colors.blue.withOpacity(0.2),
+                width: 0.5,
               ),
             ),
-
-          // Modern Chat Interface
-          Expanded(
-            child: Container(
-              color: Colors.grey[50],
-              child: ListView.builder(
-                controller: _scrollController,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
+          ),
+          child: AppBar(
+            title: ShaderMask(
+              shaderCallback:
+                  (bounds) => LinearGradient(
+                    colors: [Colors.blue.shade800, Colors.blue.shade300],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ).createShader(bounds),
+              child: const Text(
+                'LawLink AI',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
                 ),
-                itemCount: _messages.length + (_isProcessing ? 1 : 0),
-                itemBuilder: (context, index) {
-                  // Show loading indicator for AI response
-                  if (_isProcessing && index == _messages.length) {
-                    return _buildTypingIndicator();
-                  }
-
-                  final message = _messages[index];
-                  return _buildMessageItem(message);
-                },
               ),
             ),
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            scrolledUnderElevation: 0,
+            surfaceTintColor: Colors.transparent,
+            shadowColor: Colors.transparent,
+            centerTitle: false,
+            iconTheme: IconThemeData(color: Colors.blue.shade700),
+            actions: [
+              // Language Selector
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: DropdownButton<String>(
+                  value: _selectedLanguage,
+                  icon: Icon(
+                    Icons.language,
+                    color: Colors.blue.shade700,
+                    size: 19,
+                  ),
+                  underline: Container(),
+                  isDense: true, // Makes the button compact
+                  itemHeight: 48, // Smaller item height
+                  style: TextStyle(
+                    fontSize: 13, // Smaller font size
+                    color: Colors.blue.shade800,
+                  ),
+                  dropdownColor: Colors.white, // White dropdown menu background
+                  borderRadius: BorderRadius.circular(
+                    8,
+                  ), // Rounded corners for dropdown
+                  onChanged: (String? newValue) {
+                    if (newValue != null && newValue != _selectedLanguage) {
+                      setState(() {
+                        _selectedLanguage = newValue;
+                      });
+                      _setLanguageSystemPrompt(newValue);
+                    }
+                  },
+                  items:
+                      <String>['English', 'සිංහල'] // English, Sinhala
+                      .map<DropdownMenuItem<String>>((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value),
+                        );
+                      }).toList(),
+                ),
+              ),
+              const SizedBox(
+                width: 4,
+              ), // Smaller gap between language selector and refresh button
+              IconButton(
+                onPressed: () {
+                  setState(() {
+                    _messages.clear();
+                  });
+                  _addWelcomeMessage();
+                },
+                icon: Icon(Icons.refresh, color: Colors.blue.shade700),
+                tooltip: 'Clear chat',
+              ),
+            ],
           ),
-          _buildInputArea(),
-        ],
+        ),
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.white, Colors.blue.shade50],
+            stops: const [0.7, 1.0],
+          ),
+        ),
+        child: Column(
+          children: [
+            // Main content area with SafeArea
+            Expanded(
+              child: SafeArea(
+                bottom: false, // Don't apply bottom safe area
+                child: Column(
+                  children: [
+                    // Status indicator
+                    if (_isListening || _isRecording)
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(8),
+                        color: Colors.red.shade100,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              _isListening ? Icons.mic : Icons.mic_none,
+                              color: Colors.red,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              _isListening
+                                  ? 'Listening...'
+                                  : _isRecording
+                                  ? 'Recording...'
+                                  : '',
+                              style: const TextStyle(color: Colors.red),
+                            ),
+                          ],
+                        ),
+                      ), // Modern Chat Interface
+                    Expanded(
+                      child: Container(
+                        color: Colors.transparent,
+                        child: ListView.builder(
+                          controller: _scrollController,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          itemCount: _messages.length + (_isProcessing ? 1 : 0),
+                          itemBuilder: (context, index) {
+                            // Show loading indicator for AI response
+                            if (_isProcessing && index == _messages.length) {
+                              return _buildTypingIndicator();
+                            }
+
+                            final message = _messages[index];
+                            return _buildMessageItem(message);
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            // Input area outside SafeArea to extend to bottom edge
+            _buildInputArea(),
+          ],
+        ),
       ),
     );
   }
