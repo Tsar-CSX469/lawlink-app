@@ -34,19 +34,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
     setState(() => _isLoading = false);
   }
 
-  Future<void> _signOut() async {
-    try {
-      await _authService.signOut();
-      if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/login');
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error signing out: $e')));
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -58,194 +45,214 @@ class _UserProfilePageState extends State<UserProfilePage> {
     }
 
     final userData = _userData?.data() as Map<String, dynamic>?;
+    final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profile'),
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: _signOut,
-            tooltip: 'Sign Out',
-          ),
-        ],
+        backgroundColor: Colors.blue.shade50,
+        elevation: 0,
+        titleTextStyle: const TextStyle(
+          color: Colors.blue,
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+        ),
+        iconTheme: const IconThemeData(color: Colors.blue),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Profile Header
-            Center(
-              child: Column(
-                children: [
-                  CircleAvatar(
-                    radius: 50,
+      body: Container(
+        height: screenHeight,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.white, Colors.blue.shade50],
+            stops: const [0.7, 1.0],
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 30),
+
+                // Logo with subtle shadow
+                Center(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.blue.withOpacity(0.08),
+                          blurRadius: 25,
+                          spreadRadius: 1,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
+                    ),
+                    child: CircleAvatar(
+                      radius: 60,
+                      backgroundColor: Colors.white,
+                      backgroundImage:
+                          _currentUser!.photoURL != null
+                              ? NetworkImage(_currentUser!.photoURL!)
+                              : null,
+                      child:
+                          _currentUser!.photoURL == null
+                              ? Text(
+                                _currentUser!.displayName
+                                        ?.substring(0, 1)
+                                        .toUpperCase() ??
+                                    _currentUser!.email
+                                        ?.substring(0, 1)
+                                        .toUpperCase() ??
+                                    'U',
+                                style: TextStyle(
+                                  fontSize: 40,
+                                  color: Colors.blue.shade700,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              )
+                              : null,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                // User name and email
+                Center(
+                  child: Column(
+                    children: [
+                      Text(
+                        _currentUser!.displayName ??
+                            userData?['username'] ??
+                            'User',
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 5),
+                      Text(
+                        _currentUser!.email ?? '',
+                        style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 40),
+
+                // Account Information Title
+                const Text(
+                  'Account Information',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                ),
+
+                const SizedBox(height: 16),
+
+                // Account Information Card
+                Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      children: [
+                        _buildInfoField(
+                          label: 'Username',
+                          value:
+                              _currentUser!.displayName ??
+                              userData?['username'] ??
+                              'Not set',
+                          icon: Icons.person_outline,
+                        ),
+                        const Divider(height: 24),
+                        _buildInfoField(
+                          label: 'Email',
+                          value: _currentUser!.email ?? 'Not set',
+                          icon: Icons.email_outlined,
+                        ),
+                        const Divider(height: 24),
+                        _buildInfoField(
+                          label: 'Email Verified',
+                          value: _currentUser!.emailVerified ? 'Yes' : 'No',
+                          icon: Icons.verified_user_outlined,
+                        ),
+                        if (userData?['createdAt'] != null) ...[
+                          const Divider(height: 24),
+                          _buildInfoField(
+                            label: 'Member Since',
+                            value: _formatDate(userData!['createdAt']),
+                            icon: Icons.calendar_today_outlined,
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 40),
+
+                // Back to Home Button with blue accent
+                ElevatedButton(
+                  onPressed:
+                      () => Navigator.of(context).pushReplacementNamed('/home'),
+                  style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
-                    backgroundImage:
-                        _currentUser!.photoURL != null
-                            ? NetworkImage(_currentUser!.photoURL!)
-                            : null,
-                    child:
-                        _currentUser!.photoURL == null
-                            ? Text(
-                              _currentUser!.displayName
-                                      ?.substring(0, 1)
-                                      .toUpperCase() ??
-                                  _currentUser!.email
-                                      ?.substring(0, 1)
-                                      .toUpperCase() ??
-                                  'U',
-                              style: const TextStyle(
-                                fontSize: 32,
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            )
-                            : null,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 15),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    elevation: 1,
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    _currentUser!.displayName ??
-                        userData?['username'] ??
-                        'User',
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  child: const Text(
+                    'Back to Home',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
-                  Text(
-                    _currentUser!.email ?? '',
-                    style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 32),
-
-            // Profile Information
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Account Information',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    _buildInfoRow(
-                      icon: Icons.person,
-                      label: 'Username',
-                      value:
-                          _currentUser!.displayName ??
-                          userData?['username'] ??
-                          'Not set',
-                    ),
-
-                    _buildInfoRow(
-                      icon: Icons.email,
-                      label: 'Email',
-                      value: _currentUser!.email ?? 'Not set',
-                    ),
-
-                    _buildInfoRow(
-                      icon: Icons.verified_user,
-                      label: 'Email Verified',
-                      value: _currentUser!.emailVerified ? 'Yes' : 'No',
-                    ),
-
-                    if (userData?['createdAt'] != null)
-                      _buildInfoRow(
-                        icon: Icons.calendar_today,
-                        label: 'Member Since',
-                        value: _formatDate(userData!['createdAt']),
-                      ),
-
-                    if (userData?['lastLogin'] != null)
-                      _buildInfoRow(
-                        icon: Icons.access_time,
-                        label: 'Last Login',
-                        value: _formatDate(userData!['lastLogin']),
-                      ),
-                  ],
                 ),
-              ),
+              ],
             ),
-
-            const SizedBox(height: 24),
-
-            // Action Buttons
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed:
-                    () => Navigator.of(context).pushReplacementNamed('/home'),
-                icon: const Icon(Icons.quiz),
-                label: const Text('Back to Quiz'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: _signOut,
-                icon: const Icon(Icons.logout, color: Colors.red),
-                label: const Text(
-                  'Sign Out',
-                  style: TextStyle(color: Colors.red),
-                ),
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Colors.red),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildInfoRow({
-    required IconData icon,
+  Widget _buildInfoField({
     required String label,
     required String value,
+    required IconData icon,
   }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: Colors.blue),
-          const SizedBox(width: 12),
-          Expanded(
-            flex: 2,
-            child: Text(
-              label,
-              style: const TextStyle(fontWeight: FontWeight.w500),
-            ),
+    return Row(
+      children: [
+        Icon(icon, size: 22, color: Colors.blue.shade400),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
           ),
-          Expanded(
-            flex: 3,
-            child: Text(value, style: TextStyle(color: Colors.grey[700])),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 

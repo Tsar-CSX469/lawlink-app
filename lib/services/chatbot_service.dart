@@ -1,15 +1,19 @@
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:io';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ChatbotService {
-  static const String _apiKey =
-      'YOUR_GOOGLE_AI_API_KEY'; 
+  late final String _apiKey;
   late GenerativeModel _model;
+  String _selectedLanguage = 'English';
 
   ChatbotService() {
+    // Get API key from environment variables
+    _apiKey = dotenv.env['GEMINI_API_KEY'] ?? '';
+
     _model = GenerativeModel(
-      model: 'gemini-2.5-preview',
+      model: 'gemini-2.0-flash',
       apiKey: _apiKey,
       generationConfig: GenerationConfig(
         temperature: 0.7,
@@ -20,9 +24,17 @@ class ChatbotService {
     );
   }
 
+  void sendSystemPrompt(String language) {
+    _selectedLanguage = language;
+  }
+
   Future<String> sendMessage(String message) async {
     try {
-      
+      String languageInstruction =
+          _selectedLanguage == 'English'
+              ? "Please respond in English."
+              : "කරුණාකර සිංහලෙන් පිළිතුරු දෙන්න. (Please respond in Sinhala)";
+
       final contextualPrompt = '''
 You are LawLink AI, a specialized legal assistant for Sri Lankan law. You have expertise in:
 - Consumer Affairs Authority Act
@@ -30,6 +42,8 @@ You are LawLink AI, a specialized legal assistant for Sri Lankan law. You have e
 - Civil law, Criminal law, Commercial law
 - Legal procedures and rights in Sri Lanka
 - Legal document analysis
+
+$languageInstruction
 
 User query: $message
 
@@ -42,8 +56,12 @@ Please provide accurate, helpful information about Sri Lankan law. If you're not
       return response.text ??
           'I apologize, but I couldn\'t generate a response. Please try again.';
     } catch (e) {
+      print('Gemini API error: $e');
       if (e.toString().contains('API_KEY')) {
         return 'Please configure your Google AI API key in the ChatbotService to enable AI responses. For now, I can help you navigate through the law documents and provide basic guidance.';
+      } else if (e.toString().contains('not found') ||
+          e.toString().contains('not supported')) {
+        return 'The AI model is currently unavailable. Please check your model configuration or try again later.\n\nError details: ${e.toString()}';
       }
       return 'I\'m experiencing technical difficulties. Please try again later. Error: ${e.toString()}';
     }
@@ -54,16 +72,30 @@ Please provide accurate, helpful information about Sri Lankan law. If you're not
       final imageFile = File(imagePath);
       final imageBytes = await imageFile.readAsBytes();
 
+      // Create a vision-specific model for image analysis
+      final visionModel = GenerativeModel(
+        model: 'gemini-2.0-flash',
+        apiKey: _apiKey,
+        generationConfig: GenerationConfig(
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 1024,
+        ),
+      );
+      String languageInstruction =
+          _selectedLanguage == 'English'
+              ? "Please analyze this image in the context of Sri Lankan law. Identify any legal documents, signatures, or relevant legal content. Provide insights about what legal procedures or rights might be involved. Respond in English."
+              : "කරුණාකර ශ්‍රී ලංකා නීතිය පසුබිම් කරගෙන මෙම රූපය විශ්ලේෂණය කරන්න. ඕනෑම නීතිමය ලේඛන, අත්සන් හෝ අදාළ නීතිමය අන්තර්ගතය හඳුනා ගන්න. අදාළ විය හැකි නීතිමය ක්‍රියාපටිපාටි හෝ අයිතිවාසිකම් පිළිබඳ අදහස් ලබා දෙන්න. කරුණාකර සිංහලෙන් පිළිතුරු දෙන්න.";
+
       final content = [
         Content.multi([
-          TextPart(
-            'Please analyze this image in the context of Sri Lankan law. Identify any legal documents, signatures, or relevant legal content. Provide insights about what legal procedures or rights might be involved.',
-          ),
+          TextPart(languageInstruction),
           DataPart('image/jpeg', imageBytes),
         ]),
       ];
 
-      final response = await _model.generateContent(content);
+      final response = await visionModel.generateContent(content);
       return response.text ??
           'I couldn\'t analyze the image. Please try again.';
     } catch (e) {
@@ -89,8 +121,13 @@ Please provide accurate, helpful information about Sri Lankan law. If you're not
 
   Future<String> _analyzeTextContent(String content, String fileName) async {
     try {
+      String languagePrompt =
+          _selectedLanguage == 'English'
+              ? "Analyze this legal document content in the context of Sri Lankan law. Respond in English."
+              : "ශ්‍රී ලංකා නීතියේ පසුබිම තුළ මෙම නීති ලේඛනයේ අන්තර්ගතය විශ්ලේෂණය කරන්න. කරුණාකර සිංහලෙන් පිළිතුරු දෙන්න.";
+
       final prompt = '''
-Analyze this legal document content in the context of Sri Lankan law:
+$languagePrompt
 
 Document name: $fileName
 Content: $content
@@ -116,7 +153,8 @@ Please provide:
     // 1. Extract text from PDF using a library like pdf_text
     // 2. Send the extracted text to the AI model for analysis
 
-    return '''
+    if (_selectedLanguage == 'English') {
+      return '''
 PDF document "${file.name}" uploaded successfully. 
 
 For detailed analysis, I would need to extract the text content from the PDF. In the current implementation, please consider:
@@ -127,6 +165,19 @@ For detailed analysis, I would need to extract the text content from the PDF. In
 
 I can help you understand Sri Lankan legal procedures, consumer rights, and other legal matters based on the document context you provide.
 ''';
+    } else {
+      return '''
+PDF ලේඛනය "${file.name}" සාර්ථකව උඩුගත කරන ලදී.
+
+විස්තරාත්මක විශ්ලේෂණයක් සඳහා, මට PDF වෙතින් පෙළ අන්තර්ගතය උපුටා ගැනීමට අවශ්‍ය වනු ඇත. වත්මන් ක්‍රියාත්මක කිරීමේදී, කරුණාකර සලකා බලන්න:
+
+1. විශ්ලේෂණය සඳහා PDF පෙළ ආකෘතියට පරිවර්තනය කිරීම
+2. ලේඛනය පිළිබඳ නිශ්චිත කොටස් හෝ ප්‍රශ්න බෙදා ගැනීම
+3. ලේඛනයේ පෝරම හෝ අත්සන් අඩංගු නම් එය රූපයක් ලෙස උඩුගත කිරීම
+
+ඔබ සපයන ලේඛන සන්දර්භය මත පදනම්ව ශ්‍රී ලංකා නීති ක්‍රියාපටිපාටි, පාරිභෝගික අයිතිවාසිකම් සහ වෙනත් නීති කරුණු තේරුම් ගැනීමට මට ඔබට උපකාර කළ හැක.
+''';
+    }
   }
 
   // Pre-defined responses for common legal queries
