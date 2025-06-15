@@ -8,10 +8,15 @@ import 'package:lawlink/screens/login_page.dart';
 import 'package:lawlink/screens/register_page.dart';
 import 'package:lawlink/screens/user_profile_page.dart';
 import 'package:lawlink/services/auth_service.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Load environment variables
+  await dotenv.load(fileName: ".env");
+
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const LegalQuizGame());
 }
