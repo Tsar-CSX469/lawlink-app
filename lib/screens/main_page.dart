@@ -33,12 +33,14 @@ class _MainPageState extends State<MainPage> {
       });
 
       User? user = _authService.currentUser;
-      
+
       if (user != null) {
         // Use display name if available, otherwise use email
         setState(() {
-          _userName = user.displayName?.split(' ')[0] ?? 
-                     user.email?.split('@')[0] ?? 'User';
+          _userName =
+              user.displayName?.split(' ')[0] ??
+              user.email?.split('@')[0] ??
+              'User';
           _profileImageUrl = user.photoURL;
           _isLoading = false;
         });
@@ -91,7 +93,7 @@ class _MainPageState extends State<MainPage> {
     // Get the time of day for the greeting
     final hour = DateTime.now().hour;
     String greeting;
-    
+
     if (hour < 12) {
       greeting = 'Good Morning';
     } else if (hour < 17) {
@@ -105,257 +107,269 @@ class _MainPageState extends State<MainPage> {
       extendBodyBehindAppBar: true,
       backgroundColor: Colors.white,
       endDrawer: _buildDrawer(),
-      body: _isLoading 
-        ? const Center(child: CircularProgressIndicator())
-        : Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Colors.white, Colors.blue.shade50],
-              stops: const [0.7, 1.0],
-            ),
-          ),
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 20),
-                  
-                  // Header with profile and settings
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          // Profile image with circle avatar
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const UserProfilePage(),
+      body:
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Colors.white, Colors.blue.shade50],
+                    stops: const [0.7, 1.0],
+                  ),
+                ),
+                child: SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 20),
+
+                        // Header with profile and settings
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                // Profile image with circle avatar
+                                GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder:
+                                            (context) =>
+                                                const UserProfilePage(),
+                                      ),
+                                    );
+                                  },
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.1),
+                                          blurRadius: 10,
+                                          spreadRadius: 1,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    child: CircleAvatar(
+                                      radius: 25,
+                                      backgroundColor: Colors.blue.shade100,
+                                      backgroundImage:
+                                          _profileImageUrl != null
+                                              ? NetworkImage(_profileImageUrl!)
+                                              : null,
+                                      child:
+                                          _profileImageUrl == null
+                                              ? Text(
+                                                _userName[0].toUpperCase(),
+                                                style: const TextStyle(
+                                                  fontSize: 24,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.blue,
+                                                ),
+                                              )
+                                              : null,
+                                    ),
+                                  ),
                                 ),
-                              );
-                            },
-                            child: Container(
+                                const SizedBox(width: 15),
+
+                                // Greeting text
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      greeting,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      _userName,
+                                      style: const TextStyle(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+
+                            // Settings icon button
+                            Container(
                               decoration: BoxDecoration(
-                                shape: BoxShape.circle,
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(15),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.1),
+                                    color: Colors.black.withOpacity(0.05),
                                     blurRadius: 10,
-                                    spreadRadius: 1,
-                                    offset: const Offset(0, 2),
+                                    spreadRadius: 0,
                                   ),
                                 ],
                               ),
-                              child: CircleAvatar(
-                                radius: 25,
-                                backgroundColor: Colors.blue.shade100,
-                                backgroundImage: _profileImageUrl != null
-                                    ? NetworkImage(_profileImageUrl!)
-                                    : null,
-                                child: _profileImageUrl == null
-                                    ? Text(
-                                        _userName[0].toUpperCase(),
-                                        style: const TextStyle(
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.blue,
-                                        ),
-                                      )
-                                    : null,
+                              child: IconButton(
+                                icon: const Icon(Icons.settings_outlined),
+                                color: Colors.blue.shade700,
+                                onPressed: () {
+                                  _scaffoldKey.currentState?.openEndDrawer();
+                                },
                               ),
-                            ),
-                          ),
-                          const SizedBox(width: 15),
-                          
-                          // Greeting text
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                greeting,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                _userName,
-                                style: const TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      
-                      // Settings icon button
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(15),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 10,
-                              spreadRadius: 0,
                             ),
                           ],
                         ),
-                        child: IconButton(
-                          icon: const Icon(Icons.settings_outlined),
-                          color: Colors.blue.shade700,
-                          onPressed: () {
-                            _scaffoldKey.currentState?.openEndDrawer();
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                  
-                  const SizedBox(height: 40),
-                  
-                  // Welcome message
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.shade500,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.blue.withOpacity(0.3),
-                          blurRadius: 15,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+
+                        const SizedBox(height: 40),
+
+                        // Welcome message
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.shade500,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.blue.withOpacity(0.3),
+                                blurRadius: 15,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Row(
                             children: [
-                              const Text(
-                                "Welcome to LawLink",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      "Welcome to LawLink",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      "Your personal legal assistant",
+                                      style: TextStyle(
+                                        color: Colors.white.withOpacity(0.9),
+                                        fontSize: 15,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              const SizedBox(height: 8),
-                              Text(
-                                "Your personal legal assistant",
-                                style: TextStyle(
-                                  color: Colors.white.withOpacity(0.9),
-                                  fontSize: 15,
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                                child: const Icon(
+                                  Icons.gavel_rounded,
+                                  color: Colors.white,
+                                  size: 30,
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(15),
+
+                        const SizedBox(height: 30),
+
+                        // Title for cards
+                        const Text(
+                          "Services",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
                           ),
-                          child: const Icon(
-                            Icons.gavel_rounded,
-                            color: Colors.white,
-                            size: 30,
+                        ),
+
+                        const SizedBox(height: 20),
+
+                        // Feature cards in a grid
+                        Expanded(
+                          child: GridView.count(
+                            padding: EdgeInsets.zero,
+                            crossAxisCount: 2,
+                            mainAxisSpacing: 16,
+                            crossAxisSpacing: 16,
+                            childAspectRatio: 1.05,
+                            children: [
+                              // Quiz Game Card
+                              _buildFeatureCard(
+                                title: "Quiz Game",
+                                icon: Icons.quiz_rounded,
+                                color: Colors.orange,
+                                onTap: () {
+                                  Navigator.pushNamed(context, '/quiz');
+                                },
+                              ),
+
+                              // Law Library Card
+                              _buildFeatureCard(
+                                title: "Law Library",
+                                icon: Icons.menu_book_rounded,
+                                color: Colors.green,
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => const ActListPage(),
+                                    ),
+                                  );
+                                },
+                              ),
+
+                              // LawLink AI Card
+                              _buildFeatureCard(
+                                title: "LawLink AI",
+                                icon: Icons.smart_toy_rounded,
+                                color: Colors.blue.shade700,
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => const ChatbotPage(),
+                                    ),
+                                  );
+                                },
+                              ),
+
+                              // Procedures Card
+                              _buildFeatureCard(
+                                title: "Procedures",
+                                icon: Icons.assignment_outlined,
+                                color: Colors.blue,
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder:
+                                          (context) => const ProceduresPage(),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
                           ),
                         ),
                       ],
                     ),
                   ),
-                
-                  const SizedBox(height: 30),
-                  
-                  // Title for cards
-                  const Text(
-                    "Services",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  
-                  const SizedBox(height: 20),
-                  
-                  // Feature cards in a grid
-                  Expanded(
-                    child: GridView.count(
-                      padding: EdgeInsets.zero,
-                      crossAxisCount: 2,
-                      mainAxisSpacing: 16,
-                      crossAxisSpacing: 16,
-                      childAspectRatio: 1.05,
-                      children: [
-                        // Quiz Game Card
-                        _buildFeatureCard(
-                          title: "Quiz Game",
-                          icon: Icons.quiz_rounded,
-                          color: Colors.orange,
-                          onTap: () {
-                            Navigator.pushNamed(context, '/quiz');
-                          },
-                        ),
-                        
-                        // Law Library Card
-                        _buildFeatureCard(
-                          title: "Law Library",
-                          icon: Icons.menu_book_rounded,
-                          color: Colors.green,
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => const ActListPage()),
-                            );
-                          },
-                        ),
-                        
-                        // LawLink AI Card
-                        _buildFeatureCard(
-                          title: "LawLink AI",
-                          icon: Icons.smart_toy_rounded,
-                          color: Colors.purple,
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => const ChatbotPage()),
-                            );
-                          },
-                        ),
-                        
-                        // Procedures Card
-                        _buildFeatureCard(
-                          title: "Procedures",
-                          icon: Icons.assignment_outlined,
-                          color: Colors.blue,
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => const ProceduresPage()),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
-          ),
-        ),
     );
   }
 
@@ -388,11 +402,7 @@ class _MainPageState extends State<MainPage> {
                 color: color.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
-              child: Icon(
-                icon,
-                size: 40,
-                color: color,
-              ),
+              child: Icon(icon, size: 40, color: color),
             ),
             const SizedBox(height: 15),
             Text(
@@ -429,19 +439,21 @@ class _MainPageState extends State<MainPage> {
                   CircleAvatar(
                     radius: 30,
                     backgroundColor: Colors.white,
-                    backgroundImage: _profileImageUrl != null
-                        ? NetworkImage(_profileImageUrl!)
-                        : null,
-                    child: _profileImageUrl == null
-                        ? Text(
-                            _userName[0].toUpperCase(),
-                            style: const TextStyle(
-                              fontSize: 30,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blue,
-                            ),
-                          )
-                        : null,
+                    backgroundImage:
+                        _profileImageUrl != null
+                            ? NetworkImage(_profileImageUrl!)
+                            : null,
+                    child:
+                        _profileImageUrl == null
+                            ? Text(
+                              _userName[0].toUpperCase(),
+                              style: const TextStyle(
+                                fontSize: 30,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blue,
+                              ),
+                            )
+                            : null,
                   ),
                   const SizedBox(height: 10),
                   Text(
@@ -470,7 +482,9 @@ class _MainPageState extends State<MainPage> {
                 Navigator.pop(context);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const UserProfilePage()),
+                  MaterialPageRoute(
+                    builder: (context) => const UserProfilePage(),
+                  ),
                 );
               },
             ),
@@ -511,7 +525,9 @@ class _MainPageState extends State<MainPage> {
                 Navigator.pop(context);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const ProceduresPage()),
+                  MaterialPageRoute(
+                    builder: (context) => const ProceduresPage(),
+                  ),
                 );
               },
             ),
@@ -544,14 +560,8 @@ class _MainPageState extends State<MainPage> {
     required VoidCallback onTap,
   }) {
     return ListTile(
-      leading: Icon(
-        icon,
-        color: Colors.blue.shade700,
-      ),
-      title: Text(
-        title,
-        style: const TextStyle(fontSize: 16),
-      ),
+      leading: Icon(icon, color: Colors.blue.shade700),
+      title: Text(title, style: const TextStyle(fontSize: 16)),
       onTap: onTap,
     );
   }

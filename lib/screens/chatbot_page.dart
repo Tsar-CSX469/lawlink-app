@@ -1085,21 +1085,21 @@ class _ChatbotPageState extends State<ChatbotPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('AI Assistant'),
+        title: const Text('LawLink AI'),
         backgroundColor: Colors.white,
         elevation: 1,
         centerTitle: false,
-        titleTextStyle: const TextStyle(
+        titleTextStyle: TextStyle(
           color: Colors.black,
           fontSize: 18,
           fontWeight: FontWeight.bold,
         ),
-        iconTheme: const IconThemeData(color: Colors.black),
+        iconTheme: IconThemeData(color: Colors.black),
         actions: [
           // Language Selector
           DropdownButton<String>(
             value: _selectedLanguage,
-            icon: const Icon(Icons.language, color: Colors.blue, size: 18),
+            icon: const Icon(Icons.language, color: Colors.black, size: 19),
             underline: Container(),
             isDense: true, // Makes the button compact
             itemHeight: 48, // Smaller item height

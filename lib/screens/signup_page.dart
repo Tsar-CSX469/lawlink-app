@@ -106,18 +106,7 @@ class _SignUpPageState extends State<SignUpPage> {
     final screenHeight = MediaQuery.of(context).size.height;
     final keyboardInsets = MediaQuery.of(context).viewInsets.bottom;
     final bool isKeyboardVisible = keyboardInsets > 0;
-
     return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.blue),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, size: 22),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ),
       body: Container(
         height: screenHeight,
         decoration: BoxDecoration(
@@ -142,8 +131,21 @@ class _SignUpPageState extends State<SignUpPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Top spacer - smaller when keyboard is visible
-                    SizedBox(height: isKeyboardVisible ? 20 : 30),
+                    // Top spacer with back button
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: IconButton(
+                          icon: const Icon(Icons.arrow_back_ios_new, size: 22),
+                          color: Colors.blue,
+                          onPressed: () => Navigator.of(context).pop(),
+                        ),
+                      ),
+                    ),
+
+                    // Additional space depending on keyboard visibility
+                    SizedBox(height: isKeyboardVisible ? 10 : 20),
 
                     // Logo with subtle shadow - hide when keyboard is visible to save space
                     if (!isKeyboardVisible)
