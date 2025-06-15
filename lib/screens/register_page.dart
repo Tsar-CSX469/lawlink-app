@@ -116,14 +116,20 @@ class _RegisterPageState extends State<RegisterPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 20),
-
-              // Title
+              const SizedBox(height: 20), // Logo and Title
+              Center(
+                child: Image.asset(
+                  'assets/images/logo.png',
+                  height: 150,
+                  fit: BoxFit.contain,
+                ),
+              ),
+              const SizedBox(height: 24),
               const Text(
-                'Join Lawlink',
+                'Create Your Account',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 24,
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
                   color: Colors.blue,
                 ),

@@ -96,24 +96,17 @@ class _LoginPageState extends State<LoginPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 50),
-
-              // Logo/Title
-              const Icon(Icons.gavel, size: 80, color: Colors.blue),
-              const SizedBox(height: 16),
-              const Text(
-                'Lawlink',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blue,
-                ),
+              const SizedBox(height: 40), // Logo/Title
+              Image.asset(
+                'assets/images/logo.png',
+                height: 150,
+                fit: BoxFit.contain,
               ),
+              const SizedBox(height: 24),
               const Text(
                 'Welcome Back',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16, color: Colors.grey),
+                style: TextStyle(fontSize: 18, color: Colors.grey),
               ),
 
               const SizedBox(height: 50),
