@@ -5,7 +5,7 @@ import 'package:lawlink/add_act_page.dart'; // Import your Add Act Page
 import 'package:lawlink/widgets/floating_chatbot_button.dart';
 import 'package:lawlink/screens/auth_wrapper.dart';
 import 'package:lawlink/screens/login_page.dart';
-import 'package:lawlink/screens/register_page.dart';
+import 'package:lawlink/screens/signup_page.dart';
 import 'package:lawlink/screens/user_profile_page.dart';
 import 'package:lawlink/services/auth_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -31,8 +31,8 @@ class LegalQuizGame extends StatelessWidget {
       home: const AuthWrapper(),
       routes: {
         '/login': (context) => const LoginPage(),
-        '/register': (context) => const RegisterPage(),
-        '/home': (context) => const QuizPage(),
+        '/register': (context) => const SignUpPage(),
+        '/home': (context) => const ActListPage(),
         '/profile': (context) => const UserProfilePage(),
       },
     );

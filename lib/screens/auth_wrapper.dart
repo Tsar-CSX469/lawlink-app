@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
 import 'login_page.dart';
-import '../main.dart';
+import '../act_list_page.dart';
 
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});
@@ -19,11 +19,9 @@ class AuthWrapper extends StatelessWidget {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
-        }
-
-        // If user is logged in, show the main quiz page
+        } // If user is logged in, show the main act list page
         if (snapshot.hasData && snapshot.data != null) {
-          return const QuizPage();
+          return const ActListPage();
         }
 
         // If user is not logged in, show login page
