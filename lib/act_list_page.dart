@@ -78,14 +78,6 @@ class ActListPageState extends State<ActListPage> {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Sri Lankan Acts'),
-          backgroundColor: Colors.blue.shade50,
-          titleTextStyle: const TextStyle(
-            color: Colors.blue,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-          iconTheme: const IconThemeData(color: Colors.blue),
-          elevation: 0,
           actions: [
             // Debug button to view raw text
             IconButton(
@@ -94,7 +86,6 @@ class ActListPageState extends State<ActListPage> {
               onPressed: () {
                 _showRawText(context);
               },
-              color: Colors.blue,
             ),
           ],
         ),
@@ -168,13 +159,6 @@ class ActListPageState extends State<ActListPage> {
                   AppBar(
                     title: Text('Act No. ${act.number}: ${act.title}'),
                     automaticallyImplyLeading: false,
-                    backgroundColor: Colors.blue.shade50,
-                    titleTextStyle: TextStyle(
-                      color: Colors.blue,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    elevation: 0,
                     actions: [
                       IconButton(
                         icon: const Icon(Icons.close),
@@ -292,13 +276,6 @@ class ActListPageState extends State<ActListPage> {
                   AppBar(
                     title: const Text('Raw PDF Text (Debug)'),
                     automaticallyImplyLeading: false,
-                    backgroundColor: Colors.blue.shade50,
-                    titleTextStyle: const TextStyle(
-                      color: Colors.blue,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    elevation: 0,
                     actions: [
                       IconButton(
                         icon: const Icon(Icons.close),
