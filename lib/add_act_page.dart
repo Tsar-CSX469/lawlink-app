@@ -3,12 +3,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AddActPage extends StatefulWidget {
   const AddActPage({super.key});
-
   @override
-  _AddActPageState createState() => _AddActPageState();
+  AddActPageState createState() => AddActPageState();
 }
 
-class _AddActPageState extends State<AddActPage> {
+class AddActPageState extends State<AddActPage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _numberController = TextEditingController();
@@ -26,9 +25,9 @@ class _AddActPageState extends State<AddActPage> {
         });
         Navigator.pop(context); // Return to previous screen
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error adding act: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error adding act: $e')));
       }
     }
   }
@@ -36,7 +35,17 @@ class _AddActPageState extends State<AddActPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Add New Act')),
+      appBar: AppBar(
+        title: const Text('Add New Act'),
+        backgroundColor: Colors.blue.shade50,
+        titleTextStyle: const TextStyle(
+          color: Colors.blue,
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+        ),
+        iconTheme: const IconThemeData(color: Colors.blue),
+        elevation: 0,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
