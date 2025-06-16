@@ -129,7 +129,7 @@ class ActListPageState extends State<ActListPage> {
     
     // Default to first 150 characters if preamble not found
     return content.length > 150 
-        ? content.substring(0, 150) + "..." 
+        ? "${content.substring(0, 150)}..." 
         : content;
   }
   
