@@ -67,7 +67,6 @@ class _ChatbotPageState extends State<ChatbotPage> {
   bool _isPlaying = false;
   bool _isProcessing = false;
   String _recordedAudioPath = '';
-  String? _currentAudioPath;
   ScrollController _scrollController = ScrollController();
 
   late ChatbotService _chatbotService;
@@ -262,7 +261,6 @@ class _ChatbotPageState extends State<ChatbotPage> {
       final audioPath = await _elevenLabsService.textToSpeech(processedText);
 
       if (audioPath != null) {
-        _currentAudioPath = audioPath;
         await _audioPlayer.play(DeviceFileSource(audioPath));
       } else {
         // Show error message if audio generation failed
