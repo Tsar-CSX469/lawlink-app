@@ -61,7 +61,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
   bool _isProcessing = false;
   String _recordedAudioPath = '';
   String? _currentAudioPath;
-  ScrollController _scrollController = ScrollController();
+  final ScrollController _scrollController = ScrollController();
 
   // File Upload
   final ImagePicker _imagePicker = ImagePicker();
@@ -242,7 +242,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
       // Limit text length if too long (ElevenLabs has character limits)
       String processedText = text;
       if (text.length > 1000) {
-        processedText = text.substring(0, 1000) + "...";
+        processedText = "${text.substring(0, 1000)}...";
       }
 
       final audioPath = await _elevenLabsService.textToSpeech(processedText);
