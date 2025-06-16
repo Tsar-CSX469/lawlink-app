@@ -2,6 +2,7 @@ import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:io';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:lawlink/screens/chatbot_page.dart';
 
 class ChatbotService {
   late final String _apiKey;
@@ -28,30 +29,38 @@ class ChatbotService {
     _selectedLanguage = language;
   }
 
-  Future<String> sendMessage(String message) async {
+  Future<String> sendMessage(
+    String newMessageText,
+    List<Message> chatHistory,
+  ) async {
     try {
       String languageInstruction =
           _selectedLanguage == 'English'
               ? "Please respond in English."
               : "කරුණාකර සිංහලෙන් පිළිතුරු දෙන්න. (Please respond in Sinhala)";
 
-      final contextualPrompt = '''
-You are LawLink AI, a specialized legal assistant for Sri Lankan law. You have expertise in:
-- Consumer Affairs Authority Act
-- Constitution of Sri Lanka
-- Civil law, Criminal law, Commercial law
-- Legal procedures and rights in Sri Lanka
-- Legal document analysis
+      final baseSystemInstruction = '''
+          You are LawLink AI, a specialized legal assistant for Sri Lankan law. You have expertise in:
+          - Consumer Affairs Authority Act
+          - Constitution of Sri Lanka
+          - Civil law, Criminal law, Commercial law
+          - Legal procedures and rights in Sri Lanka
+          - Legal document analysis
 
-$languageInstruction
+          Please provide accurate, helpful information about Sri Lankan law. If you're not certain about specific legal details, recommend consulting with a qualified lawyer.
+          ''';
 
-User query: $message
+      final fullSystemInstruction =
+          "$baseSystemInstruction\n\n$languageInstruction";
+      List<Content> geminiContents =
+          chatHistory.map((msg) => msg.toGeminiContent()).toList();
 
-Please provide accurate, helpful information about Sri Lankan law. If you're not certain about specific legal details, recommend consulting with a qualified lawyer.
-''';
+      geminiContents.insert(0, Content.text(fullSystemInstruction));
 
-      final content = [Content.text(contextualPrompt)];
-      final response = await _model.generateContent(content);
+      final chat = _model.startChat(history: geminiContents);
+
+      // final content = [Content.text(contextualPrompt)];
+      final response = await chat.sendMessage(Content.text(newMessageText));
 
       return response.text ??
           'I apologize, but I couldn\'t generate a response. Please try again.';
