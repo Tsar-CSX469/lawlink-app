@@ -55,14 +55,19 @@ class _LoginPageState extends State<LoginPage> {
     setState(() => _isLoading = true);
 
     try {
-      await _authService.signInWithGoogle();
+      final result = await _authService.signInWithGoogle();
 
-      if (mounted) {
+      // Only navigate if we have a successful result and the user is still mounted
+      if (result != null && mounted) {
         Navigator.of(context).pushReplacementNamed('/home');
       }
     } catch (e) {
       if (mounted) {
-        _showErrorDialog(e.toString());
+        // Only show error dialog for actual errors, not for user cancellations
+        if (!e.toString().contains('canceled by the user')) {
+          _showErrorDialog(e.toString());
+        }
+        // No navigation happens here, so the user stays on the login page
       }
     } finally {
       if (mounted) {
