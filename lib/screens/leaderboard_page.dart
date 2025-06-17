@@ -311,392 +311,435 @@ class _LeaderboardPageState extends State<LeaderboardPage>
     );
   }
 
-  Widget _buildPodium(List<LeaderboardEntry> entries) {
-    if (entries.isEmpty) return const SizedBox.shrink();
+  // Complete fixes for all overflow issues
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 32),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Text(
-              '🏆 Champions',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey.shade800,
-              ),
-            ),
-          ),
-          Container(
-            height: 280,
-            child: Stack(
-              alignment: Alignment.bottomCenter,
-              children: [
-                // Podium bases
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    if (entries.length >= 2) _buildPodiumBase(120, Colors.grey.shade300, '2'),
-                    if (entries.isNotEmpty) _buildPodiumBase(160, Colors.amber.shade300, '1'),
-                    if (entries.length >= 3) _buildPodiumBase(100, Colors.brown.shade300, '3'),
-                  ],
-                ),
-                // Winners
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    if (entries.length >= 2) 
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 120),
-                        child: _buildWinnerCard(entries[1], 2),
-                      ),
-                    if (entries.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 160),
-                        child: _buildWinnerCard(entries[0], 1),
-                      ),
-                    if (entries.length >= 3)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 100),
-                        child: _buildWinnerCard(entries[2], 3),
-                      ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
-        ],
-      ),
-    );
-  }
+// 1. Fixed _buildPodium method
+Widget _buildPodium(List<LeaderboardEntry> entries) {
+  if (entries.isEmpty) return const SizedBox.shrink();
 
-  Widget _buildPodiumBase(double height, Color color, String position) {
-    return Container(
-      width: 80,
-      height: height,
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 4,
-            spreadRadius: 1,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Center(
-        child: Text(
-          position,
-          style: const TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+  return Container(
+    margin: const EdgeInsets.only(bottom: 32),
+    child: Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Text(
+            '🏆 Champions',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey.shade800,
+            ),
           ),
         ),
+        SizedBox(
+          height: 350, // Increased height significantly
+          width: double.infinity,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              double availableWidth = constraints.maxWidth;
+              double cardWidth = (availableWidth - 60) / 3; // Account for padding
+              cardWidth = cardWidth.clamp(80.0, 120.0); // Min/Max width
+              
+              return Stack(
+                alignment: Alignment.bottomCenter,
+                children: [
+                  // Podium bases
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      if (entries.length >= 2) 
+                        _buildPodiumBase(120, Colors.grey.shade300, '2', cardWidth),
+                      if (entries.isNotEmpty) 
+                        _buildPodiumBase(160, Colors.amber.shade300, '1', cardWidth),
+                      if (entries.length >= 3) 
+                        _buildPodiumBase(100, Colors.brown.shade300, '3', cardWidth),
+                    ],
+                  ),
+                  // Winners
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      if (entries.length >= 2) 
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 140),
+                          child: _buildWinnerCard(entries[1], 2, cardWidth),
+                        ),
+                      if (entries.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 180),
+                          child: _buildWinnerCard(entries[0], 1, cardWidth),
+                        ),
+                      if (entries.length >= 3)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 120),
+                          child: _buildWinnerCard(entries[2], 3, cardWidth),
+                        ),
+                    ],
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 24),
+      ],
+    ),
+  );
+}
+
+// 2. Fixed _buildPodiumBase method with dynamic width
+Widget _buildPodiumBase(double height, Color color, String position, double width) {
+  return Container(
+    width: width,
+    height: height,
+    decoration: BoxDecoration(
+      color: color,
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.1),
+          blurRadius: 4,
+          spreadRadius: 1,
+          offset: const Offset(0, 2),
+        ),
+      ],
+    ),
+    child: Center(
+      child: Text(
+        position,
+        style: const TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
       ),
-    );
+    ),
+  );
+}
+
+// 3. Fixed _buildWinnerCard method with dynamic width and better overflow handling
+Widget _buildWinnerCard(LeaderboardEntry entry, int position, double cardWidth) {
+  Color primaryColor;
+  Color secondaryColor;
+  IconData crownIcon;
+  
+  switch (position) {
+    case 1:
+      primaryColor = Colors.amber.shade400;
+      secondaryColor = Colors.amber.shade100;
+      crownIcon = Icons.emoji_events;
+      break;
+    case 2:
+      primaryColor = Colors.grey.shade400;
+      secondaryColor = Colors.grey.shade100;
+      crownIcon = Icons.workspace_premium;
+      break;
+    case 3:
+      primaryColor = Colors.brown.shade400;
+      secondaryColor = Colors.brown.shade100;
+      crownIcon = Icons.military_tech;
+      break;
+    default:
+      primaryColor = Colors.grey.shade400;
+      secondaryColor = Colors.grey.shade100;
+      crownIcon = Icons.star;
   }
 
-  Widget _buildWinnerCard(LeaderboardEntry entry, int position) {
-    Color primaryColor;
-    Color secondaryColor;
-    IconData crownIcon;
-    
-    switch (position) {
-      case 1:
-        primaryColor = Colors.amber.shade400;
-        secondaryColor = Colors.amber.shade100;
-        crownIcon = Icons.emoji_events;
-        break;
-      case 2:
-        primaryColor = Colors.grey.shade400;
-        secondaryColor = Colors.grey.shade100;
-        crownIcon = Icons.workspace_premium;
-        break;
-      case 3:
-        primaryColor = Colors.brown.shade400;
-        secondaryColor = Colors.brown.shade100;
-        crownIcon = Icons.military_tech;
-        break;
-      default:
-        primaryColor = Colors.grey.shade400;
-        secondaryColor = Colors.grey.shade100;
-        crownIcon = Icons.star;
-    }
+  double percentage = (entry.score / entry.total) * 100;
+  bool isCurrentUser = _auth.currentUser?.uid == entry.userId;
 
-    double percentage = (entry.score / entry.total) * 100;
-    bool isCurrentUser = _auth.currentUser?.uid == entry.userId;
-
-    return Container(
-      width: 90,
-      child: Column(
-        children: [
-          // Crown/Medal
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: primaryColor,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: primaryColor.withOpacity(0.3),
-                  blurRadius: 8,
-                  spreadRadius: 2,
-                ),
-              ],
-            ),
-            child: Icon(crownIcon, color: Colors.white, size: 24),
-          ),
-          const SizedBox(height: 8),
-          // User Avatar
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              color: secondaryColor,
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: isCurrentUser ? Colors.blue.shade400 : primaryColor,
-                width: 3,
+  return SizedBox(
+    width: cardWidth,
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Crown/Medal
+        Container(
+          width: 28,
+          height: 28,
+          decoration: BoxDecoration(
+            color: primaryColor,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: primaryColor.withOpacity(0.3),
+                blurRadius: 4,
+                spreadRadius: 1,
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 8,
-                  spreadRadius: 1,
-                ),
-              ],
+            ],
+          ),
+          child: Icon(crownIcon, color: Colors.white, size: 16),
+        ),
+        const SizedBox(height: 4),
+        // User Avatar
+        Container(
+          width: cardWidth * 0.6, // Responsive avatar size
+          height: cardWidth * 0.6,
+          decoration: BoxDecoration(
+            color: secondaryColor,
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: isCurrentUser ? Colors.blue.shade400 : primaryColor,
+              width: 2,
             ),
-            child: Center(
-              child: Text(
-                entry.userName.isNotEmpty 
-                    ? entry.userName[0].toUpperCase() 
-                    : 'U',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: primaryColor,
-                ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 4,
+                spreadRadius: 1,
+              ),
+            ],
+          ),
+          child: Center(
+            child: Text(
+              entry.userName.isNotEmpty 
+                  ? entry.userName[0].toUpperCase() 
+                  : 'U',
+              style: TextStyle(
+                fontSize: cardWidth * 0.25, // Responsive font size
+                fontWeight: FontWeight.bold,
+                color: primaryColor,
               ),
             ),
           ),
-          const SizedBox(height: 8),
-          // User Name
-          Text(
-            entry.userName,
+        ),
+        const SizedBox(height: 4),
+        // User Name - Fixed overflow
+        Container(
+          width: cardWidth,
+          child: Text(
+            entry.userName.length > 8 
+                ? '${entry.userName.substring(0, 8)}...' 
+                : entry.userName,
             style: const TextStyle(
-              fontSize: 12,
+              fontSize: 9,
               fontWeight: FontWeight.bold,
               color: Colors.black87,
             ),
             textAlign: TextAlign.center,
-            maxLines: 2,
+            maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-          // Score
-          Text(
-            '${percentage.toStringAsFixed(1)}%',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: primaryColor,
-            ),
+        ),
+        const SizedBox(height: 2),
+        // Score
+        Text(
+          '${percentage.toStringAsFixed(0)}%', // Removed decimal for space
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
+            color: primaryColor,
           ),
-          if (isCurrentUser)
-            Container(
-              margin: const EdgeInsets.only(top: 4),
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: Colors.blue.shade100,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Text(
-                'You',
-                style: TextStyle(
-                  fontSize: 8,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blue.shade700,
-                ),
-              ),
+        ),
+        if (isCurrentUser) ...[
+          const SizedBox(height: 2),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
+            decoration: BoxDecoration(
+              color: Colors.blue.shade100,
+              borderRadius: BorderRadius.circular(6),
             ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLeaderboardItem(LeaderboardEntry entry, int rank) {
-    double percentage = (entry.score / entry.total) * 100;
-    bool isCurrentUser = _auth.currentUser?.uid == entry.userId;
-    
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: isCurrentUser ? Colors.blue.shade50 : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: isCurrentUser ? Border.all(color: Colors.blue.shade300, width: 2) : null,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 12,
-            spreadRadius: 0,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        leading: Container(
-          width: 45,
-          height: 45,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                _getRankColor(rank).withOpacity(0.8),
-                _getRankColor(rank).withOpacity(0.6),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(22.5),
-          ),
-          child: Center(
             child: Text(
-              '#$rank',
-              style: const TextStyle(
+              'You',
+              style: TextStyle(
+                fontSize: 6,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
-                fontSize: 14,
+                color: Colors.blue.shade700,
               ),
             ),
           ),
-        ),
-        title: Row(
-          children: [
-            Expanded(
-              child: Text(
-                entry.userName,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                  color: isCurrentUser ? Colors.blue.shade700 : Colors.black87,
-                ),
-              ),
-            ),
-            if (isCurrentUser)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: Colors.blue.shade100,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  'You',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue.shade700,
-                  ),
-                ),
-              ),
-          ],
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 6),
-            Row(
-              children: [
-                Icon(
-                  Icons.quiz,
-                  size: 14,
-                  color: Colors.grey.shade600,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  '${entry.score}/${entry.total} points',
-                  style: TextStyle(
-                    color: Colors.grey.shade600,
-                    fontSize: 13,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Icon(
-                  Icons.category,
-                  size: 14,
-                  color: Colors.blue.shade600,
-                ),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: Text(
-                    _getQuizDisplayName(entry.quizId),
-                    style: TextStyle(
-                      color: Colors.blue.shade600,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                Icon(
-                  Icons.access_time,
-                  size: 14,
-                  color: Colors.grey.shade500,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  _formatDate(entry.completedAt),
-                  style: TextStyle(
-                    color: Colors.grey.shade500,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: LinearProgressIndicator(
-                value: percentage / 100,
-                backgroundColor: Colors.grey.shade200,
-                valueColor: AlwaysStoppedAnimation<Color>(_getScoreColor(percentage)),
-                minHeight: 6,
-              ),
-            ),
-          ],
-        ),
-        trailing: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              '${percentage.toStringAsFixed(1)}%',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-                color: _getScoreColor(percentage),
-              ),
-            ),
-            const SizedBox(height: 2),
-            Icon(
-              _getScoreIcon(percentage),
-              color: _getScoreColor(percentage),
-              size: 18,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+        ],
+      ],
+    ),
+  );
+}
 
+// 4. Fixed _buildLeaderboardItem method for horizontal overflow
+Widget _buildLeaderboardItem(LeaderboardEntry entry, int rank) {
+  double percentage = (entry.score / entry.total) * 100;
+  bool isCurrentUser = _auth.currentUser?.uid == entry.userId;
+  
+  return Container(
+    margin: const EdgeInsets.only(bottom: 12),
+    decoration: BoxDecoration(
+      color: isCurrentUser ? Colors.blue.shade50 : Colors.white,
+      borderRadius: BorderRadius.circular(16),
+      border: isCurrentUser ? Border.all(color: Colors.blue.shade300, width: 2) : null,
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.06),
+          blurRadius: 12,
+          spreadRadius: 0,
+          offset: const Offset(0, 4),
+        ),
+      ],
+    ),
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        children: [
+          // Rank circle
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  _getRankColor(rank).withOpacity(0.8),
+                  _getRankColor(rank).withOpacity(0.6),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Center(
+              child: Text(
+                '#$rank',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          // Main content - Fixed overflow
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Name and "You" badge row
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        entry.userName,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                          color: isCurrentUser ? Colors.blue.shade700 : Colors.black87,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    ),
+                    if (isCurrentUser) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.shade100,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          'You',
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue.shade700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: 6),
+                // Score and category info - Fixed overflow
+                Row(
+                  children: [
+                    Icon(Icons.quiz, size: 12, color: Colors.grey.shade600),
+                    const SizedBox(width: 3),
+                    Text(
+                      '${entry.score}/${entry.total}',
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 11,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Icon(Icons.category, size: 12, color: Colors.blue.shade600),
+                    const SizedBox(width: 3),
+                    Expanded(
+                      child: Text(
+                        _getQuizDisplayName(entry.quizId),
+                        style: TextStyle(
+                          color: Colors.blue.shade600,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                // Time info
+                Row(
+                  children: [
+                    Icon(Icons.access_time, size: 12, color: Colors.grey.shade500),
+                    const SizedBox(width: 3),
+                    Expanded(
+                      child: Text(
+                        _formatDate(entry.completedAt),
+                        style: TextStyle(
+                          color: Colors.grey.shade500,
+                          fontSize: 10,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                // Progress bar
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(3),
+                  child: LinearProgressIndicator(
+                    value: percentage / 100,
+                    backgroundColor: Colors.grey.shade200,
+                    valueColor: AlwaysStoppedAnimation<Color>(_getScoreColor(percentage)),
+                    minHeight: 4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          // Score percentage - Fixed size
+          SizedBox(
+            width: 60,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  '${percentage.toStringAsFixed(1)}%',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: _getScoreColor(percentage),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Icon(
+                  _getScoreIcon(percentage),
+                  color: _getScoreColor(percentage),
+                  size: 16,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+  
   Widget _buildEmptyState(String? quizFilter) {
     String categoryName = _quizCategories
         .firstWhere((cat) => cat.id == quizFilter, 
