@@ -19,3 +19,15 @@ subprojects {
 tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
 }
+
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath("com.android.tools.build:gradle:8.3.0") // Update to latest
+        classpath("com.google.gms:google-services:4.4.2") // Add Firebase classpath
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.22") // Match Flutter's Kotlin version
+    }
+}
