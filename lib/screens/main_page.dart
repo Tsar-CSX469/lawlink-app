@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:ui';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:lawlink/services/auth_service.dart';
 import 'package:lawlink/screens/user_profile_page.dart';
@@ -17,7 +18,6 @@ class _MainPageState extends State<MainPage> {
   final AuthService _authService = AuthService();
   String _userName = 'User';
   String? _profileImageUrl;
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _isLoading = true;
 
   @override
@@ -57,34 +57,31 @@ class _MainPageState extends State<MainPage> {
     }
   }
 
-  Future<void> _showLogoutDialog() async {
-    return showDialog<void>(
+  void _showFeatureComingSoonDialog(BuildContext context) {
+    showDialog(
       context: context,
-      barrierDismissible: true,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Logout'),
-          content: const Text('Are you sure you want to logout?'),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+      builder:
+          (context) => AlertDialog(
+            title: Text(
+              'Coming Soon',
+              style: TextStyle(color: Colors.blue.shade700),
             ),
-            TextButton(
-              child: const Text('Logout'),
-              onPressed: () async {
-                Navigator.of(context).pop();
-                await _authService.signOut();
-                if (mounted) {
-                  Navigator.of(context).pushReplacementNamed('/login');
-                }
-              },
+            content: const Text(
+              'This feature will be available in a future update.',
             ),
-          ],
-        );
-      },
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(
+                  'OK',
+                  style: TextStyle(color: Colors.blue.shade700),
+                ),
+              ),
+            ],
+          ),
     );
   }
 
@@ -101,12 +98,108 @@ class _MainPageState extends State<MainPage> {
     } else {
       greeting = 'Good Evening';
     }
-
     return Scaffold(
-      key: _scaffoldKey,
       extendBodyBehindAppBar: true,
-      backgroundColor: Colors.white,
-      endDrawer: _buildDrawer(),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: Container(
+          decoration: BoxDecoration(
+            color:
+                Theme.of(context).appBarTheme.backgroundColor ?? Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.blue.withOpacity(0.1),
+                spreadRadius: 0,
+                blurRadius: 15,
+                offset: const Offset(0, 1),
+              ),
+            ],
+          ),
+          child: AppBar(
+            title: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Logo without name
+                Padding(
+                  padding: const EdgeInsets.only(right: 10.0),
+                  child: Image.asset(
+                    'assets/images/logo-without-name.png',
+                    height: 28,
+                  ),
+                ),
+                // App Title
+                ShaderMask(
+                  shaderCallback:
+                      (bounds) => LinearGradient(
+                        colors: [Colors.blue.shade800, Colors.blue.shade300],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ).createShader(bounds),
+                  child: const Text(
+                    'LawLink',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            scrolledUnderElevation: 0,
+            surfaceTintColor: Colors.transparent,
+            shadowColor: Colors.transparent,
+            actions: [
+              // Profile icon button
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const UserProfilePage(),
+                    ),
+                  );
+                },
+                child: Container(
+                  margin: const EdgeInsets.only(right: 16),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 5,
+                        spreadRadius: 0,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: CircleAvatar(
+                    radius: 18,
+                    backgroundColor: Colors.blue.shade100,
+                    backgroundImage:
+                        _profileImageUrl != null
+                            ? NetworkImage(_profileImageUrl!)
+                            : null,
+                    child:
+                        _profileImageUrl == null
+                            ? Text(
+                              _userName[0].toUpperCase(),
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blue.shade700,
+                              ),
+                            )
+                            : null,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
       body:
           _isLoading
               ? const Center(child: CircularProgressIndicator())
@@ -120,253 +213,218 @@ class _MainPageState extends State<MainPage> {
                   ),
                 ),
                 child: SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 20),
-
-                        // Header with profile and settings
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  child: Stack(
+                    children: [
+                      // Main content
+                      Padding(
+                        padding: const EdgeInsets.all(20.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
-                              children: [
-                                // Profile image with circle avatar
-                                GestureDetector(
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder:
-                                            (context) =>
-                                                const UserProfilePage(),
-                                      ),
-                                    );
-                                  },
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.1),
-                                          blurRadius: 10,
-                                          spreadRadius: 1,
-                                          offset: const Offset(0, 2),
-                                        ),
-                                      ],
-                                    ),
-                                    child: CircleAvatar(
-                                      radius: 25,
-                                      backgroundColor: Colors.blue.shade100,
-                                      backgroundImage:
-                                          _profileImageUrl != null
-                                              ? NetworkImage(_profileImageUrl!)
-                                              : null,
-                                      child:
-                                          _profileImageUrl == null
-                                              ? Text(
-                                                _userName[0].toUpperCase(),
-                                                style: const TextStyle(
-                                                  fontSize: 24,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.blue,
-                                                ),
-                                              )
-                                              : null,
+                            // Simplified welcome banner with light white/blue gradient
+                            Container(
+                              margin: const EdgeInsets.symmetric(vertical: 15),
+                              padding: const EdgeInsets.all(22),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [Colors.white, Colors.blue.shade50],
+                                ),
+                                borderRadius: BorderRadius.circular(24),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.blue.withOpacity(0.1),
+                                    blurRadius: 10,
+                                    spreadRadius: 0,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                                border: Border.all(
+                                  color: Colors.blue.shade100,
+                                  width: 1,
+                                ),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Greeting text
+                                  Text(
+                                    greeting,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.blue.shade600,
+                                      letterSpacing: 0.3,
                                     ),
                                   ),
-                                ),
-                                const SizedBox(width: 15),
+                                  const SizedBox(height: 5),
+                                  Row(
+                                    children: [
+                                      Text(
+                                        _userName,
+                                        style: TextStyle(
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.blue.shade800,
+                                          letterSpacing: -0.5,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 5),
+                                      const Icon(
+                                        Icons.waving_hand_rounded,
+                                        color: Colors.amber,
+                                        size: 20,
+                                      ),
+                                    ],
+                                  ),
 
-                                // Greeting text
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      greeting,
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        color: Colors.grey,
-                                      ),
+                                  const SizedBox(height: 10),
+                                  Divider(
+                                    color: Colors.blue.shade200.withOpacity(
+                                      0.3,
                                     ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      _userName,
-                                      style: const TextStyle(
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                    thickness: 0.5,
+                                  ),
+                                  const SizedBox(height: 8),
+
+                                  // Simple welcome text
+                                  Text(
+                                    "Welcome to LawLink",
+                                    style: TextStyle(
+                                      color: Colors.blue.shade700,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
                                     ),
-                                  ],
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            const SizedBox(height: 25),
+
+                            // Services title
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.grid_view_rounded,
+                                  color: Colors.blue.shade700,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 8),
+                                const Text(
+                                  "Services",
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ],
                             ),
 
-                            // Settings icon button
-                            Container(
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(15),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.05),
-                                    blurRadius: 10,
-                                    spreadRadius: 0,
+                            const SizedBox(height: 20),
+
+                            // Feature cards
+                            Expanded(
+                              child: GridView.count(
+                                padding: EdgeInsets.zero,
+                                crossAxisCount: 2,
+                                mainAxisSpacing: 16,
+                                crossAxisSpacing: 16,
+                                childAspectRatio: 1.05,
+                                children: [
+                                  // Quiz Game Card
+                                  _buildFeatureCard(
+                                    title: "Quiz Game",
+                                    icon: Icons.lightbulb_outline,
+                                    color: Colors.blue.shade700,
+                                    onTap: () {
+                                      Navigator.pushNamed(context, '/quiz');
+                                    },
+                                  ),
+
+                                  // Law Library Card
+                                  _buildFeatureCard(
+                                    title: "Law Library",
+                                    icon: Icons.menu_book_rounded,
+                                    color: Colors.blue.shade700,
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder:
+                                              (context) => const ActListPage(),
+                                        ),
+                                      );
+                                    },
+                                  ), // LawLink AI Card
+                                  _buildFeatureCard(
+                                    title: "LawLink AI",
+                                    icon: Icons.bubble_chart_rounded,
+                                    color: Colors.blue.shade700,
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder:
+                                              (context) => const ChatbotPage(),
+                                        ),
+                                      );
+                                    },
+                                  ),
+
+                                  // Procedures Card
+                                  _buildFeatureCard(
+                                    title: "Procedures",
+                                    icon: Icons.assignment_outlined,
+                                    color: Colors.blue.shade700,
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder:
+                                              (context) =>
+                                                  const ProceduresPage(),
+                                        ),
+                                      );
+                                    },
                                   ),
                                 ],
-                              ),
-                              child: IconButton(
-                                icon: const Icon(Icons.settings_outlined),
-                                color: Colors.blue.shade700,
-                                onPressed: () {
-                                  _scaffoldKey.currentState?.openEndDrawer();
-                                },
                               ),
                             ),
                           ],
                         ),
-
-                        const SizedBox(height: 40),
-
-                        // Welcome message
-                        Container(
-                          padding: const EdgeInsets.all(16),
+                      ),
+                      // Settings button at the bottom left
+                      Positioned(
+                        left: 20,
+                        bottom: 20,
+                        child: Container(
                           decoration: BoxDecoration(
-                            color: Colors.blue.shade500,
-                            borderRadius: BorderRadius.circular(20),
+                            shape: BoxShape.circle,
+                            color: Colors.white,
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.blue.withOpacity(0.3),
-                                blurRadius: 15,
-                                offset: const Offset(0, 4),
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 8,
+                                spreadRadius: 1,
+                                offset: const Offset(0, 2),
                               ),
                             ],
                           ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      "Welcome to LawLink",
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      "Your personal legal assistant",
-                                      style: TextStyle(
-                                        color: Colors.white.withOpacity(0.9),
-                                        fontSize: 15,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.2),
-                                  borderRadius: BorderRadius.circular(15),
-                                ),
-                                child: const Icon(
-                                  Icons.gavel_rounded,
-                                  color: Colors.white,
-                                  size: 30,
-                                ),
-                              ),
-                            ],
+                          child: IconButton(
+                            icon: Icon(
+                              Icons.settings_outlined,
+                              color: Colors.blue.shade700,
+                            ),
+                            onPressed: () {
+                              _showFeatureComingSoonDialog(context);
+                            },
+                            tooltip: 'Settings',
                           ),
                         ),
-
-                        const SizedBox(height: 30),
-
-                        // Title for cards
-                        const Text(
-                          "Services",
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-
-                        const SizedBox(height: 20),
-
-                        // Feature cards in a grid
-                        Expanded(
-                          child: GridView.count(
-                            padding: EdgeInsets.zero,
-                            crossAxisCount: 2,
-                            mainAxisSpacing: 16,
-                            crossAxisSpacing: 16,
-                            childAspectRatio: 1.05,
-                            children: [
-                              // Quiz Game Card
-                              _buildFeatureCard(
-                                title: "Quiz Game",
-                                icon: Icons.quiz_rounded,
-                                color: Colors.orange,
-                                onTap: () {
-                                  Navigator.pushNamed(context, '/quiz');
-                                },
-                              ),
-
-                              // Law Library Card
-                              _buildFeatureCard(
-                                title: "Law Library",
-                                icon: Icons.menu_book_rounded,
-                                color: Colors.green,
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => const ActListPage(),
-                                    ),
-                                  );
-                                },
-                              ),
-
-                              // LawLink AI Card
-                              _buildFeatureCard(
-                                title: "LawLink AI",
-                                icon: Icons.smart_toy_rounded,
-                                color: Colors.blue.shade700,
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => const ChatbotPage(),
-                                    ),
-                                  );
-                                },
-                              ),
-
-                              // Procedures Card
-                              _buildFeatureCard(
-                                title: "Procedures",
-                                icon: Icons.assignment_outlined,
-                                color: Colors.blue,
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder:
-                                          (context) => const ProceduresPage(),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -416,153 +474,6 @@ class _MainPageState extends State<MainPage> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildDrawer() {
-    return Drawer(
-      child: Container(
-        color: Colors.white,
-        child: ListView(
-          children: [
-            DrawerHeader(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Colors.blue.shade400, Colors.blue.shade700],
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CircleAvatar(
-                    radius: 30,
-                    backgroundColor: Colors.white,
-                    backgroundImage:
-                        _profileImageUrl != null
-                            ? NetworkImage(_profileImageUrl!)
-                            : null,
-                    child:
-                        _profileImageUrl == null
-                            ? Text(
-                              _userName[0].toUpperCase(),
-                              style: const TextStyle(
-                                fontSize: 30,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.blue,
-                              ),
-                            )
-                            : null,
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    _userName,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    _authService.currentUser?.email ?? '',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.8),
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            _buildDrawerItem(
-              icon: Icons.person_outline,
-              title: 'Profile',
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const UserProfilePage(),
-                  ),
-                );
-              },
-            ),
-            _buildDrawerItem(
-              icon: Icons.quiz_outlined,
-              title: 'Quiz Game',
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(context, '/quiz');
-              },
-            ),
-            _buildDrawerItem(
-              icon: Icons.menu_book_outlined,
-              title: 'Law Library',
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const ActListPage()),
-                );
-              },
-            ),
-            _buildDrawerItem(
-              icon: Icons.smart_toy_outlined,
-              title: 'LawLink AI',
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const ChatbotPage()),
-                );
-              },
-            ),
-            _buildDrawerItem(
-              icon: Icons.assignment_outlined,
-              title: 'Procedures',
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const ProceduresPage(),
-                  ),
-                );
-              },
-            ),
-            const Divider(),
-            _buildDrawerItem(
-              icon: Icons.settings_outlined,
-              title: 'Settings',
-              onTap: () {
-                Navigator.pop(context);
-                // TODO: Navigate to settings
-              },
-            ),
-            _buildDrawerItem(
-              icon: Icons.logout,
-              title: 'Logout',
-              onTap: () {
-                Navigator.pop(context);
-                _showLogoutDialog();
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDrawerItem({
-    required IconData icon,
-    required String title,
-    required VoidCallback onTap,
-  }) {
-    return ListTile(
-      leading: Icon(icon, color: Colors.blue.shade700),
-      title: Text(title, style: const TextStyle(fontSize: 16)),
-      onTap: onTap,
     );
   }
 }

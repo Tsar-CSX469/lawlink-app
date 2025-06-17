@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
@@ -31,6 +32,12 @@ class Message {
     this.fileName,
     this.audioPath,
   });
+
+  Content toGeminiContent() {
+    final role = isUser ? 'user' : 'assistant';
+    final parts = [TextPart(text)];
+    return Content(role, parts);
+  }
 }
 
 enum MessageStatus { sending, delivered, error }
@@ -44,7 +51,7 @@ class ChatbotPage extends StatefulWidget {
 
 class _ChatbotPageState extends State<ChatbotPage> {
   final List<Message> _messages = [];
-  final ChatbotService _chatbotService = ChatbotService();
+  // final ChatbotService _chatbotService = ChatbotService();
   final ElevenLabsService _elevenLabsService = ElevenLabsService();
   final TextEditingController _textController = TextEditingController();
   // Voice Recording
@@ -63,17 +70,22 @@ class _ChatbotPageState extends State<ChatbotPage> {
   String? _currentAudioPath;
   final ScrollController _scrollController = ScrollController();
 
-  // File Upload
-  final ImagePicker _imagePicker = ImagePicker();
+  late ChatbotService _chatbotService;
+
   @override
   void initState() {
     super.initState();
-    // Use a delayed call to ensure context is available
+    _chatbotService = ChatbotService(); // Initialize here
+    _initializeSpeech();
+    _requestPermissions();
+    _addWelcomeMessage();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializeServices();
     });
-    _addWelcomeMessage();
   }
+
+  // File Upload
+  final ImagePicker _imagePicker = ImagePicker();
 
   @override
   void dispose() {
@@ -158,7 +170,6 @@ class _ChatbotPageState extends State<ChatbotPage> {
   Future<void> _sendMessage(String text) async {
     if (text.trim().isEmpty) return;
 
-    // Add user message
     final userMessage = Message(
       isUser: true,
       text: text,
@@ -171,9 +182,14 @@ class _ChatbotPageState extends State<ChatbotPage> {
     });
 
     _scrollToBottom();
-    _textController.clear(); // Send message to AI service
+    _textController.clear();
     try {
-      final response = await _chatbotService.sendMessage(text);
+      List<Message> historyToSend = List.from(_messages);
+      const int maxTurns = 10;
+      if (historyToSend.length > maxTurns) {
+        historyToSend = historyToSend.sublist(historyToSend.length - maxTurns);
+      }
+      final response = await _chatbotService.sendMessage(text, historyToSend);
 
       final aiMessage = Message(
         isUser: false,
@@ -186,8 +202,6 @@ class _ChatbotPageState extends State<ChatbotPage> {
         _isProcessing = false;
       });
       _scrollToBottom();
-
-      // No longer automatically read response aloud
     } catch (e) {
       final errorMessage = Message(
         isUser: false,
@@ -248,7 +262,6 @@ class _ChatbotPageState extends State<ChatbotPage> {
       final audioPath = await _elevenLabsService.textToSpeech(processedText);
 
       if (audioPath != null) {
-        _currentAudioPath = audioPath;
         await _audioPlayer.play(DeviceFileSource(audioPath));
       } else {
         // Show error message if audio generation failed
@@ -563,6 +576,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
     // Note: In a real implementation, you would send the audio to a speech-to-text service
     final response = await _chatbotService.sendMessage(
       "User sent an audio message",
+      List.from(_messages),
     );
     final aiMessage = Message(
       isUser: false,
@@ -1112,13 +1126,19 @@ class _ChatbotPageState extends State<ChatbotPage> {
         preferredSize: const Size.fromHeight(kToolbarHeight),
         child: Container(
           decoration: BoxDecoration(
-            // Only add a subtle bottom border
-            border: Border(
-              bottom: BorderSide(
-                color: Colors.blue.withOpacity(0.2),
-                width: 0.5,
+            color:
+                Theme.of(context).appBarTheme.backgroundColor ??
+                Colors.white, // Or a specific color for your app bar
+            boxShadow: [
+              BoxShadow(
+                // ignore: deprecated_member_use
+                color: Colors.blue.withOpacity(0.1), // Subtle shadow color
+                spreadRadius: 0, // No spread, just blur
+                blurRadius:
+                    15, // Adjust for desired blur intensity of the shadow
+                offset: Offset(0, 1), // Shadow primarily below the app bar
               ),
-            ),
+            ],
           ),
           child: AppBar(
             title: ShaderMask(

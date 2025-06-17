@@ -178,7 +178,7 @@ class _SignUpPageState extends State<SignUpPage> {
                         children: [
                           // Username Field
                           const Text(
-                            'Username',
+                            'Name',
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
                               fontSize: 14,
