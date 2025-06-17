@@ -336,7 +336,7 @@ class _MainPageState extends State<MainPage> {
                                   // Quiz Game Card
                                   _buildFeatureCard(
                                     title: "Quiz Game",
-                                    icon: Icons.quiz_rounded,
+                                    icon: Icons.lightbulb_outline,
                                     color: Colors.blue.shade700,
                                     onTap: () {
                                       Navigator.pushNamed(context, '/quiz');
@@ -357,12 +357,10 @@ class _MainPageState extends State<MainPage> {
                                         ),
                                       );
                                     },
-                                  ),
-
-                                  // LawLink AI Card
+                                  ), // LawLink AI Card
                                   _buildFeatureCard(
                                     title: "LawLink AI",
-                                    icon: Icons.smart_toy_rounded,
+                                    icon: Icons.bubble_chart_rounded,
                                     color: Colors.blue.shade700,
                                     onTap: () {
                                       Navigator.push(
