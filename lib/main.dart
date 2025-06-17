@@ -5,8 +5,10 @@ import 'package:lawlink/screens/login_page.dart';
 import 'package:lawlink/screens/signup_page.dart';
 import 'package:lawlink/screens/main_page.dart';
 import 'package:lawlink/screens/user_profile_page.dart';
-import 'package:lawlink/screens/quiz_page.dart';
+import 'package:lawlink/screens/consumer_quiz_page.dart';
 import 'package:lawlink/screens/procedures_page.dart';
+import 'package:lawlink/screens/quiz_menu_page.dart';
+import 'package:lawlink/screens/leaderboard_page.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'firebase_options.dart';
 
@@ -33,8 +35,10 @@ class LegalQuizGame extends StatelessWidget {
         '/register': (context) => const SignUpPage(),
         '/home': (context) => const MainPage(),
         '/profile': (context) => const UserProfilePage(),
-        '/quiz': (context) => const QuizPage(),
+        '/quiz': (context) => const QuizMenuPage(), 
+        '/quiz/consumer': (context) => const ConsumerQuizPage(), 
         '/procedures': (context) => const ProceduresPage(),
+        '/leaderboard': (context) => const LeaderboardPage(),
       },
     );
   }

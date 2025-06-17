@@ -67,7 +67,8 @@ class _ChatbotPageState extends State<ChatbotPage> {
   bool _isPlaying = false;
   bool _isProcessing = false;
   String _recordedAudioPath = '';
-  ScrollController _scrollController = ScrollController();
+  String? _currentAudioPath;
+  final ScrollController _scrollController = ScrollController();
 
   late ChatbotService _chatbotService;
 
@@ -255,7 +256,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
       // Limit text length if too long (ElevenLabs has character limits)
       String processedText = text;
       if (text.length > 1000) {
-        processedText = text.substring(0, 1000) + "...";
+        processedText = "${text.substring(0, 1000)}...";
       }
 
       final audioPath = await _elevenLabsService.textToSpeech(processedText);
