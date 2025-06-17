@@ -18,6 +18,7 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
   bool _isCorrect = false;
   String _explanation = '';
   int _score = 0;
+  int _selectedAnswerIndex = -1; // Track which answer the user selected
 
   // Animation controller for page transitions
   late PageController _pageController;
@@ -92,11 +93,18 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
     };
   }
 
-  void _answerQuestion(bool correct, String explanation, int points) {
+  void _answerQuestion(
+    bool correct,
+    String explanation,
+    int points, {
+    int? answerIndex,
+  }) {
     setState(() {
       _answered = true;
       _isCorrect = correct;
       _explanation = explanation;
+      _selectedAnswerIndex =
+          answerIndex ?? -1; // Store the selected answer index
       if (correct) {
         _score += points;
       }
@@ -110,6 +118,7 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
         _answered = false;
         _isCorrect = false;
         _explanation = '';
+        _selectedAnswerIndex = -1; // Reset the selected answer index
       });
     } else {
       _showQuizComplete();
@@ -933,11 +942,23 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
                                   onTap:
                                       _answered
                                           ? null
-                                          : () => _answerQuestion(
-                                            isCorrect,
-                                            question['explanation'] as String,
-                                            currentPoints,
-                                          ),
+                                          : () {
+                                            // Find the index of this answer in the list
+                                            final answerIndex =
+                                                (question['answers']
+                                                        as List<
+                                                          Map<String, Object>
+                                                        >)
+                                                    .indexWhere(
+                                                      (a) => a == answer,
+                                                    );
+                                            _answerQuestion(
+                                              isCorrect,
+                                              question['explanation'] as String,
+                                              currentPoints,
+                                              answerIndex: answerIndex,
+                                            );
+                                          },
                                   borderRadius: BorderRadius.circular(16),
                                   splashColor: Colors.blue.withOpacity(0.1),
                                   highlightColor: Colors.blue.withOpacity(0.05),
@@ -1249,6 +1270,12 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
   }
 
   int _getSelectedAnswerIndex() {
+    // If we have tracked the selected answer index, use it
+    if (_selectedAnswerIndex >= 0) {
+      return _selectedAnswerIndex;
+    }
+
+    // Otherwise fallback to previous behavior (finding correct answer when correct, or first incorrect when wrong)
     final answers =
         _questions[_currentQuestion]['answers'] as List<Map<String, Object>>;
     for (int i = 0; i < answers.length; i++) {
