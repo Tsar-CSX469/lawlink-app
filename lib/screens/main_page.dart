@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:lawlink/services/auth_service.dart';
 import 'package:lawlink/screens/user_profile_page.dart';
 import 'package:lawlink/screens/chatbot_page.dart';
-import 'package:lawlink/screens/procedures_page.dart';
+import 'package:lawlink/screens/legal_procedures_page.dart';
 import 'package:lawlink/act_list_page.dart';
 
 class MainPage extends StatefulWidget {
@@ -251,25 +251,47 @@ class _MainPageState extends State<MainPage> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   // Greeting text
-                                  Text(
-                                    greeting,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                      color: Colors.blue.shade600,
-                                      letterSpacing: 0.3,
+                                  ShaderMask(
+                                    shaderCallback:
+                                        (bounds) => LinearGradient(
+                                          colors: [
+                                            Colors.blue.shade800,
+                                            Colors.blue.shade300,
+                                          ],
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                        ).createShader(bounds),
+                                    child: Text(
+                                      greeting,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.white,
+                                        letterSpacing: 0.3,
+                                      ),
                                     ),
                                   ),
                                   const SizedBox(height: 5),
                                   Row(
                                     children: [
-                                      Text(
-                                        _userName,
-                                        style: TextStyle(
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.blue.shade800,
-                                          letterSpacing: -0.5,
+                                      ShaderMask(
+                                        shaderCallback:
+                                            (bounds) => LinearGradient(
+                                              colors: [
+                                                Colors.blue.shade800,
+                                                Colors.blue.shade300,
+                                              ],
+                                              begin: Alignment.topLeft,
+                                              end: Alignment.bottomRight,
+                                            ).createShader(bounds),
+                                        child: Text(
+                                          _userName,
+                                          style: const TextStyle(
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                            letterSpacing: -0.5,
+                                          ),
                                         ),
                                       ),
                                       const SizedBox(width: 5),
@@ -386,7 +408,7 @@ class _MainPageState extends State<MainPage> {
                                         MaterialPageRoute(
                                           builder:
                                               (context) =>
-                                                  const ProceduresPage(),
+                                                  const LegalProceduresPage(),
                                         ),
                                       );
                                     },
