@@ -13,13 +13,11 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
   List<Map<String, dynamic>> _questions = [];
   bool _isLoading = true;
   String _errorMessage = '';
-
   int _currentQuestion = 0;
   bool _answered = false;
   bool _isCorrect = false;
   String _explanation = '';
   int _score = 0;
-  int _totalQuestions = 0;
 
   // Animation controller for page transitions
   late PageController _pageController;
@@ -50,11 +48,9 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
 
         // Assuming the quiz questions are stored as an array in the document
         final questionsData = data['questions'] as List<dynamic>? ?? [];
-
         setState(() {
           _questions =
               questionsData.map((q) => _convertFirestoreQuestion(q)).toList();
-          _totalQuestions = _questions.length;
           _isLoading = false;
         });
       } else {
@@ -131,14 +127,50 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Quiz Complete!'),
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          elevation: 8,
+          shadowColor:
+              percentage >= 70
+                  ? Colors.blue.withOpacity(0.3)
+                  : Colors.grey.withOpacity(0.2),
+          title: ShaderMask(
+            shaderCallback:
+                (bounds) => LinearGradient(
+                  colors: [Colors.blue.shade800, Colors.blue.shade400],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ).createShader(bounds),
+            child: const Text(
+              'Quiz Complete!',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                percentage >= 70 ? Icons.celebration : Icons.info,
-                size: 64,
-                color: percentage >= 70 ? Colors.green : Colors.orange,
+              AnimatedContainer(
+                duration: const Duration(seconds: 1),
+                curve: Curves.elasticOut,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color:
+                      percentage >= 70
+                          ? Colors.green.shade50
+                          : Colors.orange.shade50,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  percentage >= 70 ? Icons.emoji_events : Icons.info,
+                  size: 64,
+                  color: percentage >= 70 ? Colors.amber : Colors.orange,
+                ),
               ),
               const SizedBox(height: 16),
               Text(
@@ -150,29 +182,98 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
               ),
               Text('Percentage: $percentage%'),
               const SizedBox(height: 8),
-              Text(
-                percentage >= 70 ? 'Excellent work!' : 'Keep studying!',
-                style: TextStyle(
-                  color: percentage >= 70 ? Colors.green : Colors.orange,
-                  fontWeight: FontWeight.bold,
-                ),
+              Column(
+                children: [
+                  Text(
+                    percentage >= 70 ? 'Excellent work!' : 'Keep studying!',
+                    style: TextStyle(
+                      color: percentage >= 70 ? Colors.green : Colors.orange,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                  ),
+                  if (percentage >= 70)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 8),
+                      child: Text(
+                        'You\'ve mastered this topic! Check the leaderboard to see how you rank.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.grey, fontSize: 12),
+                      ),
+                    ),
+                ],
               ),
             ],
           ),
           actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                _restartQuiz();
-              },
-              child: const Text('Restart Quiz'),
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.grey.shade300),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.shade200.withOpacity(0.5),
+                    blurRadius: 3,
+                    offset: const Offset(0, 1),
+                  ),
+                ],
+              ),
+              child: TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  _restartQuiz();
+                },
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.grey.shade800,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                ),
+                child: const Text('Restart Quiz'),
+              ),
             ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                Navigator.of(context).pop(); // Go back to previous screen
-              },
-              child: const Text('Exit'),
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.blue.shade400, Colors.blue.shade700],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.blue.shade200.withOpacity(0.5),
+                    blurRadius: 5,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: TextButton(
+                onPressed: () {
+                  Navigator.of(
+                    context,
+                  ).pop(); // Close the dialog                  // Navigate to leaderboard with a slide animation
+                  Navigator.of(context).pushReplacementNamed(
+                    '/leaderboard',
+                    arguments: {
+                      'fromQuiz': true,
+                      'quizScore': _score,
+                      'quizId': 'consumer_affairs_quiz',
+                    },
+                  );
+                },
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  textStyle: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                child: const Text('View Leaderboard'),
+              ),
             ),
           ],
         );
@@ -670,30 +771,18 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
                                 vertical: 6,
                               ),
                               decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    Colors.green.shade400,
-                                    Colors.green.shade600,
-                                  ],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                ),
+                                // color: Colors.blue.shade700,
                                 borderRadius: BorderRadius.circular(14),
                               ),
                               child: Row(
                                 children: [
-                                  const Icon(
-                                    Icons.star,
-                                    color: Colors.amber,
-                                    size: 14,
-                                  ),
                                   const SizedBox(width: 4),
                                   Text(
                                     '$currentPoints pts',
                                     style: const TextStyle(
-                                      fontSize: 12,
+                                      fontSize: 14,
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.white,
+                                      color: Colors.blue,
                                     ),
                                   ),
                                 ],
@@ -724,6 +813,86 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
                               ),
                             ),
                           ),
+                      ],
+                    ),
+                  ),
+                  // Progress indicator (moved to top)
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 20),
+                    padding: const EdgeInsets.fromLTRB(8, 12, 8, 12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.blue.withOpacity(0.1),
+                          blurRadius: 8,
+                          spreadRadius: 0,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Question ${_currentQuestion + 1} of ${_questions.length}',
+                              style: TextStyle(
+                                color: Colors.blue.shade800,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            Text(
+                              '${((_currentQuestion + 1) / _questions.length * 100).round()}%',
+                              style: TextStyle(
+                                color: Colors.blue.shade700,
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Container(
+                          height: 10,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade200,
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          child: Row(
+                            children: [
+                              AnimatedContainer(
+                                duration: const Duration(milliseconds: 500),
+                                curve: Curves.easeInOut,
+                                width:
+                                    (MediaQuery.of(context).size.width - 48) *
+                                    ((_currentQuestion + 1) /
+                                        _questions.length),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      Colors.blue.shade500,
+                                      Colors.blue.shade800,
+                                    ],
+                                    begin: Alignment.centerLeft,
+                                    end: Alignment.centerRight,
+                                  ),
+                                  borderRadius: BorderRadius.circular(5),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.blue.withOpacity(0.3),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 1),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -850,25 +1019,25 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
                       margin: const EdgeInsets.only(top: 10, bottom: 20),
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors:
-                              _isCorrect
-                                  ? [
-                                    Colors.green.shade50,
-                                    Colors.green.shade100,
-                                  ]
-                                  : [Colors.red.shade50, Colors.red.shade100],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
+                        color:
+                            _isCorrect
+                                ? Colors.green.shade50.withOpacity(0.3)
+                                : Colors.red.shade50.withOpacity(0.3),
                         borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color:
+                              _isCorrect
+                                  ? Colors.green.shade200
+                                  : Colors.red.shade200,
+                          width: 1,
+                        ),
                         boxShadow: [
                           BoxShadow(
                             color:
                                 _isCorrect
-                                    ? Colors.green.shade200.withOpacity(0.5)
-                                    : Colors.red.shade200.withOpacity(0.5),
-                            blurRadius: 10,
+                                    ? Colors.green.shade200.withOpacity(0.2)
+                                    : Colors.red.shade200.withOpacity(0.2),
+                            blurRadius: 8,
                             spreadRadius: 0,
                             offset: const Offset(0, 2),
                           ),
@@ -918,39 +1087,22 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
                             ],
                           ),
                           const SizedBox(height: 16),
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Explanation:',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.blue,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  _explanation,
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    height: 1.5,
-                                    color: Colors.grey.shade800,
-                                  ),
-                                ),
-                              ],
+                          // Explanation text
+                          Text(
+                            _explanation,
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey.shade900,
+                              height: 1.5,
                             ),
                           ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 20),
+
+                          // Next Question button - moved higher
                           Container(
                             width: double.infinity,
                             height: 50,
+                            margin: const EdgeInsets.only(bottom: 16),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(16),
                               gradient: LinearGradient(
@@ -1009,99 +1161,6 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
                         ],
                       ),
                     ),
-
-                  // Progress indicator
-                  Container(
-                    margin: const EdgeInsets.symmetric(vertical: 20),
-                    child: Column(
-                      children: [
-                        Text(
-                          'Question ${_currentQuestion + 1} of ${_questions.length}',
-                          style: TextStyle(
-                            color: Colors.grey.shade700,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Container(
-                          height: 10,
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade200,
-                            borderRadius: BorderRadius.circular(5),
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                width:
-                                    MediaQuery.of(context).size.width *
-                                        ((_currentQuestion + 1) /
-                                            _questions.length) -
-                                    32,
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      Colors.blue.shade400,
-                                      Colors.blue.shade700,
-                                    ],
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                  ),
-                                  borderRadius: BorderRadius.circular(5),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: List.generate(
-                              _questions.length,
-                              (index) => Container(
-                                width: 14,
-                                height: 14,
-                                margin: const EdgeInsets.symmetric(
-                                  horizontal: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color:
-                                      index == _currentQuestion
-                                          ? Colors.blue.shade600
-                                          : index < _currentQuestion
-                                          ? Colors.green.shade400
-                                          : Colors.grey.shade300,
-                                  border:
-                                      index == _currentQuestion
-                                          ? Border.all(
-                                            color: Colors.blue.shade200,
-                                            width: 2,
-                                          )
-                                          : null,
-                                  boxShadow:
-                                      index == _currentQuestion
-                                          ? [
-                                            BoxShadow(
-                                              color: Colors.blue.withOpacity(
-                                                0.3,
-                                              ),
-                                              blurRadius: 4,
-                                              spreadRadius: 0,
-                                              offset: const Offset(0, 1),
-                                            ),
-                                          ]
-                                          : null,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
                 ],
               ),
             ),
@@ -1142,7 +1201,6 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
     if (!_answered) {
       return [Colors.white, Colors.white];
     }
-
     if (isCorrect) {
       return [Colors.green.shade50, Colors.green.shade100];
     }
@@ -1158,7 +1216,6 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
     if (!_answered) {
       return Colors.grey.shade800;
     }
-
     if (isCorrect) {
       return Colors.green.shade800;
     }
@@ -1174,7 +1231,6 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
     if (!_answered) {
       return Colors.grey.shade200;
     }
-
     if (isCorrect) {
       return Colors.green.shade300;
     }
