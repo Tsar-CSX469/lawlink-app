@@ -70,26 +70,47 @@ class _UserProfilePageState extends State<UserProfilePage> {
     final userData = _userData?.data() as Map<String, dynamic>?;
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: ShaderMask(
-          shaderCallback:
-              (bounds) => LinearGradient(
-                colors: [Colors.blue.shade800, Colors.blue.shade300],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ).createShader(bounds),
-          child: const Text(
-            'My Profile',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+      extendBodyBehindAppBar: true,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: Container(
+          decoration: BoxDecoration(
+            color:
+                Theme.of(context).appBarTheme.backgroundColor ?? Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.blue.withOpacity(0.1),
+                spreadRadius: 0,
+                blurRadius: 15,
+                offset: const Offset(0, 1),
+              ),
+            ],
+          ),
+          child: AppBar(
+            title: ShaderMask(
+              shaderCallback:
+                  (bounds) => LinearGradient(
+                    colors: [Colors.blue.shade800, Colors.blue.shade300],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ).createShader(bounds),
+              child: const Text(
+                'My Profile',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
             ),
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            scrolledUnderElevation: 0,
+            surfaceTintColor: Colors.transparent,
+            shadowColor: Colors.transparent,
+            iconTheme: IconThemeData(color: Colors.blue.shade700),
           ),
         ),
-        iconTheme: IconThemeData(color: Colors.blue.shade700),
       ),
       body: Container(
         decoration: BoxDecoration(
@@ -175,7 +196,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                               size: 16,
                               color:
                                   _currentUser!.emailVerified
-                                      ? const Color.fromARGB(255, 43, 109, 45)
+                                      ? const Color.fromARGB(255, 48, 114, 51)
                                       : Colors.amber,
                             ),
                             const SizedBox(width: 6),
@@ -186,7 +207,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                               style: TextStyle(
                                 color:
                                     _currentUser!.emailVerified
-                                        ? const Color.fromARGB(255, 43, 109, 45)
+                                        ? const Color.fromARGB(255, 48, 114, 51)
                                         : Colors.amber,
                                 fontSize: 14,
                               ),
@@ -350,8 +371,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.transparent,
-                      foregroundColor: Colors.white,
                       shadowColor: Colors.transparent,
+                      foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),

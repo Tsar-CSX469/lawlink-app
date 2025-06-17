@@ -276,9 +276,9 @@ class ActListPageState extends State<ActListPage> {
                                             _downloadPdf(context, act);
                                           },
                                           style: ElevatedButton.styleFrom(
+                                            foregroundColor: Colors.white,
                                             backgroundColor:
                                                 Colors.blue.shade700,
-                                            foregroundColor: Colors.white,
                                             padding: const EdgeInsets.symmetric(
                                               vertical: 12,
                                             ),
