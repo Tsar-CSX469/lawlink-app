@@ -58,17 +58,6 @@ class ActListPageState extends State<ActListPage> {
               title: "Consumer Affairs Authority Act",
               content: text,
             ),
-            // Adding some example acts for demonstration purpose
-            Act(
-              number: "42 of 2011",
-              title: "Companies Act",
-              content: "Sample content for Companies Act...",
-            ),
-            Act(
-              number: "15 of 2000",
-              title: "Electronic Transactions Act",
-              content: "Sample content for Electronic Transactions Act...",
-            ),
           ];
           isLoading = false;
         });
@@ -210,7 +199,9 @@ class ActListPageState extends State<ActListPage> {
                           return Card(
                             margin: const EdgeInsets.only(bottom: 16),
                             elevation: 4,
-                            shadowColor: Colors.blue.withOpacity(0.2),
+                            // ignore: deprecated_member_use
+                            shadowColor: Colors.blue.withOpacity(0.1),
+                            color: Colors.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
                               side: BorderSide(
@@ -270,7 +261,8 @@ class ActListPageState extends State<ActListPage> {
                                   const SizedBox(height: 16),
                                   // Action buttons row with download and share
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceAround,
                                     children: [
                                       // Download button
                                       Expanded(
@@ -284,7 +276,8 @@ class ActListPageState extends State<ActListPage> {
                                             _downloadPdf(context, act);
                                           },
                                           style: ElevatedButton.styleFrom(
-                                            backgroundColor: Colors.blue.shade700,
+                                            backgroundColor:
+                                                Colors.blue.shade700,
                                             foregroundColor: Colors.white,
                                             padding: const EdgeInsets.symmetric(
                                               vertical: 12,
@@ -305,8 +298,11 @@ class ActListPageState extends State<ActListPage> {
                                             _sharePdf(context, act);
                                           },
                                           style: OutlinedButton.styleFrom(
-                                            foregroundColor: Colors.blue.shade700,
-                                            side: BorderSide(color: Colors.blue.shade300),
+                                            foregroundColor:
+                                                Colors.blue.shade700,
+                                            side: BorderSide(
+                                              color: Colors.blue.shade300,
+                                            ),
                                             padding: const EdgeInsets.symmetric(
                                               vertical: 12,
                                             ),
@@ -327,6 +323,7 @@ class ActListPageState extends State<ActListPage> {
       ),
     );
   }
+
   String _getSummary(String content) {
     if (content.length <= 100) {
       return content;
@@ -381,6 +378,7 @@ class ActListPageState extends State<ActListPage> {
       );
     }
   }
+
   // Method to share Act information
   Future<void> _sharePdf(BuildContext context, Act act) async {
     try {
@@ -394,12 +392,12 @@ class ActListPageState extends State<ActListPage> {
 
       // Get the position of the widget to show the share dialog (important for iPads)
       final box = context.findRenderObject() as RenderBox?;
-      
+
       // Share act information
       await Share.share(
         'Check out ${act.title} (Act No. ${act.number})',
         subject: '${act.title} - Legal Document',
-        sharePositionOrigin: 
+        sharePositionOrigin:
             box != null ? box.localToGlobal(Offset.zero) & box.size : null,
       );
     } catch (e) {
