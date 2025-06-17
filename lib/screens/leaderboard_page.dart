@@ -180,80 +180,106 @@ class _LeaderboardPageState extends State<LeaderboardPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('🏆 Leaderboard'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        flexibleSpace: Container(
+      backgroundColor: Colors.white,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(110), // Height for app bar + tabs
+        child: Container(
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Colors.blue.shade400, Colors.purple.shade400],
-            ),
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.blue.withOpacity(0.1),
+                spreadRadius: 0,
+                blurRadius: 15,
+                offset: const Offset(0, 1),
+              ),
+            ],
           ),
-        ),
-        titleTextStyle: const TextStyle(
-          color: Colors.white,
-          fontSize: 22,
-          fontWeight: FontWeight.bold,
-        ),
-        iconTheme: const IconThemeData(color: Colors.white),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(50),
-          child: Container(
-            height: 50,
-            child: TabBar(
-              controller: _tabController,
-              isScrollable: true,
-              labelColor: Colors.white,
-              unselectedLabelColor: Colors.white70,
-              indicatorColor: Colors.white,
-              indicatorWeight: 3,
-              labelStyle: const TextStyle(fontWeight: FontWeight.bold),
-              tabs:
-                  _quizCategories
-                      .map(
-                        (category) => Tab(
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(category.icon, size: 16),
-                              const SizedBox(width: 4),
-                              Text(category.name),
-                            ],
-                          ),
-                        ),
-                      )
-                      .toList(),
-            ),
+          child: Column(
+            children: [
+              AppBar(
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                scrolledUnderElevation: 0,
+                surfaceTintColor: Colors.transparent,
+                shadowColor: Colors.transparent,
+                centerTitle: true,
+                title: ShaderMask(
+                  shaderCallback: (bounds) => LinearGradient(
+                    colors: [Colors.blue.shade800, Colors.blue.shade300],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ).createShader(bounds),
+                  child: const Text(
+                    '🏆 Leaderboard',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+              Container(
+                height: 50,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border(
+                    bottom: BorderSide(
+                      color: Colors.grey.shade200,
+                      width: 1,
+                    ),
+                  ),
+                ),
+                child: TabBar(
+                  controller: _tabController,
+                  isScrollable: true,
+                  labelColor: Colors.blue.shade700,
+                  unselectedLabelColor: Colors.grey.shade600,
+                  indicatorColor: Colors.blue.shade500,
+                  indicatorWeight: 3,
+                  labelStyle: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                  unselectedLabelStyle: const TextStyle(
+                    fontWeight: FontWeight.normal,
+                    fontSize: 14,
+                  ),
+                  indicatorSize: TabBarIndicatorSize.label,
+                  tabs: _quizCategories.map((category) => Tab(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(category.icon, size: 18),
+                          const SizedBox(width: 8),
+                          Text(category.name),
+                        ],
+                      ),
+                    ),
+                  )).toList(),
+                ),
+              ),
+            ],
           ),
         ),
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.grey.shade50, Colors.white],
-            stops: const [0.0, 0.3],
-          ),
-        ),
-        child:
-            _isLoading
-                ? _buildLoadingState()
-                : _error != null
-                ? _buildErrorState()
-                : TabBarView(
-                  controller: _tabController,
-                  children:
-                      _quizCategories
-                          .map(
-                            (category) =>
-                                _buildLeaderboardList(quizFilter: category.id),
-                          )
+      body: SafeArea(
+        child: Container(
+          color: Colors.white,
+          child: _isLoading 
+              ? _buildLoadingState()
+              : _error != null
+                  ? _buildErrorState()
+                  : TabBarView(
+                      controller: _tabController,
+                      children: _quizCategories
+                          .map((category) => _buildLeaderboardList(quizFilter: category.id))
                           .toList(),
-                ),
+                    ),
+        ),
       ),
     );
   }
@@ -264,12 +290,17 @@ class _LeaderboardPageState extends State<LeaderboardPage>
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(Colors.blue.shade400),
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.blue.shade500),
+            strokeWidth: 3,
           ),
           const SizedBox(height: 16),
           Text(
             'Loading leaderboard...',
-            style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.blue.shade700,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ],
       ),
@@ -281,24 +312,31 @@ class _LeaderboardPageState extends State<LeaderboardPage>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.error_outline, size: 80, color: Colors.red.shade300),
+          Icon(Icons.error_outline, size: 80, color: Colors.blue.shade300),
           const SizedBox(height: 16),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32),
             child: Text(
               _error!,
-              style: TextStyle(fontSize: 16, color: Colors.red.shade600),
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.blue.shade700,
+                fontWeight: FontWeight.w500,
+              ),
               textAlign: TextAlign.center,
             ),
           ),
-          const SizedBox(height: 16),
-          ElevatedButton(
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
             onPressed: _fetchLeaderboardData,
+            icon: const Icon(Icons.refresh),
+            label: const Text('Try Again'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue.shade400,
+              backgroundColor: Colors.blue.shade500,
               foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              elevation: 2,
             ),
-            child: const Text('Retry'),
           ),
         ],
       ),
@@ -314,9 +352,14 @@ class _LeaderboardPageState extends State<LeaderboardPage>
 
     return RefreshIndicator(
       onRefresh: _fetchLeaderboardData,
-      color: Colors.blue.shade400,
+      color: Colors.blue.shade500,
       child: ListView.builder(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(
+          16,
+          0,
+          16,
+          80,
+        ), // Added bottom padding
         itemCount: entries.length + 1,
         itemBuilder: (context, index) {
           if (index == 0) {
@@ -330,294 +373,227 @@ class _LeaderboardPageState extends State<LeaderboardPage>
     );
   }
 
-  // Complete fixes for all overflow issues
-
-  // 1. Fixed _buildPodium method
   Widget _buildPodium(List<LeaderboardEntry> entries) {
     if (entries.isEmpty) return const SizedBox.shrink();
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 32),
+    // We'll only use top 3 entries
+    final topEntries = entries.take(3).toList();
+      // Use only top entries
+    
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16),
       child: Column(
         children: [
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 16),
+          // Simple leaderboard header
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16),
             child: Text(
-              '🏆 Champions',
+              'Top Rankings',
               style: TextStyle(
-                fontSize: 24,
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Colors.grey.shade800,
+                color: Colors.blue.shade700,
               ),
             ),
           ),
-          SizedBox(
-            height: 350, // Increased height significantly
-            width: double.infinity,
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                double availableWidth = constraints.maxWidth;
-                double cardWidth =
-                    (availableWidth - 60) / 3; // Account for padding
-                cardWidth = cardWidth.clamp(80.0, 120.0); // Min/Max width
-
-                return Stack(
-                  alignment: Alignment.bottomCenter,
-                  children: [
-                    // Podium bases
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        if (entries.length >= 2)
-                          _buildPodiumBase(
-                            120,
-                            Colors.grey.shade300,
-                            '2',
-                            cardWidth,
-                          ),
-                        if (entries.isNotEmpty)
-                          _buildPodiumBase(
-                            160,
-                            Colors.amber.shade300,
-                            '1',
-                            cardWidth,
-                          ),
-                        if (entries.length >= 3)
-                          _buildPodiumBase(
-                            100,
-                            Colors.brown.shade300,
-                            '3',
-                            cardWidth,
-                          ),
-                      ],
-                    ),
-                    // Winners
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        if (entries.length >= 2)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 140),
-                            child: _buildWinnerCard(entries[1], 2, cardWidth),
-                          ),
-                        if (entries.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 180),
-                            child: _buildWinnerCard(entries[0], 1, cardWidth),
-                          ),
-                        if (entries.length >= 3)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 120),
-                            child: _buildWinnerCard(entries[2], 3, cardWidth),
-                          ),
-                      ],
-                    ),
-                  ],
-                );
-              },
-            ),
+          // Top 3 entries in a row
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: topEntries.length,
+            itemBuilder: (context, index) {
+              final medalColors = [
+                const Color(0xFFFFD700), // Gold
+                const Color(0xFFC0C0C0), // Silver
+                const Color(0xFFCD7F32), // Bronze
+              ];
+              
+              final icons = [
+                Icons.emoji_events,
+                Icons.workspace_premium, 
+                Icons.military_tech
+              ];
+              
+              return _buildSimpleRankItem(
+                topEntries[index], 
+                index + 1,
+                medalColors[index],
+                icons[index]
+              );
+            },
           ),
-          const SizedBox(height: 24),
+          const Divider(height: 24),
         ],
       ),
     );
   }
-
-  // 2. Fixed _buildPodiumBase method with dynamic width
-  Widget _buildPodiumBase(
-    double height,
-    Color color,
-    String position,
-    double width,
+  
+  Widget _buildSimpleRankItem(
+    LeaderboardEntry entry, 
+    int position, 
+    Color medalColor,
+    IconData icon
   ) {
+    final percentage = (entry.score / entry.total) * 100;
+    final isCurrentUser = _auth.currentUser?.uid == entry.userId;
+    
     return Container(
-      width: width,
-      height: height,
+      margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
       decoration: BoxDecoration(
-        color: color,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isCurrentUser ? Colors.blue.shade200 : Colors.grey.shade100,
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withOpacity(0.03),
             blurRadius: 4,
-            spreadRadius: 1,
+            spreadRadius: 0,
             offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: Center(
-        child: Text(
-          position,
-          style: const TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+        child: Row(
+          children: [
+            // Medal icon
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: medalColor,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: medalColor.withOpacity(0.3),
+                    blurRadius: 4,
+                    spreadRadius: 0,
+                  ),
+                ],
+              ),
+              child: Center(
+                child: Icon(
+                  icon,
+                  color: Colors.white,
+                  size: 18,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            // User info
+            Expanded(
+              child: Row(
+                children: [
+                  // Avatar
+                  CircleAvatar(
+                    radius: 16,
+                    backgroundColor: Colors.blue.shade50,
+                    child: Text(
+                      entry.userName.isNotEmpty ? entry.userName[0].toUpperCase() : 'U',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue.shade700,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  // Name and score
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                entry.userName,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (isCurrentUser)
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                                margin: const EdgeInsets.only(left: 4),
+                                decoration: BoxDecoration(
+                                  color: Colors.blue.shade50,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  'You',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blue.shade700,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${entry.score}/${entry.total} (${percentage.toStringAsFixed(0)}%)',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Position number
+            Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isCurrentUser ? Colors.blue.shade100 : Colors.grey.shade100,
+              ),
+              child: Center(
+                child: Text(
+                  '#$position',
+                  style: TextStyle(
+                    color: isCurrentUser ? Colors.blue.shade700 : Colors.grey.shade800,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 10,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  // 3. Fixed _buildWinnerCard method with dynamic width and better overflow handling
-  Widget _buildWinnerCard(
-    LeaderboardEntry entry,
-    int position,
-    double cardWidth,
-  ) {
-    Color primaryColor;
-    Color secondaryColor;
-    IconData crownIcon;
-
-    switch (position) {
-      case 1:
-        primaryColor = Colors.amber.shade400;
-        secondaryColor = Colors.amber.shade100;
-        crownIcon = Icons.emoji_events;
-        break;
-      case 2:
-        primaryColor = Colors.grey.shade400;
-        secondaryColor = Colors.grey.shade100;
-        crownIcon = Icons.workspace_premium;
-        break;
-      case 3:
-        primaryColor = Colors.brown.shade400;
-        secondaryColor = Colors.brown.shade100;
-        crownIcon = Icons.military_tech;
-        break;
-      default:
-        primaryColor = Colors.grey.shade400;
-        secondaryColor = Colors.grey.shade100;
-        crownIcon = Icons.star;
-    }
-
-    double percentage = (entry.score / entry.total) * 100;
-    bool isCurrentUser = _auth.currentUser?.uid == entry.userId;
-
-    return SizedBox(
-      width: cardWidth,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Crown/Medal
-          Container(
-            width: 28,
-            height: 28,
-            decoration: BoxDecoration(
-              color: primaryColor,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: primaryColor.withOpacity(0.3),
-                  blurRadius: 4,
-                  spreadRadius: 1,
-                ),
-              ],
-            ),
-            child: Icon(crownIcon, color: Colors.white, size: 16),
-          ),
-          const SizedBox(height: 4),
-          // User Avatar
-          Container(
-            width: cardWidth * 0.6, // Responsive avatar size
-            height: cardWidth * 0.6,
-            decoration: BoxDecoration(
-              color: secondaryColor,
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: isCurrentUser ? Colors.blue.shade400 : primaryColor,
-                width: 2,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 4,
-                  spreadRadius: 1,
-                ),
-              ],
-            ),
-            child: Center(
-              child: Text(
-                entry.userName.isNotEmpty
-                    ? entry.userName[0].toUpperCase()
-                    : 'U',
-                style: TextStyle(
-                  fontSize: cardWidth * 0.25, // Responsive font size
-                  fontWeight: FontWeight.bold,
-                  color: primaryColor,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 4),
-          // User Name - Fixed overflow
-          Container(
-            width: cardWidth,
-            child: Text(
-              entry.userName.length > 8
-                  ? '${entry.userName.substring(0, 8)}...'
-                  : entry.userName,
-              style: const TextStyle(
-                fontSize: 9,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          const SizedBox(height: 2),
-          // Score
-          Text(
-            '${percentage.toStringAsFixed(0)}%', // Removed decimal for space
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              color: primaryColor,
-            ),
-          ),
-          if (isCurrentUser) ...[
-            const SizedBox(height: 2),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
-              decoration: BoxDecoration(
-                color: Colors.blue.shade100,
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Text(
-                'You',
-                style: TextStyle(
-                  fontSize: 6,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blue.shade700,
-                ),
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  // 4. Fixed _buildLeaderboardItem method for horizontal overflow
   Widget _buildLeaderboardItem(LeaderboardEntry entry, int rank) {
     double percentage = (entry.score / entry.total) * 100;
     bool isCurrentUser = _auth.currentUser?.uid == entry.userId;
+    Color rankColor = _getRankColor(rank);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: isCurrentUser ? Colors.blue.shade50 : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border:
-            isCurrentUser
-                ? Border.all(color: Colors.blue.shade300, width: 2)
-                : null,
+        border: Border.all(
+          color: isCurrentUser ? Colors.blue.shade200 : Colors.blue.shade50,
+          width: isCurrentUser ? 2 : 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.blue.withOpacity(0.05),
             blurRadius: 12,
             spreadRadius: 0,
             offset: const Offset(0, 4),
@@ -628,18 +604,25 @@ class _LeaderboardPageState extends State<LeaderboardPage>
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
           children: [
-            // Rank circle
+            // Rank circle with gradient
             Container(
               width: 40,
               height: 40,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [
-                    _getRankColor(rank).withOpacity(0.8),
-                    _getRankColor(rank).withOpacity(0.6),
-                  ],
+                  colors: [rankColor, rankColor.withOpacity(0.7)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: rankColor.withOpacity(0.3),
+                    blurRadius: 6,
+                    spreadRadius: 0,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
               child: Center(
                 child: Text(
@@ -647,13 +630,13 @@ class _LeaderboardPageState extends State<LeaderboardPage>
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
-                    fontSize: 12,
+                    fontSize: 14,
                   ),
                 ),
               ),
             ),
             const SizedBox(width: 12),
-            // Main content - Fixed overflow
+            // Main content
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -666,11 +649,11 @@ class _LeaderboardPageState extends State<LeaderboardPage>
                           entry.userName,
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: 15,
+                            fontSize: 16,
                             color:
                                 isCurrentUser
                                     ? Colors.blue.shade700
-                                    : Colors.black87,
+                                    : Colors.blue.shade900,
                           ),
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,
@@ -680,17 +663,18 @@ class _LeaderboardPageState extends State<LeaderboardPage>
                         const SizedBox(width: 8),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
+                            horizontal: 8,
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
                             color: Colors.blue.shade100,
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.blue.shade200),
                           ),
                           child: Text(
                             'You',
                             style: TextStyle(
-                              fontSize: 9,
+                              fontSize: 11,
                               fontWeight: FontWeight.bold,
                               color: Colors.blue.shade700,
                             ),
@@ -699,32 +683,33 @@ class _LeaderboardPageState extends State<LeaderboardPage>
                       ],
                     ],
                   ),
-                  const SizedBox(height: 6),
-                  // Score and category info - Fixed overflow
+                  const SizedBox(height: 8),
+                  // Score and category info
                   Row(
                     children: [
-                      Icon(Icons.quiz, size: 12, color: Colors.grey.shade600),
-                      const SizedBox(width: 3),
+                      Icon(Icons.quiz, size: 14, color: Colors.blue.shade600),
+                      const SizedBox(width: 4),
                       Text(
                         '${entry.score}/${entry.total}',
                         style: TextStyle(
-                          color: Colors.grey.shade600,
-                          fontSize: 11,
+                          color: Colors.blue.shade600,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 12),
                       Icon(
                         Icons.category,
-                        size: 12,
+                        size: 14,
                         color: Colors.blue.shade600,
                       ),
-                      const SizedBox(width: 3),
+                      const SizedBox(width: 4),
                       Expanded(
                         child: Text(
                           _getQuizDisplayName(entry.quizId),
                           style: TextStyle(
                             color: Colors.blue.shade600,
-                            fontSize: 10,
+                            fontSize: 12,
                             fontWeight: FontWeight.w500,
                           ),
                           overflow: TextOverflow.ellipsis,
@@ -740,15 +725,15 @@ class _LeaderboardPageState extends State<LeaderboardPage>
                       Icon(
                         Icons.access_time,
                         size: 12,
-                        color: Colors.grey.shade500,
+                        color: Colors.blue.shade400,
                       ),
-                      const SizedBox(width: 3),
+                      const SizedBox(width: 4),
                       Expanded(
                         child: Text(
                           _formatDate(entry.completedAt),
                           style: TextStyle(
-                            color: Colors.grey.shade500,
-                            fontSize: 10,
+                            color: Colors.blue.shade400,
+                            fontSize: 11,
                           ),
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,
@@ -759,23 +744,23 @@ class _LeaderboardPageState extends State<LeaderboardPage>
                   const SizedBox(height: 8),
                   // Progress bar
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(3),
+                    borderRadius: BorderRadius.circular(4),
                     child: LinearProgressIndicator(
                       value: percentage / 100,
-                      backgroundColor: Colors.grey.shade200,
+                      backgroundColor: Colors.blue.shade50,
                       valueColor: AlwaysStoppedAnimation<Color>(
                         _getScoreColor(percentage),
                       ),
-                      minHeight: 4,
+                      minHeight: 5,
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 8),
-            // Score percentage - Fixed size
+            const SizedBox(width: 12),
+            // Score percentage
             SizedBox(
-              width: 60,
+              width: 65,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -787,7 +772,7 @@ class _LeaderboardPageState extends State<LeaderboardPage>
                       color: _getScoreColor(percentage),
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 4),
                   Icon(
                     _getScoreIcon(percentage),
                     color: _getScoreColor(percentage),
@@ -820,40 +805,56 @@ class _LeaderboardPageState extends State<LeaderboardPage>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.leaderboard_outlined,
-            size: 100,
-            color: Colors.grey.shade400,
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.blue.shade50,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.leaderboard_outlined,
+              size: 100,
+              color: Colors.blue.shade300,
+            ),
           ),
           const SizedBox(height: 24),
           Text(
-            'No $categoryName scores yet',
+            'No $categoryName Scores Yet',
             style: TextStyle(
-              fontSize: 20,
+              fontSize: 22,
               fontWeight: FontWeight.bold,
-              color: Colors.grey.shade600,
+              color: Colors.blue.shade700,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32),
             child: Text(
               'Complete some ${categoryName.toLowerCase()} quizzes to see your ranking!',
-              style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.blue.shade600,
+                height: 1.4,
+              ),
               textAlign: TextAlign.center,
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 32),
           ElevatedButton.icon(
             onPressed: () {
               // Navigate to quiz selection or start a quiz
             },
             icon: const Icon(Icons.play_arrow),
-            label: const Text('Start Quiz'),
+            label: const Text('Start a Quiz'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue.shade400,
+              backgroundColor: Colors.blue.shade500,
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+              textStyle: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+              elevation: 2,
             ),
           ),
         ],
@@ -862,24 +863,24 @@ class _LeaderboardPageState extends State<LeaderboardPage>
   }
 
   Color _getRankColor(int rank) {
-    if (rank <= 3) return Colors.amber.shade600;
-    if (rank <= 10) return Colors.blue.shade600;
-    if (rank <= 20) return Colors.green.shade600;
-    return Colors.grey.shade600;
+    if (rank <= 3) return Colors.blue.shade500;
+    if (rank <= 10) return Colors.blue.shade400;
+    if (rank <= 20) return Colors.blue.shade300;
+    return Colors.blue.shade200;
   }
 
   Color _getScoreColor(double percentage) {
-    if (percentage >= 90) return Colors.green.shade600;
-    if (percentage >= 75) return Colors.orange.shade600;
-    if (percentage >= 60) return Colors.amber.shade600;
-    return Colors.red.shade600;
+    if (percentage >= 90) return Colors.blue.shade500;
+    if (percentage >= 75) return Colors.blue.shade400;
+    if (percentage >= 60) return Colors.blue.shade300;
+    return Colors.blue.shade200;
   }
 
   IconData _getScoreIcon(double percentage) {
-    if (percentage >= 90) return Icons.star;
-    if (percentage >= 75) return Icons.thumb_up;
+    if (percentage >= 90) return Icons.emoji_events;
+    if (percentage >= 75) return Icons.workspace_premium;
     if (percentage >= 60) return Icons.trending_up;
-    return Icons.trending_down;
+    return Icons.trending_flat;
   }
 
   String _getQuizDisplayName(String quizId) {
