@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:lawlink/services/auth_service.dart';
 
 class QuizPage extends StatefulWidget {
   const QuizPage({super.key});

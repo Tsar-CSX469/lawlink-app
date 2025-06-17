@@ -67,7 +67,6 @@ class _ChatbotPageState extends State<ChatbotPage> {
   bool _isPlaying = false;
   bool _isProcessing = false;
   String _recordedAudioPath = '';
-  String? _currentAudioPath;
   ScrollController _scrollController = ScrollController();
 
   late ChatbotService _chatbotService;
@@ -262,7 +261,6 @@ class _ChatbotPageState extends State<ChatbotPage> {
       final audioPath = await _elevenLabsService.textToSpeech(processedText);
 
       if (audioPath != null) {
-        _currentAudioPath = audioPath;
         await _audioPlayer.play(DeviceFileSource(audioPath));
       } else {
         // Show error message if audio generation failed
@@ -1127,13 +1125,19 @@ class _ChatbotPageState extends State<ChatbotPage> {
         preferredSize: const Size.fromHeight(kToolbarHeight),
         child: Container(
           decoration: BoxDecoration(
-            // Only add a subtle bottom border
-            border: Border(
-              bottom: BorderSide(
-                color: Colors.blue.withOpacity(0.2),
-                width: 0.5,
+            color:
+                Theme.of(context).appBarTheme.backgroundColor ??
+                Colors.white, // Or a specific color for your app bar
+            boxShadow: [
+              BoxShadow(
+                // ignore: deprecated_member_use
+                color: Colors.blue.withOpacity(0.1), // Subtle shadow color
+                spreadRadius: 0, // No spread, just blur
+                blurRadius:
+                    15, // Adjust for desired blur intensity of the shadow
+                offset: Offset(0, 1), // Shadow primarily below the app bar
               ),
-            ),
+            ],
           ),
           child: AppBar(
             title: ShaderMask(

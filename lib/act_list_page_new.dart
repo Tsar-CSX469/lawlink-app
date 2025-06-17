@@ -4,6 +4,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:cross_file/cross_file.dart';
 
 class Act {
   final String number;
@@ -90,26 +91,47 @@ class ActListPageState extends State<ActListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: ShaderMask(
-          shaderCallback:
-              (bounds) => LinearGradient(
-                colors: [Colors.blue.shade800, Colors.blue.shade300],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ).createShader(bounds),
-          child: const Text(
-            'Sri Lankan Acts',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+      extendBodyBehindAppBar: false,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: Container(
+          decoration: BoxDecoration(
+            color:
+                Theme.of(context).appBarTheme.backgroundColor ?? Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.blue.withOpacity(0.1),
+                spreadRadius: 0,
+                blurRadius: 15,
+                offset: const Offset(0, 1),
+              ),
+            ],
+          ),
+          child: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            scrolledUnderElevation: 0,
+            surfaceTintColor: Colors.transparent,
+            shadowColor: Colors.transparent,
+            title: ShaderMask(
+              shaderCallback:
+                  (bounds) => LinearGradient(
+                    colors: [Colors.blue.shade800, Colors.blue.shade300],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ).createShader(bounds),
+              child: const Text(
+                'Sri Lankan Acts',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
             ),
+            iconTheme: IconThemeData(color: Colors.blue.shade700),
           ),
         ),
-        iconTheme: IconThemeData(color: Colors.blue.shade700),
       ),
       body: Container(
         decoration: BoxDecoration(
@@ -122,13 +144,13 @@ class ActListPageState extends State<ActListPage> {
         ),
         child: Column(
           children: [
-            // Search bar with proper spacing
+            // Search bar
             const SizedBox(height: 16),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Colors.white.withOpacity(0.9),
                   borderRadius: BorderRadius.circular(25),
                   boxShadow: [
                     BoxShadow(
@@ -167,7 +189,6 @@ class ActListPageState extends State<ActListPage> {
               ),
             ),
             const SizedBox(height: 16),
-
             // Acts list
             Expanded(
               child:
@@ -185,7 +206,7 @@ class ActListPageState extends State<ActListPage> {
                           searchQuery.isNotEmpty
                               ? 'No acts matching "${searchQuery}"'
                               : 'No acts found. Check if PDF is correctly loaded.',
-                          style: TextStyle(color: Colors.grey.shade700),
+                          style: const TextStyle(color: Colors.grey),
                         ),
                       )
                       : ListView.builder(
@@ -199,9 +220,7 @@ class ActListPageState extends State<ActListPage> {
                           return Card(
                             margin: const EdgeInsets.only(bottom: 16),
                             elevation: 4,
-                            // ignore: deprecated_member_use
-                            shadowColor: Colors.blue.withOpacity(0.1),
-                            color: Colors.white,
+                            shadowColor: Colors.blue.withOpacity(0.2),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
                               side: BorderSide(
@@ -259,57 +278,25 @@ class ActListPageState extends State<ActListPage> {
                                     ),
                                   ),
                                   const SizedBox(height: 16),
-                                  // Action buttons row with download and share
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceAround,
-                                    children: [
-                                      // Download button
-                                      Expanded(
-                                        child: ElevatedButton.icon(
-                                          icon: const Icon(
-                                            Icons.file_download,
-                                            size: 18,
-                                          ),
-                                          label: const Text('Download'),
-                                          onPressed: () {
-                                            _downloadPdf(context, act);
-                                          },
-                                          style: ElevatedButton.styleFrom(
-                                            foregroundColor: Colors.white,
-                                            backgroundColor:
-                                                Colors.blue.shade700,
-                                            padding: const EdgeInsets.symmetric(
-                                              vertical: 12,
-                                            ),
-                                          ),
+                                  Center(
+                                    child: ElevatedButton.icon(
+                                      icon: const Icon(
+                                        Icons.file_download,
+                                        size: 18,
+                                      ),
+                                      label: const Text('Download PDF'),
+                                      onPressed: () {
+                                        _downloadPdf(context, act);
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.blue.shade700,
+                                        foregroundColor: Colors.white,
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 24,
+                                          vertical: 12,
                                         ),
                                       ),
-                                      const SizedBox(width: 8),
-                                      // Share button
-                                      Expanded(
-                                        child: OutlinedButton.icon(
-                                          icon: const Icon(
-                                            Icons.share,
-                                            size: 18,
-                                          ),
-                                          label: const Text('Share'),
-                                          onPressed: () {
-                                            _sharePdf(context, act);
-                                          },
-                                          style: OutlinedButton.styleFrom(
-                                            foregroundColor:
-                                                Colors.blue.shade700,
-                                            side: BorderSide(
-                                              color: Colors.blue.shade300,
-                                            ),
-                                            padding: const EdgeInsets.symmetric(
-                                              vertical: 12,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
+                                    ),
                                   ),
                                 ],
                               ),
@@ -379,7 +366,8 @@ class ActListPageState extends State<ActListPage> {
     }
   }
 
-  // Method to share Act information
+  // Method to share PDF
+  // ignore: unused_element
   Future<void> _sharePdf(BuildContext context, Act act) async {
     try {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -390,15 +378,21 @@ class ActListPageState extends State<ActListPage> {
         ),
       );
 
+      // Create the file to share
+      final file = await _preparePdfFile(act);
+
       // Get the position of the widget to show the share dialog (important for iPads)
       final box = context.findRenderObject() as RenderBox?;
 
-      // Share act information
-      await Share.share(
-        'Check out ${act.title} (Act No. ${act.number})',
-        subject: '${act.title} - Legal Document',
-        sharePositionOrigin:
-            box != null ? box.localToGlobal(Offset.zero) & box.size : null,
+      // Share the file
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(file.path)],
+          text: 'Check out ${act.title}',
+          subject: '${act.title} - Legal Document',
+          sharePositionOrigin:
+              box != null ? box.localToGlobal(Offset.zero) & box.size : null,
+        ),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
