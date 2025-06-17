@@ -86,6 +86,7 @@ flutter:
   assets:
     - assets/pdfs/ConsumerAct.pdf
     - assets/images/logo.png
+    - assets/images/logo-without-name.png
     - assets/images/google-icon.png
     - .env
   #   - images/a_dot_burr.jpeg
