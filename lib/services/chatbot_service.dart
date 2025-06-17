@@ -3,6 +3,9 @@ import 'package:file_picker/file_picker.dart';
 import 'dart:io';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:lawlink/screens/chatbot_page.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:flutter/material.dart';
+import 'package:lawlink/services/location_service.dart';
 
 class ChatbotService {
   late final String _apiKey;
@@ -31,14 +34,23 @@ class ChatbotService {
 
   Future<String> sendMessage(
     String newMessageText,
-    List<Message> chatHistory,
-  ) async {
+    List<Message> chatHistory, {
+    BuildContext? context,
+  }) async {
     try {
       // Check if asking about who created LawLink AI
       if (_isAskingAboutCreator(newMessageText)) {
         return _selectedLanguage == 'English'
             ? "LawLink AI was created by the TSAR Team. I'm designed to help with Sri Lankan legal questions and topics. How can I assist you with legal matters today?"
             : "LawLink AI සාදන ලද්දේ TSAR කණ්ඩායම විසිනි. මම ශ්‍රී ලංකා නීති ප්‍රශ්න හා මාතෘකා සඳහා උපකාර කිරීමට සැලසුම් කර ඇත. අද දින නීතිමය කරුණු සම්බන්ධයෙන් මට ඔබට උපකාර කළ හැක්කේ කෙසේද?";
+      }
+      // Check if this is a location-based query
+      else if (_isLocationBasedQuestion(newMessageText)) {
+        return await _processLocationBasedQuery(
+          newMessageText,
+          _selectedLanguage,
+          context,
+        );
       }
       // Pre-filter obviously non-legal questions to reduce API misuse
       else if (_isDefinitelyNotLegalQuestion(newMessageText)) {
@@ -586,5 +598,265 @@ When contacting a lawyer, always confirm:
     }
 
     return '';
+  }
+
+  // Check if a question is related to location
+  bool _isLocationBasedQuestion(String question) {
+    final lowercaseQuestion = question.toLowerCase();
+
+    final locationKeywords = [
+      'near',
+      'nearby',
+      'closest',
+      'nearest',
+      'around',
+      'in my area',
+      'location',
+      'where is',
+      'where are',
+      'find me',
+      'in this area',
+      'proximity',
+      'close by',
+      'walking distance',
+      'driving distance',
+      'in',
+    ];
+
+    final legalTerms = [
+      'lawyer',
+      'court',
+      'legal',
+      'attorney',
+      'law firm',
+      'legal aid',
+      'police station',
+      'notary',
+      'judge',
+      'magistrate',
+      'high court',
+      'supreme court',
+      'district court',
+      'bar association',
+      'legal department',
+      'justice',
+    ];
+
+    // Check for combinations of location keywords and legal terms
+    for (final keyword in locationKeywords) {
+      for (final term in legalTerms) {
+        if (lowercaseQuestion.contains(keyword) &&
+            lowercaseQuestion.contains(term)) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  // Extract location from query
+  String? _extractLocationFromQuery(String query) {
+    final lowercaseQuery = query.toLowerCase();
+
+    // Common Sri Lankan cities and regions
+    final sriLankanLocations = [
+      'colombo',
+      'kandy',
+      'galle',
+      'jaffna',
+      'batticaloa',
+      'trincomalee',
+      'negombo',
+      'anuradhapura',
+      'ratnapura',
+      'matara',
+      'nuwara eliya',
+      'kurunegala',
+      'polonnaruwa',
+      'hambantota',
+      'matale',
+      'puttalam',
+      'kalutara',
+      'gampaha',
+      'badulla',
+      'ampara',
+      'kegalle',
+      'monaragala',
+      'mullaitivu',
+      'kilinochchi',
+      'mannar',
+      'vavuniya',
+    ];
+
+    // Check if any location is mentioned
+    for (final location in sriLankanLocations) {
+      if (lowercaseQuery.contains(location)) {
+        // Find the full context of the location mention
+        final words = query.split(' ');
+        for (int i = 0; i < words.length; i++) {
+          if (words[i].toLowerCase().contains(location)) {
+            // Return the word (may be capitalized in original query)
+            return words[i];
+          }
+        }
+        return location.substring(0, 1).toUpperCase() + location.substring(1);
+      }
+    }
+
+    // Check for phrases like "near ABC" or "in XYZ"
+    final locationPrefixes = ['near ', 'in ', 'at ', 'around '];
+    for (final prefix in locationPrefixes) {
+      if (lowercaseQuery.contains(prefix)) {
+        final index = lowercaseQuery.indexOf(prefix) + prefix.length;
+        // Extract up to 3 words after the prefix as the potential location
+        final remainingText = lowercaseQuery.substring(index).trim();
+        final potentialLocation = remainingText.split(' ').take(3).join(' ');
+
+        // Check if this is actually about "me" or "my area"
+        if (potentialLocation.contains('me') ||
+            potentialLocation.contains('my') ||
+            potentialLocation.startsWith('this')) {
+          return null;
+        }
+
+        // Return the extracted location if it's not empty
+        if (potentialLocation.isNotEmpty) {
+          return potentialLocation.substring(0, 1).toUpperCase() +
+              potentialLocation.substring(1);
+        }
+      }
+    }
+
+    return null;
+  }
+
+  // These methods have been moved to LocationService class
+  // Process location-based query
+  Future<String> _processLocationBasedQuery(
+    String query,
+    String language, [
+    BuildContext? context,
+  ]) async {
+    try {
+      // Check if the query is about a specific location rather than the user's current location
+      String? specificLocation = _extractLocationFromQuery(query);
+
+      // Determine what the user is looking for (lawyers, courts, etc.)
+      String lookingFor = _determineLookingFor(query, language);
+
+      if (specificLocation != null) {
+        // This is a query about a specific location, not the user's current location
+        if (language == 'English') {
+          return '''
+I see you're looking for $lookingFor near $specificLocation.
+
+For legal services in $specificLocation, I recommend:
+
+1. Checking the Sri Lanka Bar Association directory for professionals in $specificLocation
+2. Contacting the Legal Aid Commission at +94 11 2433 618 for referrals in $specificLocation
+3. Searching online directories for "$lookingFor in $specificLocation"
+
+Would you like me to provide specific contact information for legal services in $specificLocation?
+''';
+        } else {
+          return '''
+ඔබ $specificLocation අසල $lookingFor සොයන බව මම දකිමි.
+
+$specificLocation හි නීති සේවා සඳහා, මම නිර්දේශ කරමි:
+
+1. $specificLocation හි වෘත්තිකයින් සඳහා ශ්‍රී ලංකා නීතිඥ සංගමයේ නාමාවලිය පරීක්ෂා කිරීම
+2. $specificLocation හි යොමු කිරීම් සඳහා +94 11 2433 618 අංකයෙන් නීති ආධාර කොමිෂන් සභාව අමතන්න
+3. "$specificLocation හි $lookingFor" සඳහා මාර්ගගත නාමාවලි සෙවීම
+
+ඔබට $specificLocation හි නීති සේවා සඳහා නිශ්චිත සම්බන්ධතා තොරතුරු ලබා දීමට ඔබට අවශ්‍යද?
+''';
+        }
+      }
+
+      // If we get here, this is about the user's current location
+      if (context != null) {
+        // Use the more user-friendly permission request if context is available
+        bool hasPermission = await LocationService.requestLocationPermission(
+          context,
+        );
+        if (!hasPermission) {
+          return language == 'English'
+              ? "To help you find legal services near you, LawLink needs permission to access your location. Please enable location access in your device settings."
+              : "ඔබ අසල නීති සේවා සොයා ගැනීමට ඔබට උදව් කිරීම සඳහා, LawLink හට ඔබගේ ස්ථානයට ප්රවේශ වීමට අවසර අවශ්ය වේ. කරුණාකර ඔබගේ උපකරණ සැකසුම්වල ස්ථාන ප්රවේශය සක්රිය කරන්න.";
+        }
+      }
+
+      // Get current position using the LocationService
+      Position? position = await LocationService.getCurrentLocation();
+      if (position == null) {
+        return language == 'English'
+            ? "I wasn't able to access your location. Please check your location permissions and try again."
+            : "ඔබගේ ස්ථානය වෙත ප්රවේශ වීමට මට නොහැකි විය. කරුණාකර ඔබගේ ස්ථාන අවසරයන් පරීක්ෂා කර නැවත උත්සාහ කරන්න.";
+      }
+
+      // Get address using the LocationService
+      String? address = await LocationService.getAddressFromCoordinates(
+        position.latitude,
+        position.longitude,
+      );
+
+      // Format the response based on language
+      if (language == 'English') {
+        return '''
+I see you're looking for $lookingFor near your location.
+
+Your current location is near: ${address ?? 'Unknown location'}
+Coordinates: ${position.latitude.toStringAsFixed(6)}, ${position.longitude.toStringAsFixed(6)}
+
+To find the nearest $lookingFor, I recommend:
+
+1. Checking the Sri Lanka Bar Association directory
+2. Using Google Maps to search for "$lookingFor near me"
+3. Calling the Legal Aid Commission at +94 11 2433 618 for referrals in your area
+
+Would you like more specific information about legal services in your district?
+''';
+      } else {
+        return '''
+ඔබ ඔබගේ ස්ථානය අවට $lookingFor සොයන බව මම දකිමි.
+
+ඔබගේ වත්මන් ස්ථානය මෙතැන අසල ඇත: ${address ?? 'නොදන්නා ස්ථානයක'}
+ඛණ්ඩාංක: ${position.latitude.toStringAsFixed(6)}, ${position.longitude.toStringAsFixed(6)}
+
+ඔබට ආසන්නතම $lookingFor සොයා ගැනීමට, මම නිර්දේශ කරමි:
+
+1. ශ්‍රී ලංකා නීතිඥ සංගමයේ නාමාවලිය පරීක්ෂා කිරීම
+2. "මා අසල $lookingFor" සෙවීමට Google සිතියම් භාවිතා කිරීම
+3. ඔබේ ප්‍රදේශයේ යොමු කිරීම් සඳහා +94 11 2433 618 අංකයෙන් නීති ආධාර කොමිෂන් සභාව අමතන්න
+
+ඔබේ දිස්ත්‍රික්කයේ නීති සේවා ගැන වඩාත් නිශ්චිත තොරතුරු ඔබට අවශ්‍යද?
+''';
+      }
+    } catch (e) {
+      print('Error processing location query: $e');
+      return language == 'English'
+          ? "I couldn't process your location-based query: $e. Please check your device permissions and try again."
+          : "ඔබගේ ස්ථාන-පාදක විමසුම සැකසීමට මට නොහැකි විය: $e. කරුණාකර ඔබගේ උපාංග අවසරයන් පරීක්ෂා කර නැවත උත්සාහ කරන්න.";
+    }
+  }
+
+  // Helper method to determine what legal service the user is looking for
+  String _determineLookingFor(String query, String language) {
+    final lowerQuery = query.toLowerCase();
+
+    if (lowerQuery.contains('lawyer') || lowerQuery.contains('attorney')) {
+      return language == 'English' ? 'lawyers or attorneys' : 'නීතිඥයන්';
+    } else if (lowerQuery.contains('court')) {
+      return language == 'English' ? 'courts' : 'අධිකරණ';
+    } else if (lowerQuery.contains('legal aid')) {
+      return language == 'English' ? 'legal aid services' : 'නීති ආධාර සේවා';
+    } else if (lowerQuery.contains('police')) {
+      return language == 'English' ? 'police stations' : 'පොලිස් ස්ථාන';
+    } else if (lowerQuery.contains('notary')) {
+      return language == 'English' ? 'notary services' : 'නොතාරිස් සේවා';
+    } else {
+      return language == 'English' ? 'legal services' : 'නීති සේවා';
+    }
   }
 }

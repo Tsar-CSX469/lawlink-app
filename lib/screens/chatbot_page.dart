@@ -188,7 +188,11 @@ class _ChatbotPageState extends State<ChatbotPage> {
       if (historyToSend.length > maxTurns) {
         historyToSend = historyToSend.sublist(historyToSend.length - maxTurns);
       }
-      final response = await _chatbotService.sendMessage(text, historyToSend);
+      final response = await _chatbotService.sendMessage(
+        text,
+        historyToSend,
+        context: context,
+      );
 
       final aiMessage = Message(
         isUser: false,
@@ -569,13 +573,12 @@ class _ChatbotPageState extends State<ChatbotPage> {
       _isProcessing = true;
     });
 
-    _scrollToBottom();
-
-    // Process audio with speech-to-text
+    _scrollToBottom(); // Process audio with speech-to-text
     // Note: In a real implementation, you would send the audio to a speech-to-text service
     final response = await _chatbotService.sendMessage(
       "User sent an audio message",
       List.from(_messages),
+      context: context,
     );
     final aiMessage = Message(
       isUser: false,
