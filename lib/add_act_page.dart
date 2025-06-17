@@ -35,7 +35,17 @@ class AddActPageState extends State<AddActPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Add New Act')),
+      appBar: AppBar(
+        title: const Text('Add New Act'),
+        backgroundColor: Colors.blue.shade50,
+        titleTextStyle: const TextStyle(
+          color: Colors.blue,
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+        ),
+        iconTheme: const IconThemeData(color: Colors.blue),
+        elevation: 0,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(

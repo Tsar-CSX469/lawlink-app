@@ -3,7 +3,7 @@ import 'package:read_pdf_text/read_pdf_text.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
-import 'package:lawlink/widgets/floating_chatbot_button.dart';
+import 'package:share_plus/share_plus.dart';
 
 class Act {
   final String number;
@@ -23,12 +23,19 @@ class ActListPage extends StatefulWidget {
 class ActListPageState extends State<ActListPage> {
   List<Act> acts = [];
   bool isLoading = true;
-  String rawPdfText = ""; // Store raw text for debugging
+  TextEditingController searchController = TextEditingController();
+  String searchQuery = '';
 
   @override
   void initState() {
     super.initState();
     loadActs();
+  }
+
+  @override
+  void dispose() {
+    searchController.dispose();
+    super.dispose();
   }
 
   Future<void> loadActs() async {
@@ -41,11 +48,6 @@ class ActListPageState extends State<ActListPage> {
 
       // Extract text from PDF
       String text = await ReadPdfText.getPDFtext(file.path);
-
-      // Save raw text for debugging
-      setState(() {
-        rawPdfText = text;
-      });
 
       // For the Consumer Affairs Authority Act specifically
       if (text.isNotEmpty) {
@@ -72,231 +74,341 @@ class ActListPageState extends State<ActListPage> {
     }
   }
 
+  List<Act> get filteredActs {
+    if (searchQuery.isEmpty) {
+      return acts;
+    }
+    return acts
+        .where(
+          (act) =>
+              act.title.toLowerCase().contains(searchQuery.toLowerCase()) ||
+              act.number.toLowerCase().contains(searchQuery.toLowerCase()),
+        )
+        .toList();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return ChatbotWrapper(
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Sri Lankan Acts'),
-          actions: [
-            // Debug button to view raw text
-            IconButton(
-              icon: const Icon(Icons.bug_report),
-              tooltip: 'Debug PDF Text',
-              onPressed: () {
-                _showRawText(context);
-              },
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: ShaderMask(
+          shaderCallback:
+              (bounds) => LinearGradient(
+                colors: [Colors.blue.shade800, Colors.blue.shade300],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ).createShader(bounds),
+          child: const Text(
+            'Sri Lankan Acts',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+        ),
+        iconTheme: IconThemeData(color: Colors.blue.shade700),
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.white, Colors.blue.shade50],
+            stops: const [0.7, 1.0],
+          ),
+        ),
+        child: Column(
+          children: [
+            // Search bar with proper spacing
+            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(25),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: TextField(
+                  controller: searchController,
+                  decoration: InputDecoration(
+                    hintText: 'Search acts...',
+                    prefixIcon: Icon(Icons.search, color: Colors.blue.shade700),
+                    suffixIcon:
+                        searchQuery.isNotEmpty
+                            ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                searchController.clear();
+                                setState(() {
+                                  searchQuery = '';
+                                });
+                              },
+                            )
+                            : null,
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 15),
+                  ),
+                  onChanged: (value) {
+                    setState(() {
+                      searchQuery = value;
+                    });
+                  },
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Acts list
+            Expanded(
+              child:
+                  isLoading
+                      ? const Center(
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.blue,
+                          ),
+                        ),
+                      )
+                      : filteredActs.isEmpty
+                      ? Center(
+                        child: Text(
+                          searchQuery.isNotEmpty
+                              ? 'No acts matching "${searchQuery}"'
+                              : 'No acts found. Check if PDF is correctly loaded.',
+                          style: TextStyle(color: Colors.grey.shade700),
+                        ),
+                      )
+                      : ListView.builder(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        itemCount: filteredActs.length,
+                        itemBuilder: (context, index) {
+                          final act = filteredActs[index];
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 16),
+                            elevation: 4,
+                            // ignore: deprecated_member_use
+                            shadowColor: Colors.blue.withOpacity(0.1),
+                            color: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              side: BorderSide(
+                                color: Colors.blue.shade100,
+                                width: 1,
+                              ),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.gavel_rounded,
+                                        size: 24,
+                                        color: Colors.blue.shade700,
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              'Act No. ${act.number}',
+                                              style: TextStyle(
+                                                color: Colors.blue.shade700,
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 14,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              act.title,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 16,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    _getSummary(act.content),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      color: Colors.grey.shade700,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  // Action buttons row with download and share
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceAround,
+                                    children: [
+                                      // Download button
+                                      Expanded(
+                                        child: ElevatedButton.icon(
+                                          icon: const Icon(
+                                            Icons.file_download,
+                                            size: 18,
+                                          ),
+                                          label: const Text('Download'),
+                                          onPressed: () {
+                                            _downloadPdf(context, act);
+                                          },
+                                          style: ElevatedButton.styleFrom(
+                                            foregroundColor: Colors.white,
+                                            backgroundColor:
+                                                Colors.blue.shade700,
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: 12,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      // Share button
+                                      Expanded(
+                                        child: OutlinedButton.icon(
+                                          icon: const Icon(
+                                            Icons.share,
+                                            size: 18,
+                                          ),
+                                          label: const Text('Share'),
+                                          onPressed: () {
+                                            _sharePdf(context, act);
+                                          },
+                                          style: OutlinedButton.styleFrom(
+                                            foregroundColor:
+                                                Colors.blue.shade700,
+                                            side: BorderSide(
+                                              color: Colors.blue.shade300,
+                                            ),
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: 12,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
             ),
           ],
         ),
-        body:
-            isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : acts.isEmpty
-                ? const Center(
-                  child: Text(
-                    'No acts found. Check if PDF is correctly loaded.',
-                  ),
-                )
-                : ListView.builder(
-                  itemCount: acts.length,
-                  itemBuilder: (context, index) {
-                    final act = acts[index];
-                    return Card(
-                      margin: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      child: ListTile(
-                        title: Text(
-                          'Act No. ${act.number}: ${act.title}',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        subtitle: Text(
-                          _getSummary(act.content),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        onTap: () {
-                          _showActDetails(context, act);
-                        },
-                      ),
-                    );
-                  },
-                ),
       ),
     );
   }
 
   String _getSummary(String content) {
-    // Try to extract a relevant summary from the content
-    if (content.contains("WHEREAS")) {
-      final preambleStart = content.indexOf("WHEREAS");
-      final preambleEnd = content.indexOf("NOW THEREFORE", preambleStart);
-      if (preambleEnd > preambleStart) {
-        return content.substring(preambleStart, preambleEnd).trim();
-      }
+    if (content.length <= 100) {
+      return content;
     }
-
-    // Default to first 150 characters if preamble not found
-    return content.length > 150 ? "${content.substring(0, 150)}..." : content;
+    return '${content.substring(0, 100)}...';
   }
 
-  void _showActDetails(BuildContext context, Act act) {
-    showDialog(
-      context: context,
-      builder:
-          (_) => Dialog(
-            insetPadding: const EdgeInsets.all(16),
-            child: Container(
-              width: double.maxFinite,
-              constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.8,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  AppBar(
-                    title: Text('Act No. ${act.number}: ${act.title}'),
-                    automaticallyImplyLeading: false,
-                    actions: [
-                      IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                    ],
-                  ),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Display sections of the act in a structured way
-                          _buildStructuredContent(act.content),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-    );
+  // Method to prepare PDF file from assets
+  Future<File> _preparePdfFile(Act act) async {
+    // Get PDF path based on act title
+    String pdfFileName = act.title.replaceAll(' ', '') + '.pdf';
+    String pdfAssetPath = 'assets/pdfs/ConsumerAct.pdf'; // Default path
+
+    // In a real app, you would map each act to its PDF file
+    // For demo, we're using ConsumerAct.pdf for all acts
+
+    final bytes = await rootBundle.load(pdfAssetPath);
+    final dir = await getTemporaryDirectory();
+    final file = File('${dir.path}/$pdfFileName');
+    await file.writeAsBytes(bytes.buffer.asUint8List());
+    return file;
   }
 
-  Widget _buildStructuredContent(String content) {
-    // Attempt to structure the content by identifying sections
-    List<Widget> sections = [];
-
-    // Add title
-    sections.add(
-      const Text(
-        'CONSUMER AFFAIRS AUTHORITY ACT, No. 9 OF 2003',
-        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+  // Method to download PDF
+  Future<void> _downloadPdf(BuildContext context, Act act) async {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Downloading ${act.title} PDF...'),
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
       ),
     );
-    sections.add(const SizedBox(height: 16));
 
-    // Add preamble if found
-    if (content.contains('WHEREAS')) {
-      final preambleStart = content.indexOf('WHEREAS');
-      final preambleEnd = content.indexOf('NOW THEREFORE', preambleStart);
-      if (preambleEnd > preambleStart) {
-        sections.add(
-          const Text('PREAMBLE', style: TextStyle(fontWeight: FontWeight.bold)),
-        );
-        sections.add(const SizedBox(height: 8));
-        sections.add(
-          Text(content.substring(preambleStart, preambleEnd).trim()),
-        );
-        sections.add(const SizedBox(height: 16));
-      }
+    try {
+      await _preparePdfFile(act);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${act.title} PDF downloaded successfully'),
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to download: $e'),
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.red,
+        ),
+      );
     }
-
-    // Try to identify parts and sections
-    final partRegex = RegExp(r'PART\s+([IVX]+)\s+([A-Z\s]+)');
-    final parts = partRegex.allMatches(content);
-
-    if (parts.isNotEmpty) {
-      for (final part in parts) {
-        final partNumber = part.group(1) ?? '';
-        final partTitle = part.group(2) ?? '';
-
-        sections.add(
-          Text(
-            'PART $partNumber - $partTitle',
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-          ),
-        );
-        sections.add(const SizedBox(height: 8));
-
-        // Try to find the content of this part
-        final partStart = part.start;
-        int partEnd = content.length;
-        try {
-          final nextPart = parts.firstWhere((m) => m.start > partStart);
-          partEnd = nextPart.start;
-        } catch (e) {
-          // No next part found, use content.length as partEnd
-        }
-        if (partEnd > partStart) {
-          String partContent = content.substring(partStart, partEnd).trim();
-          // Remove the part title from the content
-          partContent = partContent.replaceFirst(partRegex, '').trim();
-          sections.add(Text(partContent));
-          sections.add(const SizedBox(height: 16));
-        }
-      }
-    } else {
-      // If we couldn't identify parts, just show the raw content
-      sections.add(Text(content));
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: sections,
-    );
   }
 
-  void _showRawText(BuildContext context) {
-    showDialog(
-      context: context,
-      builder:
-          (_) => Dialog(
-            insetPadding: const EdgeInsets.all(16),
-            child: Container(
-              width: double.maxFinite,
-              constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.8,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  AppBar(
-                    title: const Text('Raw PDF Text (Debug)'),
-                    automaticallyImplyLeading: false,
-                    actions: [
-                      IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                    ],
-                  ),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(16),
-                      child: SelectableText(
-                        rawPdfText.isEmpty
-                            ? 'No text extracted from PDF'
-                            : rawPdfText,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-    );
+  // Method to share Act information
+  Future<void> _sharePdf(BuildContext context, Act act) async {
+    try {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Preparing to share ${act.title}...'),
+          duration: const Duration(seconds: 1),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+
+      // Get the position of the widget to show the share dialog (important for iPads)
+      final box = context.findRenderObject() as RenderBox?;
+
+      // Share act information
+      await Share.share(
+        'Check out ${act.title} (Act No. ${act.number})',
+        subject: '${act.title} - Legal Document',
+        sharePositionOrigin:
+            box != null ? box.localToGlobal(Offset.zero) & box.size : null,
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to share: $e'),
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 }
