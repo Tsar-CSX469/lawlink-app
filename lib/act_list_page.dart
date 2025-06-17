@@ -4,6 +4,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class Act {
   final String number;
@@ -331,23 +332,7 @@ class ActListPageState extends State<ActListPage> {
     return '${content.substring(0, 100)}...';
   }
 
-  // Method to prepare PDF file from assets
-  Future<File> _preparePdfFile(Act act) async {
-    // Get PDF path based on act title
-    String pdfFileName = act.title.replaceAll(' ', '') + '.pdf';
-    String pdfAssetPath = 'assets/pdfs/ConsumerAct.pdf'; // Default path
-
-    // In a real app, you would map each act to its PDF file
-    // For demo, we're using ConsumerAct.pdf for all acts
-
-    final bytes = await rootBundle.load(pdfAssetPath);
-    final dir = await getTemporaryDirectory();
-    final file = File('${dir.path}/$pdfFileName');
-    await file.writeAsBytes(bytes.buffer.asUint8List());
-    return file;
-  }
-
-  // Method to download PDF
+  // Method to prepare PDF file from assets  // Method removed as it's no longer used// Method to download PDF
   Future<void> _downloadPdf(BuildContext context, Act act) async {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -358,12 +343,63 @@ class ActListPageState extends State<ActListPage> {
     );
 
     try {
-      await _preparePdfFile(act);
+      // Check storage permission on Android
+      if (Platform.isAndroid) {
+        // For Android 13+ (API level 33+), we need to request specific permissions
+        if (await Permission.manageExternalStorage.request().isGranted ||
+            await Permission.storage.request().isGranted) {
+          // Permission granted
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Storage permission is required to download PDFs'),
+              duration: Duration(seconds: 3),
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: Colors.red,
+            ),
+          );
+          return;
+        }
+      }
+      // Get the directory for saving downloads on the device
+      Directory? directory;
+
+      if (Platform.isAndroid) {
+        // Try to get the Downloads directory for Android
+        try {
+          if (await Permission.manageExternalStorage.isGranted) {
+            directory = Directory('/storage/emulated/0/Download');
+            if (!await directory.exists()) {
+              await directory.create(recursive: true);
+            }
+          } else {
+            directory =
+                await getExternalStorageDirectory() ??
+                await getApplicationDocumentsDirectory();
+          }
+        } catch (e) {
+          directory = await getApplicationDocumentsDirectory();
+        }
+      } else {
+        // For iOS and other platforms
+        directory = await getApplicationDocumentsDirectory();
+      }
+
+      // Create a new file in the downloads directory
+      final file = File(
+        '${directory.path}/${act.title.replaceAll(' ', '_')}.pdf',
+      );
+
+      // Get the PDF from assets
+      final bytes = await rootBundle.load('assets/pdfs/ConsumerAct.pdf');
+
+      // Write bytes to the file
+      await file.writeAsBytes(bytes.buffer.asUint8List());
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('${act.title} PDF downloaded successfully'),
-          duration: const Duration(seconds: 2),
+          content: Text('${act.title} PDF downloaded to: ${file.path}'),
+          duration: const Duration(seconds: 4),
           behavior: SnackBarBehavior.floating,
         ),
       );
