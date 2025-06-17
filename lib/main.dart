@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'package:lawlink/screens/auth_wrapper.dart';
 import 'package:lawlink/screens/login_page.dart';
 import 'package:lawlink/screens/signup_page.dart';
 import 'package:lawlink/screens/main_page.dart';
 import 'package:lawlink/screens/user_profile_page.dart';
+import 'package:lawlink/screens/legal_procedures_page.dart'; 
 import 'package:lawlink/screens/consumer_quiz_page.dart';
-import 'package:lawlink/screens/procedures_page.dart';
 import 'package:lawlink/screens/quiz_menu_page.dart';
 import 'package:lawlink/screens/leaderboard_page.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'firebase_options.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,9 +38,10 @@ class LegalQuizGame extends StatelessWidget {
         '/profile': (context) => const UserProfilePage(),
         '/quiz': (context) => const QuizMenuPage(), 
         '/quiz/consumer': (context) => const ConsumerQuizPage(), 
-        '/procedures': (context) => const ProceduresPage(),
+        '/procedures': (context) => const LegalProceduresPage(),
         '/leaderboard': (context) => const LeaderboardPage(),
       },
     );
   }
 }
+
