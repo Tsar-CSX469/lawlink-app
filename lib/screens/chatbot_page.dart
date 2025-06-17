@@ -67,7 +67,6 @@ class _ChatbotPageState extends State<ChatbotPage> {
   bool _isPlaying = false;
   bool _isProcessing = false;
   String _recordedAudioPath = '';
-  String? _currentAudioPath;
   final ScrollController _scrollController = ScrollController();
 
   late ChatbotService _chatbotService;
