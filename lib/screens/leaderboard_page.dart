@@ -45,41 +45,12 @@ class _LeaderboardPageState extends State<LeaderboardPage>
       icon: Icons.family_restroom,
     ),
   ];
-  bool _comingFromQuiz = false;
-  int? _quizScore;
-  String? _quizCategoryId;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: _quizCategories.length, vsync: this);
-
-    // Delay to allow for widget to be fully built before getting arguments
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkArguments();
-      _fetchLeaderboardData();
-    });
-  }
-
-  void _checkArguments() {
-    final args = ModalRoute.of(context)?.settings.arguments;
-    if (args != null && args is Map<String, dynamic>) {
-      setState(() {
-        _comingFromQuiz = args['fromQuiz'] ?? false;
-        _quizScore = args['quizScore'] as int?;
-        _quizCategoryId = args['quizId'] as String? ?? 'consumer_affairs_quiz';
-
-        // Set the tab controller to the appropriate quiz category
-        if (_comingFromQuiz && _quizCategoryId != null) {
-          final index = _quizCategories.indexWhere(
-            (c) => c.id == _quizCategoryId,
-          );
-          if (index != -1) {
-            _tabController.animateTo(index);
-          }
-        }
-      });
-    }
+    _fetchLeaderboardData();
   }
 
   @override
@@ -218,7 +189,7 @@ class _LeaderboardPageState extends State<LeaderboardPage>
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [Colors.blue.shade500, Colors.blue.shade200],
+              colors: [Colors.blue.shade400, Colors.purple.shade400],
             ),
           ),
         ),
@@ -634,35 +605,21 @@ class _LeaderboardPageState extends State<LeaderboardPage>
   Widget _buildLeaderboardItem(LeaderboardEntry entry, int rank) {
     double percentage = (entry.score / entry.total) * 100;
     bool isCurrentUser = _auth.currentUser?.uid == entry.userId;
-    bool isHighlighted =
-        _comingFromQuiz && isCurrentUser && entry.score == _quizScore;
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 500),
+
+    return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color:
-            isHighlighted
-                ? Colors.blue.shade100
-                : (isCurrentUser ? Colors.blue.shade50 : Colors.white),
+        color: isCurrentUser ? Colors.blue.shade50 : Colors.white,
         borderRadius: BorderRadius.circular(16),
         border:
             isCurrentUser
-                ? Border.all(
-                  color:
-                      isHighlighted
-                          ? Colors.blue.shade500
-                          : Colors.blue.shade300,
-                  width: isHighlighted ? 2.5 : 2,
-                )
+                ? Border.all(color: Colors.blue.shade300, width: 2)
                 : null,
         boxShadow: [
           BoxShadow(
-            color:
-                isHighlighted
-                    ? Colors.blue.withOpacity(0.2)
-                    : Colors.black.withOpacity(0.06),
-            blurRadius: isHighlighted ? 16 : 12,
-            spreadRadius: isHighlighted ? 2 : 0,
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 12,
+            spreadRadius: 0,
             offset: const Offset(0, 4),
           ),
         ],

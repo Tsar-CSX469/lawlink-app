@@ -436,8 +436,12 @@ class _ProcedureDetailPageState extends State<ProcedureDetailPage>
               expandedHeight: 200,
               floating: false,
               pinned: true,
-              elevation: 0,
-              backgroundColor: Colors.transparent,
+              elevation: 2,
+              shadowColor: Colors.black.withOpacity(0.1),
+              scrolledUnderElevation: 4,
+              backgroundColor: Colors.blue.shade700,
+              foregroundColor: Colors.white,
+              surfaceTintColor: Colors.transparent,
               flexibleSpace: FlexibleSpaceBar(
                 title: Text(
                   widget.procedureData['title'] ?? 'Procedure',

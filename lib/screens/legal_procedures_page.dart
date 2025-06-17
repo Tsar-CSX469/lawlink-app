@@ -265,56 +265,57 @@ class _LegalProceduresPageState extends State<LegalProceduresPage> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 8), // Category filters
+            Padding(
+              padding: const EdgeInsets.only(top: 8, bottom: 4),
+              child: SizedBox(
+                height: 40,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _categories.length,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemBuilder: (context, index) {
+                    final category = _categories[index];
+                    final isSelected = _selectedCategory == category;
 
-            // Category filters
-            SizedBox(
-              height: 40,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: _categories.length,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemBuilder: (context, index) {
-                  final category = _categories[index];
-                  final isSelected = _selectedCategory == category;
-
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 8.0),
-                    child: FilterChip(
-                      label: Text(category),
-                      selected: isSelected,
-                      onSelected: (selected) {
-                        setState(() {
-                          _selectedCategory = category;
-                        });
-                      },
-                      backgroundColor: Colors.white,
-                      selectedColor: Colors.blue.shade100,
-                      checkmarkColor: Colors.blue.shade700,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        side: BorderSide(
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: FilterChip(
+                        label: Text(category),
+                        selected: isSelected,
+                        onSelected: (selected) {
+                          setState(() {
+                            _selectedCategory = category;
+                          });
+                        },
+                        backgroundColor: Colors.white,
+                        selectedColor: Colors.blue.shade100,
+                        checkmarkColor: Colors.blue.shade700,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                          side: BorderSide(
+                            color:
+                                isSelected
+                                    ? Colors.blue.shade700
+                                    : Colors.grey.shade300,
+                            width: 1,
+                          ),
+                        ),
+                        labelStyle: TextStyle(
                           color:
                               isSelected
                                   ? Colors.blue.shade700
-                                  : Colors.grey.shade300,
-                          width: 1,
+                                  : Colors.grey.shade700,
+                          fontWeight:
+                              isSelected ? FontWeight.w600 : FontWeight.normal,
                         ),
                       ),
-                      labelStyle: TextStyle(
-                        color:
-                            isSelected
-                                ? Colors.blue.shade700
-                                : Colors.grey.shade700,
-                        fontWeight:
-                            isSelected ? FontWeight.w600 : FontWeight.normal,
-                      ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
 
             // Procedures list
             Expanded(
@@ -450,6 +451,7 @@ class _LegalProceduresPageState extends State<LegalProceduresPage> {
                           margin: const EdgeInsets.only(bottom: 16),
                           elevation: 4,
                           shadowColor: Colors.blue.withOpacity(0.2),
+                          color: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
                             side: BorderSide(
