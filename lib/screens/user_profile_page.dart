@@ -109,6 +109,47 @@ class _UserProfilePageState extends State<UserProfilePage> {
             surfaceTintColor: Colors.transparent,
             shadowColor: Colors.transparent,
             iconTheme: IconThemeData(color: Colors.blue.shade700),
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(right: 10),
+                child: Container(
+                  height: 36,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Colors.blue.shade800, Colors.blue.shade300],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.logout, size: 16),
+                    label: const Text(
+                      'Log Out',
+                      style: TextStyle(fontSize: 12),
+                    ),
+                    onPressed: () async {
+                      await _authService.signOut();
+                      if (context.mounted) {
+                        Navigator.of(context).pushReplacementNamed('/login');
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 0,
+                        horizontal: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -129,8 +170,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
               children: [
                 // Profile header with avatar
                 Card(
-                  elevation: 4,
-                  shadowColor: Colors.blue.withOpacity(0.1),
+                  elevation: 0,
+                  shadowColor: Colors.transparent,
                   color: Colors.white,
                   // shape: RoundedRectangleBorder(
                   //   borderRadius: BorderRadius.circular(16),
@@ -143,7 +184,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                         Center(
                           child: CircleAvatar(
                             radius: 50,
-                            backgroundColor: Colors.blue.shade50,
+                            // backgroundColor: Colors.blue.shade50,
                             backgroundImage:
                                 _currentUser!.photoURL != null
                                     ? NetworkImage(_currentUser!.photoURL!)
@@ -346,40 +387,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                       ],
                     ),
                   ),
-                ),
-
-                const SizedBox(height: 24),
-
-                // Logout Button
-                Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Colors.blue.shade800, Colors.blue.shade300],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.logout, size: 18),
-                    label: const Text('Log Out'),
-                    onPressed: () async {
-                      await _authService.signOut();
-                      if (context.mounted) {
-                        Navigator.of(context).pushReplacementNamed('/login');
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      shadowColor: Colors.transparent,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
-                  ),
-                ),
+                ), // Logout button is now in the app bar
 
                 const SizedBox(height: 16),
               ],
