@@ -5,6 +5,7 @@ import 'package:lawlink/services/auth_service.dart';
 import 'package:lawlink/screens/user_profile_page.dart';
 import 'package:lawlink/screens/chatbot_page.dart';
 import 'package:lawlink/screens/procedures_page.dart';
+import 'package:lawlink/screens/legal_procedures_page.dart';
 import 'package:lawlink/act_list_page.dart';
 
 class MainPage extends StatefulWidget {
@@ -384,7 +385,7 @@ class _MainPageState extends State<MainPage> {
                                         MaterialPageRoute(
                                           builder:
                                               (context) =>
-                                                  const ProceduresPage(),
+                                                  const LegalProceduresPage(),
                                         ),
                                       );
                                     },
