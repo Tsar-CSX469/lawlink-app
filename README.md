@@ -30,6 +30,7 @@ The primary objective of LawLink is to address the legal literacy gap in Sri Lan
 - **Authentication**: Firebase Authentication
 - **Database**: Cloud Firestore
 - **AI Engine**: Google Generative AI (Gemini Pro)
+- **Text-to-Speech**: ElevenLabs AI Voice API
 - **File Processing**: Custom document analysis pipeline
 - **Storage**: Firebase Cloud Storage
 
@@ -48,6 +49,10 @@ dependencies:
   read_pdf_text: ^0.3.1
   path_provider: ^2.1.2
   google_sign_in: ^6.2.1
+  audioplayers: ^5.2.1
+  record: ^5.0.4
+  http: ^1.4.0
+  flutter_dotenv: ^5.1.0
 ```
 
 ## Core Features
@@ -62,7 +67,7 @@ dependencies:
 - **Multi-modal Interface**: Text, voice, and document input
 - **Natural Language Processing**: Context-aware legal queries
 - **Document Intelligence**: PDF, DOC, DOCX analysis
-- **Voice Interaction**: Speech-to-text and text-to-speech capabilities
+- **Voice Interaction**: Speech-to-text and ElevenLabs AI text-to-speech capabilities
 
 ### 3. Legal Document Management
 - **Comprehensive Library**: Access to legal acts and procedures
@@ -98,7 +103,7 @@ lib/
 │   ├── auth_service.dart     # Authentication management
 │   ├── chatbot_service.dart  # AI integration service
 │   ├── location_service.dart # Location-based features
-│   └── elevenlabs_service.dart # Text-to-speech service
+│   └── elevenlabs_service.dart # ElevenLabs text-to-speech service
 └── widgets/                  # Reusable UI components
     └── floating_chatbot_button.dart # Global AI access
 ```
@@ -141,6 +146,40 @@ class ChatbotService {
 }
 ```
 
+### ElevenLabs Text-to-Speech Integration
+```dart
+class ElevenLabsService {
+  static const String _apiKey = 'YOUR_ELEVENLABS_API_KEY';
+  static const String _baseUrl = 'https://api.elevenlabs.io/v1';
+  
+  Future<String> textToSpeech(String text, String voiceId) async {
+    final response = await http.post(
+      Uri.parse('$_baseUrl/text-to-speech/$voiceId'),
+      headers: {
+        'Accept': 'audio/mpeg',
+        'Content-Type': 'application/json',
+        'xi-api-key': _apiKey,
+      },
+      body: jsonEncode({
+        'text': text,
+        'model_id': 'eleven_monolingual_v1',
+        'voice_settings': {
+          'stability': 0.5,
+          'similarity_boost': 0.5,
+        },
+      }),
+    );
+    
+    if (response.statusCode == 200) {
+      // Save audio file and return path
+      return await _saveAudioFile(response.bodyBytes);
+    } else {
+      throw Exception('Failed to generate speech');
+    }
+  }
+}
+```
+
 ## Installation and Deployment
 
 ### Prerequisites
@@ -148,6 +187,7 @@ class ChatbotService {
 - Dart SDK 3.7.0 or higher
 - Firebase project with Authentication and Firestore enabled
 - Google AI API key for chatbot functionality
+- ElevenLabs API key for text-to-speech functionality
 
 ### Installation Procedure
 ```bash
@@ -178,53 +218,135 @@ flutter run
    - Configure chatbot service with API key
    - Test AI functionality
 
-3. **Environment Variables**
+3. **ElevenLabs Integration**
+   - Sign up for ElevenLabs account
+   - Obtain API key from ElevenLabs dashboard
+   - Configure text-to-speech service
+
+4. **Environment Variables**
    ```env
    GOOGLE_AI_API_KEY=your_google_ai_api_key
    ELEVENLABS_API_KEY=your_elevenlabs_api_key
    ```
 
-## Performance Specifications
+## Platform-Specific Setup
 
-### Application Performance
-- **Startup Time**: < 3 seconds on standard devices
-- **Memory Usage**: Optimized for mobile platforms
-- **Battery Efficiency**: Minimal background processing
-- **Network Optimization**: Efficient API communication with caching
+### Android Setup
 
-### AI Response Metrics
-- **Text Processing**: < 2 seconds average response time
-- **Document Analysis**: < 10 seconds for standard documents
-- **Voice Processing**: Real-time with < 1 second latency
-- **Concurrent Users**: Supports 100+ simultaneous users
+#### Prerequisites
+- Android Studio installed
+- Android SDK (API level 21+)
+- Java Development Kit (JDK) 11 or higher
 
-## Security Implementation
+#### Configuration Steps
+1. **Firebase Configuration**
+   ```bash
+   # Download google-services.json from Firebase Console
+   # Place in android/app/google-services.json
+   ```
 
-### Data Protection Measures
-- **API Key Security**: Secure storage using environment variables
-- **User Data Encryption**: Firebase encryption for sensitive information
-- **Input Validation**: Comprehensive sanitization of user inputs
-- **Session Security**: Secure token management and validation
+2. **Android Permissions**
+   Add to `android/app/src/main/AndroidManifest.xml`:
+   ```xml
+   <uses-permission android:name="android.permission.INTERNET" />
+   <uses-permission android:name="android.permission.RECORD_AUDIO" />
+   <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+   <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+   <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+   <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+   ```
 
-### Privacy Compliance
-- **GDPR Compliance**: User consent and data handling
-- **Data Retention**: Configurable data retention policies
-- **Access Control**: Role-based access management
-- **Audit Logging**: Comprehensive activity tracking
+3. **Build Configuration**
+   Update `android/app/build.gradle`:
+   ```gradle
+   android {
+       compileSdkVersion 34
+       defaultConfig {
+           minSdkVersion 21
+           targetSdkVersion 34
+       }
+   }
+   ```
 
-## Testing Strategy
+4. **Run on Android**
+   ```bash
+   # Connect Android device or start emulator
+   flutter devices
+   
+   # Run the app
+   flutter run
+   
+   # Build APK
+   flutter build apk --release
+   
+   # Build App Bundle
+   flutter build appbundle --release
+   ```
 
-### Quality Assurance Framework
-- **Unit Testing**: Service layer and business logic validation
-- **Widget Testing**: UI component and interaction testing
-- **Integration Testing**: End-to-end workflow validation
-- **Performance Testing**: Load and stress testing
+### iOS Setup
 
-### Test Coverage Requirements
-- **Code Coverage**: Minimum 80% coverage target
-- **Critical Path Testing**: 100% coverage for authentication and AI features
-- **Cross-Platform Testing**: Validation across all supported platforms
-- **User Acceptance Testing**: Real-world scenario validation
+#### Prerequisites
+- macOS with Xcode 14.0 or higher
+- iOS 12.0 or higher
+- CocoaPods installed
+
+#### Configuration Steps
+1. **Firebase Configuration**
+   ```bash
+   # Download GoogleService-Info.plist from Firebase Console
+   # Place in ios/Runner/GoogleService-Info.plist
+   ```
+
+2. **iOS Permissions**
+   Add to `ios/Runner/Info.plist`:
+   ```xml
+   <key>NSMicrophoneUsageDescription</key>
+   <string>This app needs access to microphone for voice input</string>
+   <key>NSCameraUsageDescription</key>
+   <string>This app needs access to camera for document scanning</string>
+   <key>NSPhotoLibraryUsageDescription</key>
+   <string>This app needs access to photo library for document upload</string>
+   <key>NSLocationWhenInUseUsageDescription</key>
+   <string>This app needs access to location for local legal services</string>
+   ```
+
+3. **Pod Installation**
+   ```bash
+   cd ios
+   pod install
+   cd ..
+   ```
+
+4. **Run on iOS**
+   ```bash
+   # Open iOS Simulator or connect iPhone
+   flutter devices
+   
+   # Run the app
+   flutter run
+   
+   # Build for iOS
+   flutter build ios --release
+   ```
+
+### Web Setup
+
+#### Prerequisites
+- Chrome, Firefox, or Safari browser
+- Web server (optional for production)
+
+#### Configuration Steps
+1. **Web Configuration**
+   ```bash
+   # Enable web support
+   flutter config --enable-web
+   
+   # Run on web
+   flutter run -d chrome
+   
+   # Build for web
+   flutter build web --release
+   ```
 
 ## Deployment Specifications
 
@@ -249,58 +371,13 @@ flutter build web --release
 - **macOS**: macOS 10.14+
 - **Linux**: Ubuntu 18.04+
 
-## Maintenance and Support
-
-### Update Procedures
-- **Dependency Updates**: Monthly security and feature updates
-- **AI Model Updates**: Quarterly model performance optimization
-- **Security Patches**: Immediate deployment for critical vulnerabilities
-- **Feature Releases**: Scheduled quarterly releases
-
-### Monitoring and Analytics
-- **Performance Monitoring**: Real-time application performance tracking
-- **Error Tracking**: Comprehensive error logging and analysis
-- **User Analytics**: Usage pattern and feature adoption metrics
-- **AI Performance**: Response quality and accuracy monitoring
-
-## Future Development Roadmap
-
-### Phase 1 Enhancements (Q2 2024)
-- **Offline Functionality**: Core features without internet connectivity
-- **Multi-language Support**: Sinhala and Tamil language integration
-- **Advanced Analytics**: Detailed learning insights and recommendations
-- **Social Features**: Community discussions and knowledge sharing
-
-### Phase 2 Enhancements (Q3 2024)
-- **Advanced AI Capabilities**: Enhanced document understanding
-- **Performance Optimization**: Low-end device optimization
-- **Security Enhancements**: Additional encryption layers
-- **Scalability Improvements**: Microservices architecture implementation
-
-### Phase 3 Enhancements (Q4 2024)
-- **Integration APIs**: Third-party legal service integration
-- **Advanced Reporting**: Comprehensive legal analytics dashboard
-- **Mobile Optimization**: Native mobile app performance
-- **Enterprise Features**: Organization and institution management
-
-## Technical Documentation
-
-### API Documentation
-- **Authentication Endpoints**: User management and security
-- **AI Service APIs**: Chatbot and document analysis interfaces
-- **Database Schema**: Firestore collections and relationships
-- **Error Handling**: Comprehensive error codes and responses
-
-### Development Guidelines
-- **Code Standards**: Flutter and Dart best practices
-- **Architecture Patterns**: Clean architecture implementation
-- **Testing Protocols**: Comprehensive testing requirements
-- **Documentation Standards**: Code documentation requirements
+## License and Legal
 
 ### Third-Party Licenses
 - **Flutter**: Apache License 2.0
 - **Firebase**: Apache License 2.0
 - **Google AI**: Google AI Terms of Service
+- **ElevenLabs**: ElevenLabs Terms of Service
 - **Dependencies**: Respective open-source licenses
 
 ---
