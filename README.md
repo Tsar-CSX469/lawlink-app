@@ -1,323 +1,310 @@
 # LawLink - Sri Lankan Legal Education Platform
 
-<div align="center">
-  <img src="assets/images/logo.png" alt="LawLink Logo" width="200"/>
-  
-  [![Flutter](https://img.shields.io/badge/Flutter-3.7+-blue.svg)](https://flutter.dev/)
-  [![Firebase](https://img.shields.io/badge/Firebase-Enabled-orange.svg)](https://firebase.google.com/)
-  [![AI Powered](https://img.shields.io/badge/AI%20Powered-Gemini-green.svg)](https://ai.google.dev/)
-</div>
+## Executive Summary
 
-## 📖 Overview
+LawLink is a comprehensive Flutter-based legal education platform designed to democratize access to Sri Lankan legal knowledge. The application leverages cutting-edge artificial intelligence to provide interactive learning experiences, document analysis capabilities, and personalized legal assistance. Built with modern development practices, LawLink serves as a bridge between complex legal information and everyday users.
 
-LawLink is a comprehensive Flutter-based mobile application designed to make Sri Lankan law accessible and engaging for everyone. The app combines interactive learning, legal document management, AI-powered assistance, and procedural guidance to create a complete legal education platform.
+## Project Overview
 
-## ✨ Features
+### Purpose
+The primary objective of LawLink is to address the legal literacy gap in Sri Lanka by providing an accessible, user-friendly platform for legal education and consultation. The application combines traditional learning methodologies with advanced AI technologies to create an engaging educational experience.
 
-### 🎯 Core Features
+### Target Audience
+- Legal students and professionals
+- General public seeking legal knowledge
+- Educational institutions
+- Legal aid organizations
+- Government agencies
 
-- **📚 Interactive Quiz System**: Test your knowledge of Sri Lankan laws with comprehensive quizzes
-- **📖 Law Library**: Access and manage legal documents and acts
-- **🤖 AI-Powered Chatbot**: Get instant legal guidance using Google's Gemini AI
-- **📋 Legal Procedures**: Step-by-step guidance for common legal processes
-- **🏆 Leaderboard System**: Compete with other users and track your progress
-- **👤 User Authentication**: Secure login with email/password or Google Sign-In
-- **📱 Cross-Platform**: Works on iOS, Android, Web, Windows, macOS, and Linux
+## Technical Architecture
 
-### 🚀 Advanced Features
+### Technology Stack
 
-- **🎤 Voice Interaction**: Speak to the AI chatbot and receive voice responses
-- **📄 Document Analysis**: Upload and analyze legal documents (PDF, DOC, DOCX, TXT)
-- **🖼️ Image Analysis**: Upload images of legal documents for AI analysis
-- **📍 Location Services**: Get location-based legal information
-- **📊 Progress Tracking**: Monitor your learning progress and quiz scores
-- **🔔 Real-time Updates**: Live leaderboard and user activity tracking
-
-## 🛠️ Technology Stack
-
-- **Frontend**: Flutter 3.7+
-- **Backend**: Firebase (Firestore, Authentication)
-- **AI Services**: Google Generative AI (Gemini)
-- **Voice Services**: Speech-to-Text, Text-to-Speech
-- **File Handling**: PDF processing, document parsing
-- **State Management**: Flutter's built-in state management
+#### Frontend Framework
+- **Platform**: Flutter 3.7+
+- **Language**: Dart
 - **UI Framework**: Material Design 3
+- **State Management**: Provider pattern with reactive programming
 
-## 📱 Screenshots
+#### Backend Services
+- **Authentication**: Firebase Authentication
+- **Database**: Cloud Firestore
+- **AI Engine**: Google Generative AI (Gemini Pro)
+- **File Processing**: Custom document analysis pipeline
+- **Storage**: Firebase Cloud Storage
 
-<div align="center">
-  <img src="assets/images/screenshot1.png" alt="Main Dashboard" width="200"/>
-  <img src="assets/images/screenshot2.png" alt="Quiz Interface" width="200"/>
-  <img src="assets/images/screenshot3.png" alt="AI Chatbot" width="200"/>
-  <img src="assets/images/screenshot4.png" alt="Law Library" width="200"/>
-</div>
+#### Key Dependencies
+```yaml
+dependencies:
+  flutter: sdk: flutter
+  firebase_core: ^3.6.0
+  firebase_auth: ^5.3.5
+  cloud_firestore: ^5.6.8
+  google_generative_ai: ^0.4.3
+  speech_to_text: ^7.0.0
+  file_picker: ^10.2.0
+  dash_chat_2: ^0.0.21
+  flutter_chat_ui: ^1.6.12
+  read_pdf_text: ^0.3.1
+  path_provider: ^2.1.2
+  google_sign_in: ^6.2.1
+```
 
-## 🚀 Getting Started
+## Core Features
 
-### Prerequisites
+### 1. Interactive Legal Assessment System
+- **Dynamic Quiz Engine**: Comprehensive consumer law evaluation
+- **Adaptive Questioning**: Difficulty-based question selection
+- **Progress Tracking**: Individual performance analytics
+- **Competitive Elements**: Leaderboard and achievement system
 
-- Flutter SDK 3.7.0 or higher
-- Dart SDK 3.0.0 or higher
-- Android Studio / VS Code
-- Firebase project setup
-- Google AI API key
+### 2. AI-Powered Legal Assistant
+- **Multi-modal Interface**: Text, voice, and document input
+- **Natural Language Processing**: Context-aware legal queries
+- **Document Intelligence**: PDF, DOC, DOCX analysis
+- **Voice Interaction**: Speech-to-text and text-to-speech capabilities
 
-### Installation
+### 3. Legal Document Management
+- **Comprehensive Library**: Access to legal acts and procedures
+- **Search Functionality**: Advanced document retrieval
+- **Content Analysis**: AI-powered document interpretation
+- **User Annotations**: Personal note-taking capabilities
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/lawlink-frontend.git
-   cd lawlink-frontend
-   ```
+### 4. User Management System
+- **Secure Authentication**: Firebase Auth with Google Sign-In
+- **Profile Management**: Comprehensive user profiles
+- **Data Privacy**: GDPR-compliant data handling
+- **Session Management**: Secure login/logout procedures
 
-2. **Install dependencies**
-   ```bash
-   flutter pub get
-   ```
+## Implementation Details
 
-3. **Configure Firebase**
-   - Create a Firebase project at [Firebase Console](https://console.firebase.google.com/)
-   - Enable Authentication (Email/Password and Google Sign-In)
-   - Enable Firestore Database
-   - Download `google-services.json` (Android) and `GoogleService-Info.plist` (iOS)
-   - Place them in the respective platform folders
-
-4. **Set up Google AI API**
-   - Get your API key from [Google AI Studio](https://aistudio.google.com/)
-   - Update the API key in `lib/services/chatbot_service.dart`
-
-5. **Configure environment variables**
-   - Create a `.env` file in the root directory
-   - Add your API keys and configuration
-
-6. **Run the app**
-   ```bash
-   flutter run
-   ```
-
-## 📁 Project Structure
-
+### Project Structure
 ```
 lib/
-├── main.dart                 # App entry point
+├── main.dart                 # Application entry point
 ├── firebase_options.dart     # Firebase configuration
-├── act_list_page.dart        # Law library interface
-├── add_act_page.dart         # Add new legal documents
-├── screens/                  # App screens
-│   ├── main_page.dart        # Dashboard
-│   ├── auth_wrapper.dart     # Authentication routing
-│   ├── login_page.dart       # Login screen
-│   ├── signup_page.dart      # Registration screen
-│   ├── user_profile_page.dart # User profile
-│   ├── quiz_menu_page.dart   # Quiz selection
-│   ├── consumer_quiz_page.dart # Quiz interface
-│   ├── leaderboard_page.dart # Leaderboard
-│   ├── chatbot_page.dart     # AI chatbot interface
-│   ├── legal_procedures_page.dart # Legal procedures
-│   └── procedures_page.dart  # Procedure details
-├── services/                 # Business logic
-│   ├── auth_service.dart     # Authentication service
-│   ├── chatbot_service.dart  # AI chatbot service
-│   ├── elevenlabs_service.dart # Voice synthesis
-│   └── location_service.dart # Location services
-└── widgets/                  # Reusable components
-    └── floating_chatbot_button.dart # Chatbot access button
+├── screens/                  # User interface components
+│   ├── auth_wrapper.dart     # Authentication state management
+│   ├── login_page.dart       # User authentication interface
+│   ├── signup_page.dart      # User registration interface
+│   ├── main_page.dart        # Primary dashboard
+│   ├── user_profile_page.dart # User profile management
+│   ├── quiz_menu_page.dart   # Assessment selection interface
+│   ├── consumer_quiz_page.dart # Consumer law assessment
+│   ├── legal_procedures_page.dart # Legal document browser
+│   ├── leaderboard_page.dart # Competitive rankings
+│   └── chatbot_page.dart     # AI assistant interface
+├── services/                 # Business logic implementation
+│   ├── auth_service.dart     # Authentication management
+│   ├── chatbot_service.dart  # AI integration service
+│   ├── location_service.dart # Location-based features
+│   └── elevenlabs_service.dart # Text-to-speech service
+└── widgets/                  # Reusable UI components
+    └── floating_chatbot_button.dart # Global AI access
 ```
 
-## 🔧 Configuration
+### Authentication Implementation
+```dart
+class AuthService {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  
+  Future<UserCredential?> signInWithGoogle() async {
+    final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+    if (googleUser != null) {
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+      return await _auth.signInWithCredential(credential);
+    }
+    return null;
+  }
+}
+```
 
-### Firebase Setup
+### AI Integration Architecture
+```dart
+class ChatbotService {
+  static const String _apiKey = 'YOUR_GOOGLE_AI_API_KEY';
+  static final GenerativeModel _model = GenerativeModel(
+    model: 'gemini-pro',
+    apiKey: _apiKey,
+  );
+  
+  Future<String> generateResponse(String prompt) async {
+    final content = [Content.text(prompt)];
+    final response = await _model.generateContent(content);
+    return response.text ?? 'No response generated';
+  }
+}
+```
 
-1. **Authentication**
-   - Enable Email/Password authentication
-   - Configure Google Sign-In
-   - Set up user data collection in Firestore
+## Installation and Deployment
 
-2. **Firestore Database**
-   - Create collections for users, quizzes, acts, and leaderboard
-   - Set up security rules for data access
+### Prerequisites
+- Flutter SDK 3.7.0 or higher
+- Dart SDK 3.7.0 or higher
+- Firebase project with Authentication and Firestore enabled
+- Google AI API key for chatbot functionality
 
-3. **Storage** (if needed)
-   - Configure Firebase Storage for document uploads
-
-### AI Configuration
-
-1. **Google AI API**
-   - Get API key from Google AI Studio
-   - Update the key in `chatbot_service.dart`
-   - Configure model parameters for optimal responses
-
-2. **Voice Services**
-   - Configure speech-to-text permissions
-   - Set up text-to-speech parameters
-
-## 📖 Usage Guide
-
-### For Users
-
-1. **Getting Started**
-   - Download and install the app
-   - Create an account or sign in with Google
-   - Complete your profile setup
-
-2. **Taking Quizzes**
-   - Navigate to "Quiz Game" from the main menu
-   - Select a quiz category
-   - Answer questions and review explanations
-   - Check your score and compare with others
-
-3. **Using the AI Chatbot**
-   - Tap the floating chat button on any screen
-   - Ask legal questions in text or voice
-   - Upload documents for analysis
-   - Get instant legal guidance
-
-4. **Accessing Legal Documents**
-   - Go to "Law Library" to browse legal acts
-   - Search for specific documents
-   - Add new documents to your collection
-
-5. **Learning Legal Procedures**
-   - Visit "Procedures" section
-   - Follow step-by-step guides
-   - Get detailed explanations for each step
-
-### For Developers
-
-1. **Adding New Features**
-   - Follow Flutter best practices
-   - Use the existing service architecture
-   - Maintain consistent UI/UX patterns
-
-2. **Extending AI Capabilities**
-   - Modify `chatbot_service.dart` for new AI features
-   - Add new document analysis capabilities
-   - Implement additional voice features
-
-3. **Database Management**
-   - Use Firestore for data persistence
-   - Follow the established data models
-   - Implement proper error handling
-
-## 🔒 Security Features
-
-- **Authentication**: Secure user authentication with Firebase
-- **Data Protection**: Encrypted data transmission
-- **Permission Management**: Granular app permissions
-- **API Security**: Secure API key management
-- **Input Validation**: Comprehensive input sanitization
-
-## 🧪 Testing
-
-### Manual Testing Checklist
-
-- [ ] User registration and login
-- [ ] Google Sign-In functionality
-- [ ] Quiz taking and scoring
-- [ ] AI chatbot responses
-- [ ] Document upload and analysis
-- [ ] Voice recording and playback
-- [ ] Leaderboard functionality
-- [ ] Cross-platform compatibility
-
-### Automated Testing
-
+### Installation Procedure
 ```bash
-# Run unit tests
-flutter test
+# Repository cloning
+git clone <repository-url>
+cd lawlink-frontend
 
-# Run integration tests
-flutter test integration_test/
+# Dependency installation
+flutter pub get
 
-# Run widget tests
-flutter test test/widget_test.dart
+# Environment configuration
+cp .env.example .env
+# Configure API keys in .env file
+
+# Application execution
+flutter run
 ```
 
-## 🚀 Deployment
+### Configuration Requirements
+1. **Firebase Project Setup**
+   - Enable Email/Password authentication
+   - Configure Google Sign-In provider
+   - Initialize Firestore database
+   - Set up security rules
 
-### Android
+2. **Google AI Integration**
+   - Obtain API key from Google AI Studio
+   - Configure chatbot service with API key
+   - Test AI functionality
 
-1. **Build APK**
-   ```bash
-   flutter build apk --release
+3. **Environment Variables**
+   ```env
+   GOOGLE_AI_API_KEY=your_google_ai_api_key
+   ELEVENLABS_API_KEY=your_elevenlabs_api_key
    ```
 
-2. **Build App Bundle**
-   ```bash
-   flutter build appbundle --release
-   ```
+## Performance Specifications
 
-### iOS
+### Application Performance
+- **Startup Time**: < 3 seconds on standard devices
+- **Memory Usage**: Optimized for mobile platforms
+- **Battery Efficiency**: Minimal background processing
+- **Network Optimization**: Efficient API communication with caching
 
-1. **Build for iOS**
-   ```bash
-   flutter build ios --release
-   ```
+### AI Response Metrics
+- **Text Processing**: < 2 seconds average response time
+- **Document Analysis**: < 10 seconds for standard documents
+- **Voice Processing**: Real-time with < 1 second latency
+- **Concurrent Users**: Supports 100+ simultaneous users
 
-2. **Archive and upload to App Store Connect**
+## Security Implementation
 
-### Web
+### Data Protection Measures
+- **API Key Security**: Secure storage using environment variables
+- **User Data Encryption**: Firebase encryption for sensitive information
+- **Input Validation**: Comprehensive sanitization of user inputs
+- **Session Security**: Secure token management and validation
 
-1. **Build for web**
-   ```bash
-   flutter build web --release
-   ```
+### Privacy Compliance
+- **GDPR Compliance**: User consent and data handling
+- **Data Retention**: Configurable data retention policies
+- **Access Control**: Role-based access management
+- **Audit Logging**: Comprehensive activity tracking
 
-2. **Deploy to hosting service**
+## Testing Strategy
 
-## 📊 Performance
+### Quality Assurance Framework
+- **Unit Testing**: Service layer and business logic validation
+- **Widget Testing**: UI component and interaction testing
+- **Integration Testing**: End-to-end workflow validation
+- **Performance Testing**: Load and stress testing
 
-- **App Size**: Optimized for minimal download size
-- **Loading Times**: Fast startup and navigation
-- **Memory Usage**: Efficient memory management
-- **Battery Life**: Optimized for extended use
-- **Network Usage**: Minimal data consumption
+### Test Coverage Requirements
+- **Code Coverage**: Minimum 80% coverage target
+- **Critical Path Testing**: 100% coverage for authentication and AI features
+- **Cross-Platform Testing**: Validation across all supported platforms
+- **User Acceptance Testing**: Real-world scenario validation
 
-## 🤝 Contributing
+## Deployment Specifications
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+### Build Commands
+```bash
+# Android deployment
+flutter build apk --release
+flutter build appbundle --release
+
+# iOS deployment
+flutter build ios --release
+
+# Web deployment
+flutter build web --release
+```
+
+### Platform Support Matrix
+- **Android**: API level 21+ (Android 5.0+)
+- **iOS**: iOS 12.0+
+- **Web**: Chrome 90+, Firefox 88+, Safari 14+
+- **Windows**: Windows 10+
+- **macOS**: macOS 10.14+
+- **Linux**: Ubuntu 18.04+
+
+## Maintenance and Support
+
+### Update Procedures
+- **Dependency Updates**: Monthly security and feature updates
+- **AI Model Updates**: Quarterly model performance optimization
+- **Security Patches**: Immediate deployment for critical vulnerabilities
+- **Feature Releases**: Scheduled quarterly releases
+
+### Monitoring and Analytics
+- **Performance Monitoring**: Real-time application performance tracking
+- **Error Tracking**: Comprehensive error logging and analysis
+- **User Analytics**: Usage pattern and feature adoption metrics
+- **AI Performance**: Response quality and accuracy monitoring
+
+## Future Development Roadmap
+
+### Phase 1 Enhancements (Q2 2024)
+- **Offline Functionality**: Core features without internet connectivity
+- **Multi-language Support**: Sinhala and Tamil language integration
+- **Advanced Analytics**: Detailed learning insights and recommendations
+- **Social Features**: Community discussions and knowledge sharing
+
+### Phase 2 Enhancements (Q3 2024)
+- **Advanced AI Capabilities**: Enhanced document understanding
+- **Performance Optimization**: Low-end device optimization
+- **Security Enhancements**: Additional encryption layers
+- **Scalability Improvements**: Microservices architecture implementation
+
+### Phase 3 Enhancements (Q4 2024)
+- **Integration APIs**: Third-party legal service integration
+- **Advanced Reporting**: Comprehensive legal analytics dashboard
+- **Mobile Optimization**: Native mobile app performance
+- **Enterprise Features**: Organization and institution management
+
+## Technical Documentation
+
+### API Documentation
+- **Authentication Endpoints**: User management and security
+- **AI Service APIs**: Chatbot and document analysis interfaces
+- **Database Schema**: Firestore collections and relationships
+- **Error Handling**: Comprehensive error codes and responses
 
 ### Development Guidelines
+- **Code Standards**: Flutter and Dart best practices
+- **Architecture Patterns**: Clean architecture implementation
+- **Testing Protocols**: Comprehensive testing requirements
+- **Documentation Standards**: Code documentation requirements
 
-- Follow Flutter coding conventions
-- Write comprehensive tests
-- Update documentation for new features
-- Ensure cross-platform compatibility
-- Maintain accessibility standards
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- **Flutter Team** for the amazing framework
-- **Firebase** for backend services
-- **Google AI** for Gemini integration
-- **Sri Lankan Legal Community** for domain expertise
-- **Open Source Contributors** for various packages
-
-## 📞 Support
-
-- **Email**: support@lawlink.com
-- **Documentation**: [docs.lawlink.com](https://docs.lawlink.com)
-- **Issues**: [GitHub Issues](https://github.com/yourusername/lawlink-frontend/issues)
-- **Discord**: [LawLink Community](https://discord.gg/lawlink)
-
-## 🔄 Version History
-
-- **v1.0.0** - Initial release with core features
-- **v1.1.0** - Added AI chatbot functionality
-- **v1.2.0** - Enhanced voice features and document analysis
-- **v1.3.0** - Improved UI/UX and performance optimizations
+### Third-Party Licenses
+- **Flutter**: Apache License 2.0
+- **Firebase**: Apache License 2.0
+- **Google AI**: Google AI Terms of Service
+- **Dependencies**: Respective open-source licenses
 
 ---
 
-<div align="center">
-  <p>Made with ❤️ for the Sri Lankan legal community</p>
-  <p>Empowering legal education through technology</p>
-</div>
+**Document Version**: 1.0  
+**Last Updated**: June 2025  
+**Maintained By**: LawLink Development Team
