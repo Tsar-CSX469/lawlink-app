@@ -116,6 +116,8 @@ class _MainPageState extends State<MainPage> {
             ],
           ),
           child: AppBar(
+            // Explicitly disable back arrow for the main screen
+            automaticallyImplyLeading: false,
             title: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
