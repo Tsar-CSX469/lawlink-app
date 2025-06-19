@@ -365,22 +365,6 @@ class _MainPageState extends State<MainPage> {
                                     onTap: () {
                                       Navigator.pushNamed(context, '/quiz');
                                     },
-                                  ),
-
-                                  // Law Library Card
-                                  _buildFeatureCard(
-                                    title: "Law Library",
-                                    icon: Icons.menu_book_rounded,
-                                    color: Colors.blue.shade700,
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder:
-                                              (context) => const ActListPage(),
-                                        ),
-                                      );
-                                    },
                                   ), // LawLink AI Card
                                   _buildFeatureCard(
                                     title: "LawLink AI",
@@ -409,6 +393,22 @@ class _MainPageState extends State<MainPage> {
                                           builder:
                                               (context) =>
                                                   const LegalProceduresPage(),
+                                        ),
+                                      );
+                                    },
+                                  ),
+
+                                  // Law Library Card
+                                  _buildFeatureCard(
+                                    title: "Law Library",
+                                    icon: Icons.menu_book_rounded,
+                                    color: Colors.blue.shade700,
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder:
+                                              (context) => const ActListPage(),
                                         ),
                                       );
                                     },

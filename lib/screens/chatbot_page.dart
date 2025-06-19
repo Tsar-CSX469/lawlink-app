@@ -11,6 +11,7 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 import 'dart:io';
 import 'package:lawlink/services/chatbot_service.dart';
 import 'package:lawlink/services/elevenlabs_service.dart';
+import 'package:flutter/services.dart';
 
 class Message {
   final bool isUser;
@@ -21,6 +22,7 @@ class Message {
   final String? filePath;
   final String? fileName;
   final String? audioPath;
+  final List<String> followUpTags;
 
   Message({
     required this.isUser,
@@ -31,12 +33,48 @@ class Message {
     this.filePath,
     this.fileName,
     this.audioPath,
+    this.followUpTags = const [],
   });
 
   Content toGeminiContent() {
     final role = isUser ? 'user' : 'assistant';
     final parts = [TextPart(text)];
     return Content(role, parts);
+  }
+
+  // Extract follow-up tags from message text
+  static List<String> extractFollowUpTags(String text) {
+    List<String> tags = [];
+    // Look for the pattern "**Want to know more?**" followed by bullet points
+    final regex = RegExp(r'\*\*Want to know more\?\*\*\n([\s\S]+)');
+    final match = regex.firstMatch(text);
+
+    if (match != null && match.groupCount >= 1) {
+      final tagSection = match.group(1);
+      if (tagSection != null) {
+        // Extract each bullet point
+        final tagLines =
+            tagSection
+                .split('\n')
+                .where((line) => line.trim().startsWith('-'))
+                .toList();
+        tags = tagLines.map((line) => line.trim().substring(2).trim()).toList();
+      }
+    }
+
+    return tags;
+  }
+
+  // Get message text without the follow-up tags section
+  String get cleanText {
+    if (followUpTags.isEmpty) return text;
+
+    final tagSectionStart = text.indexOf('**Want to know more?**');
+    if (tagSectionStart != -1) {
+      return text.substring(0, tagSectionStart).trim();
+    }
+
+    return text;
   }
 }
 
@@ -155,10 +193,18 @@ class _ChatbotPageState extends State<ChatbotPage> {
             ? "Hello! I'm LawLink AI, your legal assistant. I can help you with Sri Lankan law queries, analyze documents, and answer questions about legal acts. How can I assist you today?"
             : "ආයුබෝවන්! මම LawLink AI, ඔබගේ නීති සහායකයා. මට ශ්‍රී ලංකා නීති ප්‍රශ්න, ලේඛන විශ්ලේෂණය කිරීමට සහ නීති පනත් පිළිබඳ ප්‍රශ්නවලට පිළිතුරු දීමට උපකාර කළ හැකිය. අද දින මට ඔබට කෙසේ උපකාර කළ හැකිද?";
 
+    // Add some suggested starter questions as follow-up tags
+    List<String> starterTags = [
+      "What are consumer rights in Sri Lanka?",
+      "How do I file a legal complaint?",
+      "Tell me about the court system",
+    ];
+
     final welcomeMessage = Message(
       isUser: false,
       text: welcomeText,
       timestamp: DateTime.now(),
+      followUpTags: starterTags,
     );
 
     setState(() {
@@ -168,6 +214,29 @@ class _ChatbotPageState extends State<ChatbotPage> {
 
   Future<void> _sendMessage(String text) async {
     if (text.trim().isEmpty) return;
+
+    // Check if the text is a follow-up tag from a previous message
+    bool isFollowUpTag = false;
+    String originalQuery = text;
+
+    // Look through recent AI messages to see if this matches a follow-up tag
+    for (
+      int i = _messages.length - 1;
+      i >= 0 && i >= _messages.length - 5;
+      i--
+    ) {
+      final message = _messages[i];
+      if (!message.isUser && message.followUpTags.isNotEmpty) {
+        for (final tag in message.followUpTags) {
+          if (text.trim() == tag.trim()) {
+            isFollowUpTag = true;
+            originalQuery = "Regarding your previous answer, $tag";
+            break;
+          }
+        }
+        if (isFollowUpTag) break;
+      }
+    }
 
     final userMessage = Message(
       isUser: true,
@@ -188,16 +257,24 @@ class _ChatbotPageState extends State<ChatbotPage> {
       if (historyToSend.length > maxTurns) {
         historyToSend = historyToSend.sublist(historyToSend.length - maxTurns);
       }
+
+      // Use the original query with context if this is a follow-up tag
+      final query = isFollowUpTag ? originalQuery : text;
+
       final response = await _chatbotService.sendMessage(
-        text,
+        query,
         historyToSend,
         context: context,
       );
+
+      // Extract follow-up tags from the response
+      final followUpTags = Message.extractFollowUpTags(response);
 
       final aiMessage = Message(
         isUser: false,
         text: response,
         timestamp: DateTime.now(),
+        followUpTags: followUpTags,
       );
 
       setState(() {
@@ -821,141 +898,271 @@ class _ChatbotPageState extends State<ChatbotPage> {
 
   Widget _buildMessageItem(Message message) {
     final isUser = message.isUser;
-
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.75,
-        ),
-        margin: const EdgeInsets.only(top: 8, bottom: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: isUser ? Colors.blue.shade700 : Colors.white.withOpacity(0.9),
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 5,
-              offset: const Offset(0, 1),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (message.imageUrl != null)
-              Container(
-                constraints: BoxConstraints(
-                  maxHeight: MediaQuery.of(context).size.height * 0.3,
-                ),
-                margin: const EdgeInsets.only(bottom: 8),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: Image.file(File(message.imageUrl!), fit: BoxFit.cover),
-                ),
-              ),
-            if (message.filePath != null)
-              Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
+      child: GestureDetector(
+        onLongPress: () {
+          // Show options in a bottom sheet when long-pressing a message
+          showModalBottomSheet(
+            context: context,
+            builder:
+                (context) => Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.insert_drive_file, size: 20),
-                    const SizedBox(width: 8),
-                    Flexible(
-                      child: Text(
-                        message.fileName ?? 'File',
-                        style: const TextStyle(fontSize: 14),
+                    ListTile(
+                      leading: const Icon(Icons.copy),
+                      title: const Text('Copy entire message'),
+                      onTap: () {
+                        // Copy the message text to clipboard
+                        Clipboard.setData(ClipboardData(text: message.text));
+                        Navigator.pop(context);
+
+                        // Show a feedback message
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Message copied to clipboard'),
+                            duration: Duration(seconds: 2),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      },
+                    ),
+                    const ListTile(
+                      leading: Icon(Icons.info_outline),
+                      title: Text(
+                        'Tip: Tap and hold text to select and copy parts of the message',
                       ),
                     ),
                   ],
                 ),
+          );
+        },
+        child: Container(
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.75,
+          ),
+          margin: const EdgeInsets.only(top: 8, bottom: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color:
+                isUser ? Colors.blue.shade700 : Colors.white.withOpacity(0.9),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 5,
+                offset: const Offset(0, 1),
               ),
-            if (message.audioPath != null)
-              Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.mic, color: isUser ? Colors.white : Colors.blue),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Audio Message',
-                      style: TextStyle(
-                        color: isUser ? Colors.white : Colors.black87,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            isUser
-                ? Text(
-                  message.text,
-                  style: const TextStyle(color: Colors.white),
-                )
-                : MarkdownBody(
-                  data: message.text,
-                  styleSheet: MarkdownStyleSheet(
-                    p: TextStyle(color: isUser ? Colors.white : Colors.black87),
-                    h1: TextStyle(color: isUser ? Colors.white : Colors.black),
-                    h2: TextStyle(color: isUser ? Colors.white : Colors.black),
-                    h3: TextStyle(color: isUser ? Colors.white : Colors.black),
-                    code: TextStyle(
-                      backgroundColor:
-                          isUser ? Colors.blue[900] : Colors.grey[200],
-                      color: isUser ? Colors.white : Colors.black87,
-                    ),
-                    blockquote: TextStyle(
-                      color: isUser ? Colors.white70 : Colors.grey[700],
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (message.imageUrl != null)
+                Container(
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(context).size.height * 0.3,
+                  ),
+                  margin: const EdgeInsets.only(bottom: 8),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Image.file(
+                      File(message.imageUrl!),
+                      fit: BoxFit.cover,
                     ),
                   ),
                 ),
-            const SizedBox(height: 4),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  '${message.timestamp.hour}:${message.timestamp.minute.toString().padLeft(2, '0')}',
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: isUser ? Colors.white70 : Colors.grey[500],
+              if (message.filePath != null)
+                Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
                   ),
-                ),
-                if (!isUser) // Only show for AI messages
-                  GestureDetector(
-                    onTap: () => _speakText(message.text),
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 8.0),
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: Colors.blue.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.insert_drive_file, size: 20),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          message.fileName ?? 'File',
+                          style: const TextStyle(fontSize: 14),
                         ),
-                        child: Tooltip(
-                          message: "Play with premium voice",
-                          child: Icon(
-                            Icons.spatial_audio_rounded,
-                            size: 12,
-                            color: Colors.blue[700],
+                      ),
+                    ],
+                  ),
+                ),
+              if (message.audioPath != null)
+                Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.mic,
+                        color: isUser ? Colors.white : Colors.blue,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Audio Message',
+                        style: TextStyle(
+                          color: isUser ? Colors.white : Colors.black87,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              isUser
+                  ? SelectableText(
+                    message.text,
+                    style: const TextStyle(color: Colors.white),
+                    toolbarOptions: const ToolbarOptions(
+                      copy: true,
+                      selectAll: true,
+                      cut: false,
+                      paste: false,
+                    ),
+                  )
+                  : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // AI message content
+                      SelectionArea(
+                        child: MarkdownBody(
+                          data:
+                              message
+                                  .cleanText, // Use cleanText to hide the follow-up section
+                          styleSheet: MarkdownStyleSheet(
+                            p: TextStyle(
+                              color: isUser ? Colors.white : Colors.black87,
+                            ),
+                            h1: TextStyle(
+                              color: isUser ? Colors.white : Colors.black,
+                            ),
+                            h2: TextStyle(
+                              color: isUser ? Colors.white : Colors.black,
+                            ),
+                            h3: TextStyle(
+                              color: isUser ? Colors.white : Colors.black,
+                            ),
+                            code: TextStyle(
+                              backgroundColor:
+                                  isUser ? Colors.blue[900] : Colors.grey[200],
+                              color: isUser ? Colors.white : Colors.black87,
+                            ),
+                            blockquote: TextStyle(
+                              color: isUser ? Colors.white70 : Colors.grey[700],
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      // Follow-up tags as clickable chips
+                      if (message.followUpTags.isNotEmpty) ...[
+                        const SizedBox(height: 10),
+                        const Text(
+                          "Want to know more?",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 5),
+                        Wrap(
+                          spacing: 6.0,
+                          runSpacing: 6.0,
+                          children:
+                              message.followUpTags.map((tag) {
+                                return InkWell(
+                                  onTap: () {
+                                    _textController.text = tag;
+                                    _sendMessage(tag);
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: Colors.blue.shade200,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          Icons.add_circle_outline,
+                                          size: 12,
+                                          color: Colors.blue.shade700,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          tag,
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.blue.shade700,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                        ),
+                      ],
+                    ],
+                  ),
+              const SizedBox(height: 4),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '${message.timestamp.hour}:${message.timestamp.minute.toString().padLeft(2, '0')}',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: isUser ? Colors.white70 : Colors.grey[500],
+                    ),
+                  ),
+                  if (!isUser) // Only show for AI messages
+                    GestureDetector(
+                      onTap:
+                          () => _speakText(
+                            message.cleanText,
+                          ), // Use cleanText for speech
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 8.0),
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Tooltip(
+                            message: "Play with premium voice",
+                            child: Icon(
+                              Icons.spatial_audio_rounded,
+                              size: 12,
+                              color: Colors.blue[700],
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
