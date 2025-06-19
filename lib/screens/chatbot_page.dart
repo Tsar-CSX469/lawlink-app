@@ -1409,13 +1409,34 @@ class _ChatbotPageState extends State<ChatbotPage> {
       );
     }
   }
-
   Future<void> _saveCurrentConversation() async {
-    if (_currentConversationId == null) {
-      await _createNewConversation();
-    }
-
     try {
+      // Create new conversation if needed
+      if (_currentConversationId == null) {
+        await _createNewConversation();
+        if (_currentConversationId == null) {
+          // If creation failed, show error and return
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not create conversation')),
+          );
+          return;
+        }
+      }
+      
+      // Check if conversation exists
+      bool exists = await _chatStorageService.conversationExists(_currentConversationId!);
+      if (!exists) {
+        // If it doesn't exist, recreate it
+        _currentConversationId = await _chatStorageService.createConversation(_conversationTitle);
+        if (_currentConversationId == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not recreate conversation')),
+          );
+          return;
+        }
+      }
+    
+      // Now save the messages
       await _chatStorageService.saveMessages(
         _currentConversationId!,
         _messages,
@@ -1431,9 +1452,17 @@ class _ChatbotPageState extends State<ChatbotPage> {
       );
     }
   }
-
   Future<void> _loadConversation(String conversationId, String title) async {
     try {
+      // Check if conversation exists
+      bool exists = await _chatStorageService.conversationExists(conversationId);
+      if (!exists) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Conversation not found: $title')),
+        );
+        return;
+      }
+      
       final messages = await _chatStorageService.getMessages(conversationId);
       setState(() {
         _messages.clear();
@@ -1569,12 +1598,24 @@ class _ChatbotPageState extends State<ChatbotPage> {
       }
     }
   }
-
   // Add this method to auto-save current conversation
-  void _autoSaveCurrentConversation() {
-    // Only auto-save if we have a conversation ID and more than 2 messages
-    if (_currentConversationId != null && _messages.length > 2) {
-      _saveCurrentConversation();
+  Future<void> _autoSaveCurrentConversation() async {
+    // Only auto-save if we have more than 2 messages
+    if (_messages.length > 2) {
+      try {
+        // If we don't have a conversation ID yet, create one
+        if (_currentConversationId == null) {
+          await _createNewConversation();
+        }
+        
+        // Now try to save the messages
+        if (_currentConversationId != null) {
+          await _saveCurrentConversation();
+        }
+      } catch (e) {
+        // Log the error but don't show UI notification for auto-save
+        print('Error in auto-save: $e');
+      }
     }
   }
 

@@ -33,13 +33,11 @@ class FirebaseChatStorageService {
         'updated_at': now,
       });
 
-      return docRef.id;
-    } catch (e) {
-      print('Error creating conversation: $e');
+      return docRef.id;    } catch (e) {
+      _logError('createConversation', e);
       rethrow;
     }
   }
-
   // Save messages to a conversation
   Future<void> saveMessages(
     String conversationId,
@@ -49,11 +47,24 @@ class FirebaseChatStorageService {
       final batch = _firestore.batch();
       final conversationRef = _conversationsCollection.doc(conversationId);
       final messagesCollection = conversationRef.collection('messages');
-
-      // Update conversation timestamp
-      batch.update(conversationRef, {
-        'updated_at': DateTime.now().millisecondsSinceEpoch,
-      });
+      
+      // Check if the conversation document exists
+      final docSnapshot = await conversationRef.get();
+      final now = DateTime.now().millisecondsSinceEpoch;
+      
+      if (docSnapshot.exists) {
+        // Update conversation timestamp
+        batch.update(conversationRef, {
+          'updated_at': now,
+        });
+      } else {
+        // Create the conversation document if it doesn't exist
+        batch.set(conversationRef, {
+          'title': 'New Conversation',
+          'created_at': now,
+          'updated_at': now,
+        });
+      }
 
       // Delete existing messages (this is a simplified approach; in production you might want
       // to implement more efficient updates that only add new messages)
@@ -79,9 +90,8 @@ class FirebaseChatStorageService {
         });
       }
 
-      await batch.commit();
-    } catch (e) {
-      print('Error saving messages: $e');
+      await batch.commit();    } catch (e) {
+      _logError('saveMessages', e, 'conversationId: $conversationId');
       rethrow;
     }
   }
@@ -102,19 +112,25 @@ class FirebaseChatStorageService {
           'created_at': data['created_at'] ?? 0,
           'updated_at': data['updated_at'] ?? 0,
         };
-      }).toList();
-    } catch (e) {
-      print('Error getting conversations: $e');
+      }).toList();    } catch (e) {
+      _logError('getConversations', e);
       return [];
     }
   }
-
   // Get all messages for a conversation
   Future<List<Message>> getMessages(String conversationId) async {
     try {
+      // First check if the conversation exists
+      final conversationRef = _conversationsCollection.doc(conversationId);
+      final conversationDoc = await conversationRef.get();
+      
+      if (!conversationDoc.exists) {
+        print('Warning: Conversation $conversationId does not exist');
+        return []; // Return empty list if conversation doesn't exist
+      }
+      
       final snapshot =
-          await _conversationsCollection
-              .doc(conversationId)
+          await conversationRef
               .collection('messages')
               .orderBy('index')
               .get();
@@ -134,17 +150,22 @@ class FirebaseChatStorageService {
           audioPath: data['audio_path'],
           followUpTags: (data['follow_up_tags'] ?? []).cast<String>(),
         );
-      }).toList();
-    } catch (e) {
-      print('Error getting messages: $e');
+      }).toList();    } catch (e) {
+      _logError('getMessages', e, 'conversationId: $conversationId');
       return [];
     }
   }
-
   // Delete a conversation and all its messages
   Future<void> deleteConversation(String conversationId) async {
     try {
       final conversationRef = _conversationsCollection.doc(conversationId);
+      
+      // Check if the conversation exists
+      final conversationDoc = await conversationRef.get();
+      if (!conversationDoc.exists) {
+        print('Warning: Conversation $conversationId does not exist, nothing to delete');
+        return; // Nothing to delete
+      }
 
       // Delete all messages in the conversation
       final messagesSnapshot =
@@ -157,26 +178,46 @@ class FirebaseChatStorageService {
       // Delete the conversation document
       batch.delete(conversationRef);
 
-      await batch.commit();
-    } catch (e) {
-      print('Error deleting conversation: $e');
+      await batch.commit();    } catch (e) {
+      _logError('deleteConversation', e, 'conversationId: $conversationId');
       rethrow;
     }
   }
-
   // Update conversation title
   Future<void> updateConversationTitle(
     String conversationId,
     String title,
   ) async {
     try {
-      await _conversationsCollection.doc(conversationId).update({
-        'title': title,
-        'updated_at': DateTime.now().millisecondsSinceEpoch,
-      });
-    } catch (e) {
-      print('Error updating conversation title: $e');
+      final conversationRef = _conversationsCollection.doc(conversationId);
+      final docSnapshot = await conversationRef.get();
+      final now = DateTime.now().millisecondsSinceEpoch;
+      
+      if (docSnapshot.exists) {
+        await conversationRef.update({
+          'title': title,
+          'updated_at': now,
+        });
+      } else {
+        // Create the conversation document if it doesn't exist
+        await conversationRef.set({
+          'title': title,
+          'created_at': now,
+          'updated_at': now,
+        });
+      }    } catch (e) {
+      _logError('updateConversationTitle', e, 'conversationId: $conversationId');
       rethrow;
+    }
+  }
+
+  // Check if a conversation exists
+  Future<bool> conversationExists(String conversationId) async {
+    try {
+      final docSnapshot = await _conversationsCollection.doc(conversationId).get();
+      return docSnapshot.exists;    } catch (e) {
+      _logError('conversationExists', e, 'conversationId: $conversationId');
+      return false;
     }
   }
 
@@ -191,5 +232,13 @@ class FirebaseChatStorageService {
       default:
         return MessageStatus.delivered;
     }
+  }
+
+  // Helper method to log errors (could be enhanced with Firebase Analytics in the future)
+  void _logError(String operation, dynamic error, [String? details]) {
+    final errorMessage = 'Firebase Chat Error - $operation: $error ${details != null ? '- $details' : ''}';
+    print(errorMessage);
+    // TODO: In the future, consider adding Firebase Crashlytics or Analytics logging here
+    // FirebaseCrashlytics.instance.recordError(error, StackTrace.current, reason: details);
   }
 }
