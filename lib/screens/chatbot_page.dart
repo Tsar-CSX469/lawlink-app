@@ -13,6 +13,8 @@ import 'dart:math';
 import 'package:lawlink/services/chatbot_service.dart';
 import 'package:lawlink/services/elevenlabs_service.dart';
 import 'package:flutter/services.dart';
+import 'package:lawlink/services/firebase_chat_storage_service.dart';
+import 'package:lawlink/screens/conversation_list_page.dart';
 
 class Message {
   final bool isUser;
@@ -135,6 +137,13 @@ class _ChatbotPageState extends State<ChatbotPage> {
   final AudioRecorder _audioRecorder = AudioRecorder();
   final AudioPlayer _audioPlayer = AudioPlayer();
 
+  // Firebase Chat Storage
+  final FirebaseChatStorageService _chatStorageService =
+      FirebaseChatStorageService();
+  String? _currentConversationId;
+  bool _isNewConversation = true;
+  String _conversationTitle = "New Conversation";
+
   // Language selection
   String _selectedLanguage = 'English'; // Default language
 
@@ -154,8 +163,13 @@ class _ChatbotPageState extends State<ChatbotPage> {
     _initializeSpeech();
     _requestPermissions();
     _addWelcomeMessage();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _initializeServices();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _initializeServices();
+
+      // Create a new conversation by default
+      if (_currentConversationId == null) {
+        await _createNewConversation();
+      }
     });
   }
 
@@ -307,7 +321,6 @@ class _ChatbotPageState extends State<ChatbotPage> {
 
       // Extract follow-up tags from the response
       final followUpTags = Message.extractFollowUpTags(response);
-
       final aiMessage = Message(
         isUser: false,
         text: response,
@@ -319,6 +332,16 @@ class _ChatbotPageState extends State<ChatbotPage> {
         _messages.add(aiMessage);
         _isProcessing = false;
       });
+
+      // Auto-save conversation after a short delay
+      // This gives time for UI to update before saving
+      if (_messages.length >= 3) {
+        // Only save after meaningful exchanges
+        Future.delayed(const Duration(milliseconds: 500), () {
+          _autoSaveCurrentConversation();
+        });
+      }
+
       _scrollToBottom();
     } catch (e) {
       final errorMessage = Message(
@@ -1365,6 +1388,196 @@ class _ChatbotPageState extends State<ChatbotPage> {
     _scrollToBottom();
   }
 
+  // Firebase conversation management methods
+  Future<void> _createNewConversation() async {
+    try {
+      _currentConversationId = await _chatStorageService.createConversation(
+        "New Chat",
+      );
+      _isNewConversation = true;
+      _conversationTitle = "New Chat";
+      // Clear existing messages
+      setState(() {
+        _messages.clear();
+        _addWelcomeMessage();
+      });
+      print('Created new conversation with ID: $_currentConversationId');
+    } catch (e) {
+      print('Error creating new conversation: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to create new conversation: $e')),
+      );
+    }
+  }
+
+  Future<void> _saveCurrentConversation() async {
+    if (_currentConversationId == null) {
+      await _createNewConversation();
+    }
+
+    try {
+      await _chatStorageService.saveMessages(
+        _currentConversationId!,
+        _messages,
+      );
+      _isNewConversation = false;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Conversation saved')));
+    } catch (e) {
+      print('Error saving conversation: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to save conversation: $e')),
+      );
+    }
+  }
+
+  Future<void> _loadConversation(String conversationId, String title) async {
+    try {
+      final messages = await _chatStorageService.getMessages(conversationId);
+      setState(() {
+        _messages.clear();
+        _messages.addAll(messages);
+        _currentConversationId = conversationId;
+        _conversationTitle = title;
+        _isNewConversation = false;
+      });
+
+      // Restore AI context with past messages
+      _refreshAIMemory();
+
+      _scrollToBottom();
+    } catch (e) {
+      print('Error loading conversation: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load conversation: $e')),
+      );
+    }
+  }
+
+  // Update the conversation title
+  Future<void> _updateConversationTitle(String newTitle) async {
+    if (_currentConversationId == null) return;
+
+    try {
+      await _chatStorageService.updateConversationTitle(
+        _currentConversationId!,
+        newTitle,
+      );
+      setState(() {
+        _conversationTitle = newTitle;
+      });
+    } catch (e) {
+      print('Error updating conversation title: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to update conversation title: $e')),
+      );
+    }
+  }
+
+  // Send a hidden message to refresh the AI's memory with context
+  Future<void> _refreshAIMemory() async {
+    if (_messages.isEmpty) return;
+
+    // Create a hidden system prompt to refresh the AI's memory with context
+    // We're not adding this to the UI, just making a request
+    try {
+      // Take up to 5 most recent messages for context
+      final List<Message> recentMessages = [];
+
+      // Convert dynamic messages to Message objects
+      for (var i = max(0, _messages.length - 5); i < _messages.length; i++) {
+        recentMessages.add(_messages[i]);
+      }
+
+      // Use an invisible query to refresh the context
+      await _chatbotService.sendMessage(
+        "Refresh your memory with the conversation context. Don't reply to this message.",
+        recentMessages,
+      );
+
+      // Now the AI has context from previous messages
+      print('AI memory refreshed with ${recentMessages.length} messages');
+    } catch (e) {
+      print('Error refreshing AI memory: $e');
+    }
+  }
+
+  void _showRenameDialog() {
+    final TextEditingController titleController = TextEditingController(
+      text: _conversationTitle,
+    );
+
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Rename Conversation'),
+            content: TextField(
+              controller: titleController,
+              decoration: const InputDecoration(
+                labelText: 'Conversation Title',
+                hintText: 'Enter a title for this conversation',
+              ),
+              autofocus: true,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  final newTitle = titleController.text.trim();
+                  if (newTitle.isNotEmpty) {
+                    _updateConversationTitle(newTitle);
+                  }
+                  Navigator.pop(context);
+                },
+                child: const Text('Save'),
+              ),
+            ],
+          ),
+    );
+  }
+
+  void _navigateToConversationList() async {
+    // Save current conversation before navigating
+    if (_messages.length > 1 && _currentConversationId == null) {
+      await _saveCurrentConversation();
+    }
+
+    // Navigate to conversation list page
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder:
+            (context) => ConversationListPage(
+              onConversationSelected: (id, title) {
+                _loadConversation(id, title);
+              },
+            ),
+      ),
+    );
+
+    // Handle result from conversation list page if needed
+    if (result != null && result is Map<String, dynamic>) {
+      if (result.containsKey('action') && result['action'] == 'new') {
+        _createNewConversation();
+      } else if (result.containsKey('id') && result.containsKey('title')) {
+        _loadConversation(result['id'], result['title']);
+      }
+    }
+  }
+
+  // Add this method to auto-save current conversation
+  void _autoSaveCurrentConversation() {
+    // Only auto-save if we have a conversation ID and more than 2 messages
+    if (_currentConversationId != null && _messages.length > 2) {
+      _saveCurrentConversation();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -1388,22 +1601,6 @@ class _ChatbotPageState extends State<ChatbotPage> {
             ],
           ),
           child: AppBar(
-            title: ShaderMask(
-              shaderCallback:
-                  (bounds) => LinearGradient(
-                    colors: [Colors.blue.shade800, Colors.blue.shade300],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ).createShader(bounds),
-              child: const Text(
-                'LawLink AI',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-            ),
             backgroundColor: Colors.transparent,
             elevation: 0,
             scrolledUnderElevation: 0,
@@ -1411,7 +1608,55 @@ class _ChatbotPageState extends State<ChatbotPage> {
             shadowColor: Colors.transparent,
             centerTitle: false,
             iconTheme: IconThemeData(color: Colors.blue.shade700),
+            title: GestureDetector(
+              onTap: () {
+                if (_currentConversationId != null && !_isNewConversation) {
+                  // Show dialog to rename conversation
+                  _showRenameDialog();
+                }
+              },
+              child: ShaderMask(
+                shaderCallback:
+                    (bounds) => LinearGradient(
+                      colors: [Colors.blue.shade800, Colors.blue.shade300],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ).createShader(bounds),
+                child: Text(
+                  _currentConversationId != null && !_isNewConversation
+                      ? _conversationTitle
+                      : 'LawLink AI',
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ),
             actions: [
+              // New conversation button
+              IconButton(
+                icon: const Icon(Icons.add),
+                tooltip: 'New Conversation',
+                onPressed: _createNewConversation,
+              ),
+
+              // Save conversation button
+              IconButton(
+                icon: const Icon(Icons.save),
+                tooltip: 'Save Conversation',
+                onPressed: _saveCurrentConversation,
+              ),
+
+              // View conversations button
+              IconButton(
+                icon: const Icon(Icons.history),
+                tooltip: 'Conversation History',
+                onPressed: () => _navigateToConversationList(),
+              ),
+
               // Language Selector
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
