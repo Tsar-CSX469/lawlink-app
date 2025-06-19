@@ -33,11 +33,13 @@ class FirebaseChatStorageService {
         'updated_at': now,
       });
 
-      return docRef.id;    } catch (e) {
+      return docRef.id;
+    } catch (e) {
       _logError('createConversation', e);
       rethrow;
     }
   }
+
   // Save messages to a conversation
   Future<void> saveMessages(
     String conversationId,
@@ -47,16 +49,14 @@ class FirebaseChatStorageService {
       final batch = _firestore.batch();
       final conversationRef = _conversationsCollection.doc(conversationId);
       final messagesCollection = conversationRef.collection('messages');
-      
+
       // Check if the conversation document exists
       final docSnapshot = await conversationRef.get();
       final now = DateTime.now().millisecondsSinceEpoch;
-      
+
       if (docSnapshot.exists) {
         // Update conversation timestamp
-        batch.update(conversationRef, {
-          'updated_at': now,
-        });
+        batch.update(conversationRef, {'updated_at': now});
       } else {
         // Create the conversation document if it doesn't exist
         batch.set(conversationRef, {
@@ -90,7 +90,8 @@ class FirebaseChatStorageService {
         });
       }
 
-      await batch.commit();    } catch (e) {
+      await batch.commit();
+    } catch (e) {
       _logError('saveMessages', e, 'conversationId: $conversationId');
       rethrow;
     }
@@ -112,28 +113,27 @@ class FirebaseChatStorageService {
           'created_at': data['created_at'] ?? 0,
           'updated_at': data['updated_at'] ?? 0,
         };
-      }).toList();    } catch (e) {
+      }).toList();
+    } catch (e) {
       _logError('getConversations', e);
       return [];
     }
   }
+
   // Get all messages for a conversation
   Future<List<Message>> getMessages(String conversationId) async {
     try {
       // First check if the conversation exists
       final conversationRef = _conversationsCollection.doc(conversationId);
       final conversationDoc = await conversationRef.get();
-      
+
       if (!conversationDoc.exists) {
         print('Warning: Conversation $conversationId does not exist');
         return []; // Return empty list if conversation doesn't exist
       }
-      
+
       final snapshot =
-          await conversationRef
-              .collection('messages')
-              .orderBy('index')
-              .get();
+          await conversationRef.collection('messages').orderBy('index').get();
 
       return snapshot.docs.map((doc) {
         final data = doc.data();
@@ -150,20 +150,24 @@ class FirebaseChatStorageService {
           audioPath: data['audio_path'],
           followUpTags: (data['follow_up_tags'] ?? []).cast<String>(),
         );
-      }).toList();    } catch (e) {
+      }).toList();
+    } catch (e) {
       _logError('getMessages', e, 'conversationId: $conversationId');
       return [];
     }
   }
+
   // Delete a conversation and all its messages
   Future<void> deleteConversation(String conversationId) async {
     try {
       final conversationRef = _conversationsCollection.doc(conversationId);
-      
+
       // Check if the conversation exists
       final conversationDoc = await conversationRef.get();
       if (!conversationDoc.exists) {
-        print('Warning: Conversation $conversationId does not exist, nothing to delete');
+        print(
+          'Warning: Conversation $conversationId does not exist, nothing to delete',
+        );
         return; // Nothing to delete
       }
 
@@ -178,11 +182,13 @@ class FirebaseChatStorageService {
       // Delete the conversation document
       batch.delete(conversationRef);
 
-      await batch.commit();    } catch (e) {
+      await batch.commit();
+    } catch (e) {
       _logError('deleteConversation', e, 'conversationId: $conversationId');
       rethrow;
     }
   }
+
   // Update conversation title
   Future<void> updateConversationTitle(
     String conversationId,
@@ -192,12 +198,9 @@ class FirebaseChatStorageService {
       final conversationRef = _conversationsCollection.doc(conversationId);
       final docSnapshot = await conversationRef.get();
       final now = DateTime.now().millisecondsSinceEpoch;
-      
+
       if (docSnapshot.exists) {
-        await conversationRef.update({
-          'title': title,
-          'updated_at': now,
-        });
+        await conversationRef.update({'title': title, 'updated_at': now});
       } else {
         // Create the conversation document if it doesn't exist
         await conversationRef.set({
@@ -205,8 +208,13 @@ class FirebaseChatStorageService {
           'created_at': now,
           'updated_at': now,
         });
-      }    } catch (e) {
-      _logError('updateConversationTitle', e, 'conversationId: $conversationId');
+      }
+    } catch (e) {
+      _logError(
+        'updateConversationTitle',
+        e,
+        'conversationId: $conversationId',
+      );
       rethrow;
     }
   }
@@ -214,8 +222,10 @@ class FirebaseChatStorageService {
   // Check if a conversation exists
   Future<bool> conversationExists(String conversationId) async {
     try {
-      final docSnapshot = await _conversationsCollection.doc(conversationId).get();
-      return docSnapshot.exists;    } catch (e) {
+      final docSnapshot =
+          await _conversationsCollection.doc(conversationId).get();
+      return docSnapshot.exists;
+    } catch (e) {
       _logError('conversationExists', e, 'conversationId: $conversationId');
       return false;
     }
@@ -236,7 +246,8 @@ class FirebaseChatStorageService {
 
   // Helper method to log errors (could be enhanced with Firebase Analytics in the future)
   void _logError(String operation, dynamic error, [String? details]) {
-    final errorMessage = 'Firebase Chat Error - $operation: $error ${details != null ? '- $details' : ''}';
+    final errorMessage =
+        'Firebase Chat Error - $operation: $error ${details != null ? '- $details' : ''}';
     print(errorMessage);
     // TODO: In the future, consider adding Firebase Crashlytics or Analytics logging here
     // FirebaseCrashlytics.instance.recordError(error, StackTrace.current, reason: details);

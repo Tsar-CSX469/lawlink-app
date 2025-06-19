@@ -155,7 +155,6 @@ class _ChatbotPageState extends State<ChatbotPage> {
   final ScrollController _scrollController = ScrollController();
 
   late ChatbotService _chatbotService;
-
   @override
   void initState() {
     super.initState();
@@ -165,11 +164,8 @@ class _ChatbotPageState extends State<ChatbotPage> {
     _addWelcomeMessage();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _initializeServices();
-
-      // Create a new conversation by default
-      if (_currentConversationId == null) {
-        await _createNewConversation();
-      }
+      
+      // Don't create conversation immediately - wait until user interacts
     });
   }
 
@@ -288,6 +284,13 @@ class _ChatbotPageState extends State<ChatbotPage> {
         }
         if (isFollowUpTag) break;
       }
+    }
+      // If this is the first user message, create a new conversation
+    // But only if we don't already have a conversation ID (might be loaded from history)
+    if (_currentConversationId == null) {
+      // We'll create the conversation after the message is added
+      // This ensures the user message is included in the conversation
+      // We'll handle this in the auto-save logic
     }
 
     final userMessage = Message(
@@ -1387,21 +1390,27 @@ class _ChatbotPageState extends State<ChatbotPage> {
 
     _scrollToBottom();
   }
-
   // Firebase conversation management methods
-  Future<void> _createNewConversation() async {
+  Future<void> _createNewConversation({String? conversationTitle}) async {
     try {
-      _currentConversationId = await _chatStorageService.createConversation(
-        "New Chat",
-      );
-      _isNewConversation = true;
-      _conversationTitle = "New Chat";
-      // Clear existing messages
-      setState(() {
-        _messages.clear();
-        _addWelcomeMessage();
-      });
-      print('Created new conversation with ID: $_currentConversationId');
+      // Only create the conversation if we have at least one user message or explicit title
+      if (_messages.any((msg) => msg.isUser) || conversationTitle != null) {
+        _currentConversationId = await _chatStorageService.createConversation(
+          conversationTitle ?? "New Chat",
+        );
+        _isNewConversation = true;
+        _conversationTitle = conversationTitle ?? "New Chat";
+        
+        // Don't clear existing messages when creating a conversation from existing chat
+        // Only clear if explicitly starting a new conversation from menu
+        if (conversationTitle != null) {
+          setState(() {
+            _messages.clear();
+            _addWelcomeMessage();
+          });
+        }
+        print('Created new conversation with ID: $_currentConversationId');
+      }
     } catch (e) {
       print('Error creating new conversation: $e');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1409,6 +1418,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
       );
     }
   }
+
   Future<void> _saveCurrentConversation() async {
     try {
       // Create new conversation if needed
@@ -1422,12 +1432,16 @@ class _ChatbotPageState extends State<ChatbotPage> {
           return;
         }
       }
-      
+
       // Check if conversation exists
-      bool exists = await _chatStorageService.conversationExists(_currentConversationId!);
+      bool exists = await _chatStorageService.conversationExists(
+        _currentConversationId!,
+      );
       if (!exists) {
         // If it doesn't exist, recreate it
-        _currentConversationId = await _chatStorageService.createConversation(_conversationTitle);
+        _currentConversationId = await _chatStorageService.createConversation(
+          _conversationTitle,
+        );
         if (_currentConversationId == null) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Could not recreate conversation')),
@@ -1435,7 +1449,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
           return;
         }
       }
-    
+
       // Now save the messages
       await _chatStorageService.saveMessages(
         _currentConversationId!,
@@ -1452,17 +1466,20 @@ class _ChatbotPageState extends State<ChatbotPage> {
       );
     }
   }
+
   Future<void> _loadConversation(String conversationId, String title) async {
     try {
       // Check if conversation exists
-      bool exists = await _chatStorageService.conversationExists(conversationId);
+      bool exists = await _chatStorageService.conversationExists(
+        conversationId,
+      );
       if (!exists) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Conversation not found: $title')),
         );
         return;
       }
-      
+
       final messages = await _chatStorageService.getMessages(conversationId);
       setState(() {
         _messages.clear();
@@ -1569,11 +1586,10 @@ class _ChatbotPageState extends State<ChatbotPage> {
           ),
     );
   }
-
   void _navigateToConversationList() async {
-    // Save current conversation before navigating
-    if (_messages.length > 1 && _currentConversationId == null) {
-      await _saveCurrentConversation();
+    // Only save current conversation if there are user messages
+    if (_messages.length >= 2 && _hasUserMessages() && _currentConversationId == null) {
+      await _autoSaveCurrentConversation();
     }
 
     // Navigate to conversation list page
@@ -1595,19 +1611,38 @@ class _ChatbotPageState extends State<ChatbotPage> {
         _createNewConversation();
       } else if (result.containsKey('id') && result.containsKey('title')) {
         _loadConversation(result['id'], result['title']);
-      }
-    }
-  }
+      }    }
+  } 
+  
   // Add this method to auto-save current conversation
   Future<void> _autoSaveCurrentConversation() async {
-    // Only auto-save if we have more than 2 messages
-    if (_messages.length > 2) {
+    // Only auto-save if we have more than 2 messages AND at least one is from the user
+    if (_messages.length >= 2 && _hasUserMessages()) {
       try {
-        // If we don't have a conversation ID yet, create one
+        // If we don't have a conversation ID yet, create one based on first user message
         if (_currentConversationId == null) {
-          await _createNewConversation();
+          // Find the first user message to use as a title
+          Message? firstUserMsg;
+          for (var msg in _messages) {
+            if (msg.isUser) {
+              firstUserMsg = msg;
+              break;
+            }
+          }
+          
+          if (firstUserMsg != null) {
+            // Create a conversation using the first few words as title
+            String title = firstUserMsg.text.length > 30 
+                ? firstUserMsg.text.substring(0, 30) + "..." 
+                : firstUserMsg.text;
+            
+            await _createNewConversation(conversationTitle: title);
+          } else {
+            // No user messages yet, don't create a conversation
+            return;
+          }
         }
-        
+
         // Now try to save the messages
         if (_currentConversationId != null) {
           await _saveCurrentConversation();
@@ -1617,6 +1652,11 @@ class _ChatbotPageState extends State<ChatbotPage> {
         print('Error in auto-save: $e');
       }
     }
+  }
+
+  // Helper method to check if there are any user messages
+  bool _hasUserMessages() {
+    return _messages.any((message) => message.isUser);
   }
 
   @override
