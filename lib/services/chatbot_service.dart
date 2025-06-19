@@ -862,45 +862,98 @@ Include relevant contact information for this area if available.''';
 
   // Generate a concise response with follow-up tags
   String makeConciseResponseWithFollowUps(String originalResponse) {
-    if (originalResponse.length < 150) {
-      // Already concise, no need to modify
+    if (originalResponse.length < 300) {
+      // Already concise enough, no need to modify
       return originalResponse;
     }
 
-    // Extract the first paragraph or meaningful chunk for concise answer
+    // Extract enough content for a substantial concise answer
     String conciseResponse = '';
     List<String> paragraphs = originalResponse.split('\n\n');
 
-    // Use the first 1-2 paragraphs depending on length
+    // Check if the first paragraph ends with a colon, which often indicates
+    // it's just introducing a list but doesn't contain actual content
+    bool firstParagraphIsIncomplete = false;
     if (paragraphs.isNotEmpty) {
-      if (paragraphs[0].length < 200 && paragraphs.length > 1) {
-        // First paragraph is short, include second paragraph if available
-        conciseResponse = paragraphs[0];
-        if (paragraphs.length > 1 && paragraphs[1].length < 150) {
-          conciseResponse += '\n\n' + paragraphs[1];
+      String firstPara = paragraphs[0].trim();
+      if (firstPara.endsWith(':') ||
+          firstPara.endsWith('such as:') ||
+          firstPara.length < 100) {
+        firstParagraphIsIncomplete = true;
+        print("First paragraph appears incomplete: $firstPara");
+      }
+    }
+
+    // Take enough paragraphs to provide a complete main answer
+    if (paragraphs.isNotEmpty) {
+      // Always include the first paragraph
+      conciseResponse = paragraphs[0];
+
+      // If first paragraph ends with a colon or is very short,
+      // always include the next paragraph if available
+      if (firstParagraphIsIncomplete && paragraphs.length > 1) {
+        conciseResponse += '\n\n' + paragraphs[1];
+        if (paragraphs.length > 2 && paragraphs[1].trim().length < 100) {
+          // If second paragraph is also short, include the third
+          conciseResponse += '\n\n' + paragraphs[2];
         }
-      } else {
-        // First paragraph is substantial, use just that
-        conciseResponse = paragraphs[0];
+      }
+
+      // Include more paragraphs if needed to provide a substantial answer
+      int contentLength = conciseResponse.length;
+      int paragraphIndex = firstParagraphIsIncomplete ? 3 : 1;
+
+      // Include additional paragraphs until we have a substantial answer
+      // Make sure we have at least 300 characters of content
+      while ((contentLength < 500 || firstParagraphIsIncomplete) &&
+          paragraphIndex < paragraphs.length &&
+          contentLength < originalResponse.length * 0.7) {
+        // Skip paragraphs that are just bullet points or very short
+        if (paragraphs[paragraphIndex].trim().length > 20) {
+          conciseResponse += '\n\n' + paragraphs[paragraphIndex];
+          contentLength += paragraphs[paragraphIndex].length;
+        }
+        paragraphIndex++;
+
+        // Always include at least 2 substantive paragraphs
+        if (paragraphIndex >= 3 &&
+            contentLength > 300 &&
+            !firstParagraphIsIncomplete) {
+          break;
+        }
       }
     } else {
-      // No paragraphs, take the first few sentences
+      // No paragraphs, take enough sentences to provide a meaningful answer
       List<String> sentences = originalResponse.split('. ');
-      if (sentences.length > 2) {
-        conciseResponse = sentences.take(2).join('. ') + '.';
+      if (sentences.length > 3) {
+        // Take at least 3 sentences or more if they're short
+        int sentenceCount = min(
+          sentences.length,
+          max(5, 800 ~/ (originalResponse.length / sentences.length)),
+        );
+        conciseResponse = sentences.take(sentenceCount).join('. ') + '.';
       } else {
+        // If very few sentences, take most of the original content
         conciseResponse = originalResponse.substring(
           0,
-          min(200, originalResponse.length),
+          min(originalResponse.length * 3 ~/ 4, originalResponse.length),
         );
       }
     }
 
     // Add follow-up tags based on content
-    List<String> followUpTags = _generateFollowUpTags(originalResponse);
-
-    // Format the response with follow-up tags
+    List<String> followUpTags = _generateFollowUpTags(
+      originalResponse,
+    ); // Format the response with follow-up tags
     String response = conciseResponse;
+
+    // Print debug information to see what's happening
+    print('ORIGINAL LENGTH: ${originalResponse.length}');
+    print('CONCISE LENGTH: ${conciseResponse.length}');
+    print(
+      'CONCISE RESPONSE FIRST 100 CHARS: ${conciseResponse.substring(0, min(100, conciseResponse.length))}...',
+    );
+
     if (followUpTags.isNotEmpty) {
       response += '\n\n**Want to know more?**\n';
       for (var tag in followUpTags) {

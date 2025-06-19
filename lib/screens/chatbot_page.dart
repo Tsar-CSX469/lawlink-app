@@ -9,6 +9,7 @@ import 'package:record/record.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'dart:io';
+import 'dart:math';
 import 'package:lawlink/services/chatbot_service.dart';
 import 'package:lawlink/services/elevenlabs_service.dart';
 import 'package:flutter/services.dart';
@@ -58,22 +59,59 @@ class Message {
                 .split('\n')
                 .where((line) => line.trim().startsWith('-'))
                 .toList();
-        tags = tagLines.map((line) => line.trim().substring(2).trim()).toList();
+        // Process each bullet point to extract the actual tag text
+        tags =
+            tagLines.map((line) {
+              String cleanLine = line.trim();
+              if (cleanLine.startsWith('- ')) {
+                return cleanLine.substring(2).trim();
+              } else if (cleanLine.startsWith('-')) {
+                return cleanLine.substring(1).trim();
+              }
+              return cleanLine;
+            }).toList();
       }
     }
 
     return tags;
-  }
+  } // Get message text without the follow-up tags section
 
-  // Get message text without the follow-up tags section
   String get cleanText {
-    if (followUpTags.isEmpty) return text;
-
-    final tagSectionStart = text.indexOf('**Want to know more?**');
-    if (tagSectionStart != -1) {
-      return text.substring(0, tagSectionStart).trim();
+    // If there are no follow-up tags, return the entire text
+    if (followUpTags.isEmpty) {
+      print(
+        'NO FOLLOW-UP TAGS, RETURNING FULL TEXT: ${text.substring(0, min(50, text.length))}...',
+      );
+      return text;
     }
 
+    // Look for the pattern that marks the beginning of follow-up tags section
+    final tagSectionStart = text.indexOf('**Want to know more?**');
+    if (tagSectionStart != -1) {
+      // Return only the part before the tag section
+      String mainContent = text.substring(0, tagSectionStart).trim();
+      print('MAIN CONTENT LENGTH: ${mainContent.length}');
+      print(
+        'MAIN CONTENT FIRST 50 CHARS: ${mainContent.substring(0, min(50, mainContent.length))}...',
+      );
+
+      // Ensure we have content in the main part
+      if (mainContent.isEmpty) {
+        print('MAIN CONTENT IS EMPTY, FALLING BACK TO FIRST PARAGRAPH');
+        // If somehow the main content is empty, fall back to the first part of the text
+        List<String> paragraphs = text.split('\n\n');
+        if (paragraphs.isNotEmpty) {
+          String firstParagraph = paragraphs[0];
+          print('FIRST PARAGRAPH: $firstParagraph');
+          return firstParagraph;
+        }
+      }
+      return mainContent;
+    }
+
+    // If pattern isn't found but we have follow-up tags,
+    // we might need to extract content differently
+    print('PATTERN NOT FOUND BUT HAS FOLLOW-UP TAGS, RETURNING FULL TEXT');
     return text;
   }
 }
