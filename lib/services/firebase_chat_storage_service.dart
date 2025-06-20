@@ -135,6 +135,16 @@ class FirebaseChatStorageService {
       final snapshot =
           await conversationRef.collection('messages').orderBy('index').get();
 
+      // Log how many messages were retrieved
+      print(
+        'Retrieved ${snapshot.docs.length} messages for conversation $conversationId',
+      );
+
+      if (snapshot.docs.isEmpty) {
+        print('Warning: No messages found in conversation $conversationId');
+        return [];
+      }
+
       return snapshot.docs.map((doc) {
         final data = doc.data();
         return Message(
