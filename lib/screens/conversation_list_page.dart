@@ -146,62 +146,37 @@ class _ConversationListPageState extends State<ConversationListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: false,
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(kToolbarHeight),
-        child: Container(
-          decoration: BoxDecoration(
-            color:
-                Theme.of(context).appBarTheme.backgroundColor ?? Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.blue.withOpacity(0.1),
-                spreadRadius: 0,
-                blurRadius: 15,
-                offset: const Offset(0, 1),
-              ),
-            ],
-          ),
-          child: AppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            scrolledUnderElevation: 0,
-            surfaceTintColor: Colors.transparent,
-            shadowColor: Colors.transparent,
-            centerTitle: false,
-            iconTheme: IconThemeData(color: Colors.blue.shade700),
-            title: ShaderMask(
-              shaderCallback:
-                  (bounds) => LinearGradient(
-                    colors: [Colors.blue.shade800, Colors.blue.shade300],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ).createShader(bounds),
-              child: const Text(
-                'Conversation History',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-            actions: [
-              IconButton(
-                icon: Icon(Icons.refresh, color: Colors.blue.shade700),
-                onPressed: _loadConversations,
-                tooltip: 'Refresh',
-              ),
-            ],
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
+        centerTitle: false,
+        iconTheme: IconThemeData(color: Colors.blue.shade700),
+        title: Text(
+          'Conversations',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w500,
+            color: Colors.blue.shade700,
           ),
         ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.refresh, size: 22, color: Colors.blue.shade600),
+            onPressed: _loadConversations,
+            tooltip: 'Refresh',
+          ),
+        ],
       ),
       body: Container(
         decoration: BoxDecoration(
+          color: Colors.white,
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Colors.white, Colors.blue.shade50],
-            stops: const [0.7, 1.0],
+            colors: [Colors.white, Colors.blue.shade50.withOpacity(0.7)],
+            stops: const [0.8, 1.0],
           ),
         ),
         child:
@@ -219,51 +194,45 @@ class _ConversationListPageState extends State<ConversationListPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(24),
+                        padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.7),
-                          borderRadius: BorderRadius.circular(100),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.blue.withOpacity(0.1),
-                              spreadRadius: 1,
-                              blurRadius: 20,
-                            ),
-                          ],
+                          color: Colors.blue.shade50,
+                          borderRadius: BorderRadius.circular(40),
                         ),
                         child: Icon(
                           Icons.chat_bubble_outline,
-                          size: 72,
-                          color: Colors.blue.shade300,
+                          size: 40,
+                          color: Colors.blue.shade400,
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 20),
                       Text(
                         'No conversations yet',
                         style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue.shade800,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.blue.shade700,
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 8),
                       Text(
                         'Start chatting to create a new conversation',
-                        style: TextStyle(color: Colors.grey[700], fontSize: 16),
+                        style: TextStyle(color: Colors.grey[700], fontSize: 14),
+                        textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 20),
                       ElevatedButton.icon(
-                        icon: const Icon(Icons.add),
+                        icon: const Icon(Icons.add, size: 16),
                         label: const Text('New Conversation'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue.shade600,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 12,
+                            horizontal: 16,
+                            vertical: 8,
                           ),
-                          textStyle: const TextStyle(fontSize: 16),
-                          elevation: 2,
+                          textStyle: const TextStyle(fontSize: 14),
+                          elevation: 0,
                         ),
                         onPressed: () {
                           Navigator.pop(context, {'action': 'new'});
@@ -366,197 +335,114 @@ class _ConversationListPageState extends State<ConversationListPage> {
                             _deleteConversation(conversation['id']);
                           },
                           child: Card(
-                            elevation: 2,
-                            shadowColor: Colors.blue.withOpacity(0.2),
+                            elevation: 0.5,
+                            shadowColor: Colors.black.withOpacity(0.05),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
+                              borderRadius: BorderRadius.circular(10),
                               side: BorderSide(
-                                color: Colors.blue.shade200.withOpacity(0.5),
+                                color: Colors.grey.shade200,
                                 width: 0.5,
                               ),
                             ),
-                            // Add a subtle gradient overlay
-                            clipBehavior: Clip.antiAlias,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topRight,
-                                  end: Alignment.bottomLeft,
-                                  colors: [
-                                    Colors.white,
-                                    Colors.blue.shade50.withOpacity(0.3),
-                                  ],
+                            color: Colors.white,
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 6,
+                              ),
+                              leading: Icon(
+                                Icons.chat_outlined,
+                                color: Colors.blue.shade400,
+                                size: 22,
+                              ),
+                              title: Text(
+                                conversation['title'] ??
+                                    'Untitled Conversation',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.black87,
+                                  fontSize: 15,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              subtitle: Text(
+                                _formatDate(updated),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[600],
                                 ),
                               ),
-                              child: ListTile(
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical:
-                                      10, // Slightly increase vertical padding
+                              trailing: PopupMenuButton(
+                                icon: Icon(
+                                  Icons.more_vert,
+                                  color: Colors.grey.shade600,
+                                  size: 20,
                                 ),
-                                leading: Container(
-                                  padding: const EdgeInsets.all(2),
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        Colors.blue.shade700,
-                                        Colors.blue.shade400,
-                                      ],
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                    ),
-                                    shape: BoxShape.circle,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.blue.shade300.withOpacity(
-                                          0.4,
+                                elevation: 2,
+                                offset: const Offset(0, 4),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                color: Colors.white,
+                                itemBuilder:
+                                    (context) => [
+                                      PopupMenuItem(
+                                        value: 'rename',
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              Icons.edit,
+                                              size: 18,
+                                              color: Colors.grey.shade800,
+                                            ),
+                                            const SizedBox(width: 8),
+                                            const Text('Rename'),
+                                          ],
                                         ),
-                                        blurRadius: 8,
-                                        offset: const Offset(0, 2),
-                                        spreadRadius: 0,
+                                      ),
+                                      PopupMenuItem(
+                                        value: 'delete',
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              Icons.delete,
+                                              size: 18,
+                                              color: Colors.red.shade400,
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              'Delete',
+                                              style: TextStyle(
+                                                color: Colors.red.shade400,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ],
-                                  ),
-                                  child: const CircleAvatar(
-                                    backgroundColor: Colors.white,
-                                    child: Icon(
-                                      Icons.chat,
-                                      color: Colors.blue,
-                                      size: 20,
-                                    ),
-                                  ),
-                                ),
-                                title: Text(
-                                  conversation['title'] ??
-                                      'Untitled Conversation',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.blue.shade800,
-                                    fontSize: 16,
-                                    letterSpacing: -0.2,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                subtitle: Row(
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 6,
-                                        vertical: 2,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.blue.shade50,
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(
-                                            Icons.access_time,
-                                            size: 10,
-                                            color: Colors.blue.shade400,
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            _formatDate(updated),
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.w500,
-                                              color: Colors.blue.shade700,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                trailing: Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.blue.shade50.withOpacity(0.4),
-                                    borderRadius: BorderRadius.circular(100),
-                                  ),
-                                  child: PopupMenuButton(
-                                    icon: Icon(
-                                      Icons.more_vert,
-                                      color: Colors.blue.shade700,
-                                      size: 20,
-                                    ),
-                                    elevation: 4,
-                                    offset: const Offset(0, 4),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(16),
-                                      side: BorderSide(
-                                        color: Colors.blue.shade100,
-                                        width: 0.5,
-                                      ),
-                                    ),
-                                    color: Colors.white,
-                                    itemBuilder:
-                                        (context) => [
-                                          PopupMenuItem(
-                                            value: 'rename',
-                                            child: Row(
-                                              children: [
-                                                Icon(
-                                                  Icons.edit,
-                                                  size: 20,
-                                                  color: Colors.blue.shade700,
-                                                ),
-                                                const SizedBox(width: 8),
-                                                Text(
-                                                  'Rename',
-                                                  style: TextStyle(
-                                                    color: Colors.blue.shade700,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          PopupMenuItem(
-                                            value: 'delete',
-                                            child: Row(
-                                              children: [
-                                                Icon(
-                                                  Icons.delete,
-                                                  size: 20,
-                                                  color: Colors.red.shade700,
-                                                ),
-                                                const SizedBox(width: 8),
-                                                Text(
-                                                  'Delete',
-                                                  style: TextStyle(
-                                                    color: Colors.red.shade700,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
-                                    onSelected: (value) {
-                                      if (value == 'rename') {
-                                        _showRenameDialog(
-                                          conversation['id'],
-                                          conversation['title'] ??
-                                              'Untitled Conversation',
-                                        );
-                                      } else if (value == 'delete') {
-                                        _deleteConversation(conversation['id']);
-                                      }
-                                    },
-                                  ),
-                                ),
-                                onTap: () {
-                                  if (widget.onConversationSelected != null) {
-                                    widget.onConversationSelected!(
+                                onSelected: (value) {
+                                  if (value == 'rename') {
+                                    _showRenameDialog(
                                       conversation['id'],
                                       conversation['title'] ??
                                           'Untitled Conversation',
                                     );
-                                    Navigator.pop(context);
+                                  } else if (value == 'delete') {
+                                    _deleteConversation(conversation['id']);
                                   }
                                 },
                               ),
+                              onTap: () {
+                                if (widget.onConversationSelected != null) {
+                                  widget.onConversationSelected!(
+                                    conversation['id'],
+                                    conversation['title'] ??
+                                        'Untitled Conversation',
+                                  );
+                                  Navigator.pop(context);
+                                }
+                              },
                             ),
                           ),
                         ),
@@ -564,22 +450,19 @@ class _ConversationListPageState extends State<ConversationListPage> {
                     },
                   ),
                 ),
-      ),      floatingActionButton:
+      ),
+      floatingActionButton:
           _conversations.isNotEmpty
               ? FloatingActionButton(
                 onPressed: () {
                   Navigator.pop(context, {'action': 'new'});
                 },
-                backgroundColor: Colors.white,
-                elevation: 4,
+                backgroundColor: Colors.blue.shade600,
+                elevation: 2,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
-                  side: BorderSide(
-                    color: Colors.blue.shade100,
-                    width: 1,
-                  ),
                 ),
-                child: Icon(Icons.add, color: Colors.blue.shade600),
+                child: const Icon(Icons.add, color: Colors.white),
               )
               : null,
     );

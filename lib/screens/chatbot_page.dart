@@ -160,11 +160,27 @@ class _ChatbotPageState extends State<ChatbotPage> {
   void initState() {
     super.initState();
     _chatbotService = ChatbotService(); // Initialize here
+
+    // Make sure we're not in loading state on initialization
+    _isLoading = false;
     _initializeSpeech();
     _requestPermissions();
-    _addWelcomeMessage();
+
+    // Initialize with loading state true
+    setState(() {
+      _isLoading = true;
+    });
+
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _initializeServices();
+      // Add welcome message after initialization and set loading to false
+      if (_messages.isEmpty) {
+        _addWelcomeMessage();
+      }
+
+      setState(() {
+        _isLoading = false;
+      });
 
       // Don't create conversation immediately - wait until user interacts
     });
@@ -237,6 +253,9 @@ class _ChatbotPageState extends State<ChatbotPage> {
   }
 
   void _addWelcomeMessage() {
+    // Clear any existing messages first
+    _messages.clear();
+
     String welcomeText =
         _selectedLanguage == 'English'
             ? "Hello! I'm LawLink AI, your legal assistant. I can help you with Sri Lankan law queries, analyze documents, and answer questions about legal acts. How can I assist you today?"
@@ -256,8 +275,11 @@ class _ChatbotPageState extends State<ChatbotPage> {
       followUpTags: starterTags,
     );
 
-    setState(() {
-      _messages.add(welcomeMessage);
+    _messages.add(welcomeMessage);
+
+    // Make sure to scroll down to show the welcome message
+    Future.delayed(Duration(milliseconds: 300), () {
+      _scrollToBottom();
     });
   }
 
@@ -286,6 +308,10 @@ class _ChatbotPageState extends State<ChatbotPage> {
         if (isFollowUpTag) break;
       }
     }
+
+    // Check if this is the first user message (apart from the welcome message)
+    bool isFirstUserMessage = !_messages.any((msg) => msg.isUser);
+
     // If this is the first user message, create a new conversation
     // But only if we don't already have a conversation ID (might be loaded from history)
     if (_currentConversationId == null) {
@@ -331,15 +357,27 @@ class _ChatbotPageState extends State<ChatbotPage> {
         timestamp: DateTime.now(),
         followUpTags: followUpTags,
       );
-
       setState(() {
         _messages.add(aiMessage);
         _isProcessing = false;
       });
 
-      // Auto-save conversation after a short delay
-      // This gives time for UI to update before saving
-      if (_messages.length >= 3) {
+      // If this was the first user message, create the conversation immediately
+      // This ensures the conversation name appears right after the first message
+      if (isFirstUserMessage) {
+        // Use the first user message as title
+        String title = text.length > 30 ? text.substring(0, 30) + "..." : text;
+
+        // Create the conversation with a short delay so the title appears after first message      // Create conversation immediately instead of with a delay
+        _createNewConversation(conversationTitle: title);
+
+        // This ensures the conversation is saved right away
+        Future.delayed(const Duration(milliseconds: 500), () {
+          _autoSaveCurrentConversation();
+        });
+      }
+      // For subsequent messages, continue with normal auto-save logic
+      else if (_messages.length >= 3) {
         // Only save after meaningful exchanges
         Future.delayed(const Duration(milliseconds: 500), () {
           _autoSaveCurrentConversation();
@@ -1400,8 +1438,14 @@ class _ChatbotPageState extends State<ChatbotPage> {
         _currentConversationId = await _chatStorageService.createConversation(
           conversationTitle ?? "New Chat",
         );
-        _isNewConversation = true;
-        _conversationTitle = conversationTitle ?? "New Chat";
+
+        // Always update these two variables, they control when/if the title is displayed
+        setState(() {
+          _conversationTitle = conversationTitle ?? "New Chat";
+          _isNewConversation =
+              false; // Set to false immediately so title shows in app bar
+        });
+
         // Only clear existing messages if explicitly starting a new conversation from menu button
         // NOT when creating from the first user message in a chat
         if (conversationTitle == null) {
@@ -1411,6 +1455,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
             _addWelcomeMessage();
           });
         }
+
         print('Created new conversation with ID: $_currentConversationId');
       }
     } catch (e) {
@@ -1499,6 +1544,25 @@ class _ChatbotPageState extends State<ChatbotPage> {
     // Show a loading indicator
     setState(() {
       _isLoading = true;
+      // Clear any existing messages while loading
+      _messages.clear();
+    });
+
+    // Add a safety timeout to ensure loading state doesn't get stuck
+    Future.delayed(const Duration(seconds: 10), () {
+      if (_isLoading) {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Loading timed out. Please try again.')),
+        );
+
+        // If we timed out, add a welcome message so the user doesn't see an empty chat
+        if (_messages.isEmpty) {
+          _addWelcomeMessage();
+        }
+      }
     });
 
     try {
@@ -1512,12 +1576,28 @@ class _ChatbotPageState extends State<ChatbotPage> {
         );
         setState(() {
           _isLoading = false;
+          // Add welcome message if no conversation found
+          if (_messages.isEmpty) {
+            _addWelcomeMessage();
+          }
         });
         return;
       }
 
       final messages = await _chatStorageService.getMessages(conversationId);
+
+      // Check if we got any messages back
+      if (messages.isEmpty) {
+        print(
+          'No messages returned from storage for conversation: $conversationId',
+        );
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Conversation appears to be empty')),
+        );
+      }
+
       setState(() {
+        // Clear again just in case anything was added while loading
         _messages.clear();
         _messages.addAll(messages);
         _currentConversationId = conversationId;
@@ -1526,10 +1606,14 @@ class _ChatbotPageState extends State<ChatbotPage> {
         _isLoading = false;
       });
 
-      // Restore AI context with past messages
-      _refreshAIMemory();
+      // Make sure to run this after setState to ensure messages are actually in the list
+      Future.microtask(() {
+        // Restore AI context with past messages
+        _refreshAIMemory();
 
-      _scrollToBottom();
+        // Ensure we scroll to show messages
+        _scrollToBottom();
+      });
     } catch (e) {
       print('Error loading conversation: $e');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1537,6 +1621,10 @@ class _ChatbotPageState extends State<ChatbotPage> {
       );
       setState(() {
         _isLoading = false;
+        // Add welcome message if error occurred
+        if (_messages.isEmpty) {
+          _addWelcomeMessage();
+        }
       });
     }
   }
@@ -1682,6 +1770,14 @@ class _ChatbotPageState extends State<ChatbotPage> {
                     : firstUserMsg.text;
 
             await _createNewConversation(conversationTitle: title);
+
+            // Update UI to show the title immediately after the first message
+            // This allows the title to appear after the first message is sent,
+            // rather than waiting for the second message
+            setState(() {
+              _conversationTitle = title;
+              // _isNewConversation is kept as true until the actual save happens
+            });
           } else {
             // No user messages yet, don't create a conversation
             return;
@@ -1768,8 +1864,8 @@ class _ChatbotPageState extends State<ChatbotPage> {
                         ),
                       ),
                     ),
-                    // Subtitle - conversation title (if in a saved conversation)
-                    if (_currentConversationId != null && !_isNewConversation)
+                    // Subtitle - conversation title (always show if we have a conversation ID)
+                    if (_currentConversationId != null)
                       GestureDetector(
                         onTap: () {
                           // Show dialog to rename conversation
