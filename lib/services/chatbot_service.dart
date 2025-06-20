@@ -1,6 +1,7 @@
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:io';
+import 'dart:math';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:lawlink/screens/chatbot_page.dart';
 import 'package:geolocator/geolocator.dart';
@@ -46,11 +47,13 @@ class ChatbotService {
       }
       // Check if this is a location-based query
       else if (_isLocationBasedQuestion(newMessageText)) {
-        return await _processLocationBasedQuery(
+        final locationResponse = await _processLocationBasedQuery(
           newMessageText,
           _selectedLanguage,
           context,
         );
+        // Make location-based responses concise as well
+        return makeConciseResponseWithFollowUps(locationResponse);
       }
       // Pre-filter obviously non-legal questions to reduce API misuse
       else if (_isDefinitelyNotLegalQuestion(newMessageText)) {
@@ -59,10 +62,17 @@ class ChatbotService {
             : "මම විශේෂයෙන්ම ශ්‍රී ලංකා නීති ප්‍රශ්න හා මාතෘකා සඳහා සහාය වීමට නිර්මාණය කර ඇත. කරුණාකර ශ්‍රී ලංකා නීති, නීතිමය ක්‍රියාපටිපාටි, අයිතිවාසිකම් හෝ නීතිමය ලේඛන විශ්ලේෂණය ගැන මගෙන් අසන්න, මම ඔබට සහාය වීමට සතුටු වෙමි.";
       }
 
+      // Check if it matches any quick response patterns
+      String quickResponse = getQuickResponse(newMessageText);
+      if (quickResponse.isNotEmpty) {
+        // Quick responses are already concise, no need for follow-up processing
+        return quickResponse;
+      }
+
       String languageInstruction =
           _selectedLanguage == 'English'
-              ? "Please respond in English."
-              : "කරුණාකර සිංහලෙන් පිළිතුරු දෙන්න. (Please respond in Sinhala)";
+              ? "Please respond in English. Keep your answer concise and to the point."
+              : "කරුණාකර සිංහලෙන් පිළිතුරු දෙන්න. (Please respond in Sinhala). Keep your answer concise and to the point.";
       final baseSystemInstruction = '''
           You are LawLink AI, a specialized legal assistant primarily for Sri Lankan law and related legal topics. 
 
@@ -101,11 +111,15 @@ class ChatbotService {
 
       final chat = _model.startChat(history: geminiContents);
 
-      // final content = [Content.text(contextualPrompt)];
       final response = await chat.sendMessage(Content.text(newMessageText));
 
-      return response.text ??
+      // Get the original response from the model
+      final originalResponse =
+          response.text ??
           'I apologize, but I couldn\'t generate a response. Please try again.';
+
+      // Make the response concise and add follow-up tags
+      return makeConciseResponseWithFollowUps(originalResponse);
     } catch (e) {
       print('Gemini API error: $e');
       if (e.toString().contains('API_KEY')) {
@@ -731,8 +745,7 @@ When contacting a lawyer, always confirm:
     return null;
   }
 
-  // These methods have been moved to LocationService class
-  // Process location-based query
+  // These methods have been moved to LocationService class  // Process location-based query
   Future<String> _processLocationBasedQuery(
     String query,
     String language, [
@@ -744,34 +757,30 @@ When contacting a lawyer, always confirm:
 
       // Determine what the user is looking for (lawyers, courts, etc.)
       String lookingFor = _determineLookingFor(query, language);
+      String enhancedQuery;
 
       if (specificLocation != null) {
         // This is a query about a specific location, not the user's current location
         if (language == 'English') {
-          return '''
-I see you're looking for $lookingFor near $specificLocation.
-
-For legal services in $specificLocation, I recommend:
-
-1. Checking the Sri Lanka Bar Association directory for professionals in $specificLocation
-2. Contacting the Legal Aid Commission at +94 11 2433 618 for referrals in $specificLocation
-3. Searching online directories for "$lookingFor in $specificLocation"
-
-Would you like me to provide specific contact information for legal services in $specificLocation?
-''';
+          enhancedQuery = '''$query
+The user is asking about legal services near $specificLocation in Sri Lanka.
+Please provide information about $lookingFor in or near $specificLocation.
+Include relevant contact information if available.''';
         } else {
-          return '''
-ඔබ $specificLocation අසල $lookingFor සොයන බව මම දකිමි.
-
-$specificLocation හි නීති සේවා සඳහා, මම නිර්දේශ කරමි:
-
-1. $specificLocation හි වෘත්තිකයින් සඳහා ශ්‍රී ලංකා නීතිඥ සංගමයේ නාමාවලිය පරීක්ෂා කිරීම
-2. $specificLocation හි යොමු කිරීම් සඳහා +94 11 2433 618 අංකයෙන් නීති ආධාර කොමිෂන් සභාව අමතන්න
-3. "$specificLocation හි $lookingFor" සඳහා මාර්ගගත නාමාවලි සෙවීම
-
-ඔබට $specificLocation හි නීති සේවා සඳහා නිශ්චිත සම්බන්ධතා තොරතුරු ලබා දීමට ඔබට අවශ්‍යද?
-''';
+          enhancedQuery = '''$query
+පරිශීලකයා ශ්‍රී ලංකාවේ $specificLocation ආසන්නයේ නීති සේවා ගැන විමසයි.
+කරුණාකර $specificLocation හි හෝ ඒ අවට $lookingFor පිළිබඳ තොරතුරු සපයන්න.
+ලබා ගත හැකි නම් අදාළ සම්බන්ධතා තොරතුරු ඇතුළත් කරන්න.''';
         }
+
+        // Use the AI model to get a response based on the location
+        final chat = _model.startChat();
+        final response = await chat.sendMessage(Content.text(enhancedQuery));
+
+        return response.text ??
+            (language == 'English'
+                ? "I'm having trouble providing specific information about legal services in $specificLocation at this moment."
+                : "මට මේ මොහොතේ $specificLocation හි නීති සේවා පිළිබඳ නිශ්චිත තොරතුරු සැපයීමට අපහසුය.");
       }
 
       // If we get here, this is about the user's current location
@@ -801,38 +810,29 @@ $specificLocation හි නීති සේවා සඳහා, මම නි�
         position.longitude,
       );
 
-      // Format the response based on language
+      // Add location information to the original query and forward to AI model
       if (language == 'English') {
-        return '''
-I see you're looking for $lookingFor near your location.
-
-Your current location is near: ${address ?? 'Unknown location'}
+        enhancedQuery = '''$query 
+The user's current location is: ${address ?? 'Unknown location'}
 Coordinates: ${position.latitude.toStringAsFixed(6)}, ${position.longitude.toStringAsFixed(6)}
-
-To find the nearest $lookingFor, I recommend:
-
-1. Checking the Sri Lanka Bar Association directory
-2. Using Google Maps to search for "$lookingFor near me"
-3. Calling the Legal Aid Commission at +94 11 2433 618 for referrals in your area
-
-Would you like more specific information about legal services in your district?
-''';
+Please provide information about $lookingFor near this location in Sri Lanka.
+Include relevant contact information for this area if available.''';
       } else {
-        return '''
-ඔබ ඔබගේ ස්ථානය අවට $lookingFor සොයන බව මම දකිමි.
-
-ඔබගේ වත්මන් ස්ථානය මෙතැන අසල ඇත: ${address ?? 'නොදන්නා ස්ථානයක'}
+        enhancedQuery = '''$query 
+පරිශීලකයාගේ වත්මන් ස්ථානය: ${address ?? 'නොදන්නා ස්ථානයක'}
 ඛණ්ඩාංක: ${position.latitude.toStringAsFixed(6)}, ${position.longitude.toStringAsFixed(6)}
-
-ඔබට ආසන්නතම $lookingFor සොයා ගැනීමට, මම නිර්දේශ කරමි:
-
-1. ශ්‍රී ලංකා නීතිඥ සංගමයේ නාමාවලිය පරීක්ෂා කිරීම
-2. "මා අසල $lookingFor" සෙවීමට Google සිතියම් භාවිතා කිරීම
-3. ඔබේ ප්‍රදේශයේ යොමු කිරීම් සඳහා +94 11 2433 618 අංකයෙන් නීති ආධාර කොමිෂන් සභාව අමතන්න
-
-ඔබේ දිස්ත්‍රික්කයේ නීති සේවා ගැන වඩාත් නිශ්චිත තොරතුරු ඔබට අවශ්‍යද?
-''';
+කරුණාකර ශ්‍රී ලංකාවේ මෙම ස්ථානයට ආසන්නව $lookingFor පිළිබඳ තොරතුරු සපයන්න.
+ලබා ගත හැකි නම් මෙම ප්‍රදේශය සඳහා අදාළ සම්බන්ධතා තොරතුරු ඇතුළත් කරන්න.''';
       }
+
+      // Forward the enhanced query with location info to the model
+      final chat = _model.startChat();
+      final response = await chat.sendMessage(Content.text(enhancedQuery));
+
+      return response.text ??
+          (language == 'English'
+              ? "I found your location at ${address ?? 'Unknown location'}, but I'm having trouble providing specific legal service information for that area."
+              : "මම ඔබගේ ස්ථානය ${address ?? 'නොදන්නා ස්ථානයකට'} සොයා ගත්තත්, එම ප්‍රදේශය සඳහා නිශ්චිත නීති සේවා තොරතුරු සැපයීමේ අපහසුතාවයක් ඇත.");
     } catch (e) {
       print('Error processing location query: $e');
       return language == 'English'
@@ -858,5 +858,149 @@ Would you like more specific information about legal services in your district?
     } else {
       return language == 'English' ? 'legal services' : 'නීති සේවා';
     }
+  }
+
+  // Generate a concise response with follow-up tags
+  String makeConciseResponseWithFollowUps(String originalResponse) {
+    if (originalResponse.length < 300) {
+      // Already concise enough, no need to modify
+      return originalResponse;
+    }
+
+    // Extract enough content for a substantial concise answer
+    String conciseResponse = '';
+    List<String> paragraphs = originalResponse.split('\n\n');
+
+    // Check if the first paragraph ends with a colon, which often indicates
+    // it's just introducing a list but doesn't contain actual content
+    bool firstParagraphIsIncomplete = false;
+    if (paragraphs.isNotEmpty) {
+      String firstPara = paragraphs[0].trim();
+      if (firstPara.endsWith(':') ||
+          firstPara.endsWith('such as:') ||
+          firstPara.length < 100) {
+        firstParagraphIsIncomplete = true;
+        print("First paragraph appears incomplete: $firstPara");
+      }
+    }
+
+    // Take enough paragraphs to provide a complete main answer
+    if (paragraphs.isNotEmpty) {
+      // Always include the first paragraph
+      conciseResponse = paragraphs[0];
+
+      // If first paragraph ends with a colon or is very short,
+      // always include the next paragraph if available
+      if (firstParagraphIsIncomplete && paragraphs.length > 1) {
+        conciseResponse += '\n\n' + paragraphs[1];
+        if (paragraphs.length > 2 && paragraphs[1].trim().length < 100) {
+          // If second paragraph is also short, include the third
+          conciseResponse += '\n\n' + paragraphs[2];
+        }
+      }
+
+      // Include more paragraphs if needed to provide a substantial answer
+      int contentLength = conciseResponse.length;
+      int paragraphIndex = firstParagraphIsIncomplete ? 3 : 1;
+
+      // Include additional paragraphs until we have a substantial answer
+      // Make sure we have at least 300 characters of content
+      while ((contentLength < 500 || firstParagraphIsIncomplete) &&
+          paragraphIndex < paragraphs.length &&
+          contentLength < originalResponse.length * 0.7) {
+        // Skip paragraphs that are just bullet points or very short
+        if (paragraphs[paragraphIndex].trim().length > 20) {
+          conciseResponse += '\n\n' + paragraphs[paragraphIndex];
+          contentLength += paragraphs[paragraphIndex].length;
+        }
+        paragraphIndex++;
+
+        // Always include at least 2 substantive paragraphs
+        if (paragraphIndex >= 3 &&
+            contentLength > 300 &&
+            !firstParagraphIsIncomplete) {
+          break;
+        }
+      }
+    } else {
+      // No paragraphs, take enough sentences to provide a meaningful answer
+      List<String> sentences = originalResponse.split('. ');
+      if (sentences.length > 3) {
+        // Take at least 3 sentences or more if they're short
+        int sentenceCount = min(
+          sentences.length,
+          max(5, 800 ~/ (originalResponse.length / sentences.length)),
+        );
+        conciseResponse = sentences.take(sentenceCount).join('. ') + '.';
+      } else {
+        // If very few sentences, take most of the original content
+        conciseResponse = originalResponse.substring(
+          0,
+          min(originalResponse.length * 3 ~/ 4, originalResponse.length),
+        );
+      }
+    }
+
+    // Add follow-up tags based on content
+    List<String> followUpTags = _generateFollowUpTags(
+      originalResponse,
+    ); // Format the response with follow-up tags
+    String response = conciseResponse;
+
+    // Print debug information to see what's happening
+    print('ORIGINAL LENGTH: ${originalResponse.length}');
+    print('CONCISE LENGTH: ${conciseResponse.length}');
+    print(
+      'CONCISE RESPONSE FIRST 100 CHARS: ${conciseResponse.substring(0, min(100, conciseResponse.length))}...',
+    );
+
+    if (followUpTags.isNotEmpty) {
+      response += '\n\n**Want to know more?**\n';
+      for (var tag in followUpTags) {
+        response += '- $tag\n';
+      }
+    }
+
+    return response;
+  }
+
+  List<String> _generateFollowUpTags(String fullResponse) {
+    // Extract potential follow-up topics from the response
+    List<String> followUps = [];
+
+    // Common legal follow-up patterns
+    Map<String, String> followUpPatterns = {
+      'procedure': 'What\'s the procedure?',
+      'cost': 'What are the costs involved?',
+      'time': 'How long does it take?',
+      'documents': 'What documents do I need?',
+      'rights': 'What are my rights?',
+      'appeal': 'Can I appeal this decision?',
+      'deadline': 'What are the deadlines?',
+      'penalty': 'What are the penalties?',
+      'court': 'Which court handles this?',
+      'lawyer': 'Do I need a lawyer?',
+      'alternatives': 'Are there alternatives?',
+      'laws': 'What laws apply here?',
+      'examples': 'Can you give examples?',
+    };
+
+    // Check for keywords in the response and generate relevant follow-up tags
+    followUpPatterns.forEach((keyword, question) {
+      if (fullResponse.toLowerCase().contains(keyword.toLowerCase()) &&
+          !followUps.contains(question) &&
+          followUps.length < 3) {
+        followUps.add(question);
+      }
+    });
+
+    // If no specific tags were identified, add general ones
+    if (followUps.isEmpty) {
+      followUps.add('Tell me more details');
+      followUps.add('Can you explain further?');
+    }
+
+    // Limit to 3 follow-up tags at most
+    return followUps.take(3).toList();
   }
 }
