@@ -143,6 +143,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
   String? _currentConversationId;
   bool _isNewConversation = true;
   String _conversationTitle = "New Conversation";
+  bool _isLoading = false; // Loading state for conversations
 
   // Language selection
   String _selectedLanguage = 'English'; // Default language
@@ -164,7 +165,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
     _addWelcomeMessage();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _initializeServices();
-      
+
       // Don't create conversation immediately - wait until user interacts
     });
   }
@@ -285,7 +286,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
         if (isFollowUpTag) break;
       }
     }
-      // If this is the first user message, create a new conversation
+    // If this is the first user message, create a new conversation
     // But only if we don't already have a conversation ID (might be loaded from history)
     if (_currentConversationId == null) {
       // We'll create the conversation after the message is added
@@ -1390,6 +1391,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
 
     _scrollToBottom();
   }
+
   // Firebase conversation management methods
   Future<void> _createNewConversation({String? conversationTitle}) async {
     try {
@@ -1400,10 +1402,10 @@ class _ChatbotPageState extends State<ChatbotPage> {
         );
         _isNewConversation = true;
         _conversationTitle = conversationTitle ?? "New Chat";
-        
-        // Don't clear existing messages when creating a conversation from existing chat
-        // Only clear if explicitly starting a new conversation from menu
-        if (conversationTitle != null) {
+        // Only clear existing messages if explicitly starting a new conversation from menu button
+        // NOT when creating from the first user message in a chat
+        if (conversationTitle == null) {
+          // No title provided means it's from menu button
           setState(() {
             _messages.clear();
             _addWelcomeMessage();
@@ -1427,7 +1429,11 @@ class _ChatbotPageState extends State<ChatbotPage> {
         if (_currentConversationId == null) {
           // If creation failed, show error and return
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Could not create conversation')),
+            const SnackBar(
+              content: Text('Could not create conversation'),
+              behavior: SnackBarBehavior.floating,
+              margin: EdgeInsets.only(bottom: 100, left: 20, right: 20),
+            ),
           );
           return;
         }
@@ -1444,30 +1450,57 @@ class _ChatbotPageState extends State<ChatbotPage> {
         );
         if (_currentConversationId == null) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Could not recreate conversation')),
+            const SnackBar(
+              content: Text('Could not recreate conversation'),
+              behavior: SnackBarBehavior.floating,
+              margin: EdgeInsets.only(bottom: 100, left: 20, right: 20),
+            ),
           );
           return;
         }
-      }
-
-      // Now save the messages
+      } // Now save the messages
       await _chatStorageService.saveMessages(
         _currentConversationId!,
         _messages,
       );
       _isNewConversation = false;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Conversation saved')));
+
+      // Show a floating notification away from the text input area
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Conversation saved'),
+          duration: Duration(milliseconds: 800), // Shorter duration
+          behavior:
+              SnackBarBehavior.floating, // Float instead of docked at bottom
+          margin: EdgeInsets.only(
+            bottom: 100, // Position higher up from bottom
+            left: 20,
+            right: 20,
+          ),
+        ),
+      );
     } catch (e) {
       print('Error saving conversation: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to save conversation: $e')),
+        SnackBar(
+          content: Text('Failed to save conversation: $e'),
+          behavior: SnackBarBehavior.floating,
+          margin: EdgeInsets.only(
+            bottom: 100, // Position higher up from bottom
+            left: 20,
+            right: 20,
+          ),
+        ),
       );
     }
   }
 
   Future<void> _loadConversation(String conversationId, String title) async {
+    // Show a loading indicator
+    setState(() {
+      _isLoading = true;
+    });
+
     try {
       // Check if conversation exists
       bool exists = await _chatStorageService.conversationExists(
@@ -1477,6 +1510,9 @@ class _ChatbotPageState extends State<ChatbotPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Conversation not found: $title')),
         );
+        setState(() {
+          _isLoading = false;
+        });
         return;
       }
 
@@ -1487,6 +1523,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
         _currentConversationId = conversationId;
         _conversationTitle = title;
         _isNewConversation = false;
+        _isLoading = false;
       });
 
       // Restore AI context with past messages
@@ -1498,6 +1535,9 @@ class _ChatbotPageState extends State<ChatbotPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to load conversation: $e')),
       );
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -1586,9 +1626,12 @@ class _ChatbotPageState extends State<ChatbotPage> {
           ),
     );
   }
+
   void _navigateToConversationList() async {
     // Only save current conversation if there are user messages
-    if (_messages.length >= 2 && _hasUserMessages() && _currentConversationId == null) {
+    if (_messages.length >= 2 &&
+        _hasUserMessages() &&
+        _currentConversationId == null) {
       await _autoSaveCurrentConversation();
     }
 
@@ -1611,9 +1654,10 @@ class _ChatbotPageState extends State<ChatbotPage> {
         _createNewConversation();
       } else if (result.containsKey('id') && result.containsKey('title')) {
         _loadConversation(result['id'], result['title']);
-      }    }
-  } 
-  
+      }
+    }
+  }
+
   // Add this method to auto-save current conversation
   Future<void> _autoSaveCurrentConversation() async {
     // Only auto-save if we have more than 2 messages AND at least one is from the user
@@ -1629,23 +1673,33 @@ class _ChatbotPageState extends State<ChatbotPage> {
               break;
             }
           }
-          
+
           if (firstUserMsg != null) {
             // Create a conversation using the first few words as title
-            String title = firstUserMsg.text.length > 30 
-                ? firstUserMsg.text.substring(0, 30) + "..." 
-                : firstUserMsg.text;
-            
+            String title =
+                firstUserMsg.text.length > 30
+                    ? firstUserMsg.text.substring(0, 30) + "..."
+                    : firstUserMsg.text;
+
             await _createNewConversation(conversationTitle: title);
           } else {
             // No user messages yet, don't create a conversation
             return;
           }
-        }
-
-        // Now try to save the messages
+        } // Now try to save the messages silently (without notifications)
         if (_currentConversationId != null) {
-          await _saveCurrentConversation();
+          try {
+            // Silent save - just save the messages without showing a notification
+            await _chatStorageService.saveMessages(
+              _currentConversationId!,
+              _messages,
+            );
+            _isNewConversation = false;
+            // No notification shown during auto-save
+          } catch (e) {
+            // Just log errors, don't notify user for auto-saves
+            print('Error in auto-save: $e');
+          }
         }
       } catch (e) {
         // Log the error but don't show UI notification for auto-save
@@ -1661,217 +1715,267 @@ class _ChatbotPageState extends State<ChatbotPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(kToolbarHeight),
-        child: Container(
-          decoration: BoxDecoration(
-            color:
-                Theme.of(context).appBarTheme.backgroundColor ??
-                Colors.white, // Or a specific color for your app bar
-            boxShadow: [
-              BoxShadow(
-                // ignore: deprecated_member_use
-                color: Colors.blue.withOpacity(0.1), // Subtle shadow color
-                spreadRadius: 0, // No spread, just blur
-                blurRadius:
-                    15, // Adjust for desired blur intensity of the shadow
-                offset: Offset(0, 1), // Shadow primarily below the app bar
-              ),
-            ],
-          ),
-          child: AppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            scrolledUnderElevation: 0,
-            surfaceTintColor: Colors.transparent,
-            shadowColor: Colors.transparent,
-            centerTitle: false,
-            iconTheme: IconThemeData(color: Colors.blue.shade700),
-            title: GestureDetector(
-              onTap: () {
-                if (_currentConversationId != null && !_isNewConversation) {
-                  // Show dialog to rename conversation
-                  _showRenameDialog();
-                }
-              },
-              child: ShaderMask(
-                shaderCallback:
-                    (bounds) => LinearGradient(
-                      colors: [Colors.blue.shade800, Colors.blue.shade300],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ).createShader(bounds),
-                child: Text(
-                  _currentConversationId != null && !_isNewConversation
-                      ? _conversationTitle
-                      : 'LawLink AI',
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+    return Stack(
+      children: [
+        Scaffold(
+          extendBodyBehindAppBar: true,
+          appBar: PreferredSize(
+            preferredSize: const Size.fromHeight(kToolbarHeight),
+            child: Container(
+              decoration: BoxDecoration(
+                color:
+                    Theme.of(context).appBarTheme.backgroundColor ??
+                    Colors.white, // Or a specific color for your app bar
+                boxShadow: [
+                  BoxShadow(
+                    // ignore: deprecated_member_use
+                    color: Colors.blue.withOpacity(0.1), // Subtle shadow color
+                    spreadRadius: 0, // No spread, just blur
+                    blurRadius:
+                        15, // Adjust for desired blur intensity of the shadow
+                    offset: Offset(0, 1), // Shadow primarily below the app bar
                   ),
-                  overflow: TextOverflow.ellipsis,
-                ),
+                ],
               ),
-            ),
-            actions: [
-              // New conversation button
-              IconButton(
-                icon: const Icon(Icons.add),
-                tooltip: 'New Conversation',
-                onPressed: _createNewConversation,
-              ),
-
-              // Save conversation button
-              IconButton(
-                icon: const Icon(Icons.save),
-                tooltip: 'Save Conversation',
-                onPressed: _saveCurrentConversation,
-              ),
-
-              // View conversations button
-              IconButton(
-                icon: const Icon(Icons.history),
-                tooltip: 'Conversation History',
-                onPressed: () => _navigateToConversationList(),
-              ),
-
-              // Language Selector
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: DropdownButton<String>(
-                  value: _selectedLanguage,
-                  icon: Icon(
-                    Icons.language,
-                    color: Colors.blue.shade700,
-                    size: 19,
-                  ),
-                  underline: Container(),
-                  isDense: true, // Makes the button compact
-                  itemHeight: 48, // Smaller item height
-                  style: TextStyle(
-                    fontSize: 13, // Smaller font size
-                    color: Colors.blue.shade800,
-                  ),
-                  dropdownColor: Colors.white, // White dropdown menu background
-                  borderRadius: BorderRadius.circular(
-                    8,
-                  ), // Rounded corners for dropdown
-                  onChanged: (String? newValue) {
-                    if (newValue != null && newValue != _selectedLanguage) {
-                      setState(() {
-                        _selectedLanguage = newValue;
-                      });
-                      _setLanguageSystemPrompt(newValue);
-                    }
-                  },
-                  items:
-                      <String>['English', 'සිංහල'] // English, Sinhala
-                      .map<DropdownMenuItem<String>>((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value),
-                        );
-                      }).toList(),
-                ),
-              ),
-              const SizedBox(
-                width: 4,
-              ), // Smaller gap between language selector and refresh button
-              IconButton(
-                onPressed: () {
-                  setState(() {
-                    _messages.clear();
-                  });
-                  _addWelcomeMessage();
-                },
-                icon: Icon(Icons.refresh, color: Colors.blue.shade700),
-                tooltip: 'Clear chat',
-              ),
-            ],
-          ),
-        ),
-      ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.white, Colors.blue.shade50],
-            stops: const [0.7, 1.0],
-          ),
-        ),
-        child: Column(
-          children: [
-            // Main content area with SafeArea
-            Expanded(
-              child: SafeArea(
-                bottom: false, // Don't apply bottom safe area
-                child: Column(
+              child: AppBar(
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                scrolledUnderElevation: 0,
+                surfaceTintColor: Colors.transparent,
+                shadowColor: Colors.transparent,
+                centerTitle: false,
+                iconTheme: IconThemeData(color: Colors.blue.shade700),
+                title: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Status indicator
-                    if (_isListening || _isRecording)
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(8),
-                        color: Colors.red.shade100,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              _isListening ? Icons.mic : Icons.mic_none,
-                              color: Colors.red,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              _isListening
-                                  ? 'Listening...'
-                                  : _isRecording
-                                  ? 'Recording...'
-                                  : '',
-                              style: const TextStyle(color: Colors.red),
-                            ),
-                          ],
-                        ),
-                      ), // Modern Chat Interface
-                    Expanded(
-                      child: Container(
-                        color: Colors.transparent,
-                        child: ListView.builder(
-                          controller: _scrollController,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          itemCount: _messages.length + (_isProcessing ? 1 : 0),
-                          itemBuilder: (context, index) {
-                            // Show loading indicator for AI response
-                            if (_isProcessing && index == _messages.length) {
-                              return _buildTypingIndicator();
-                            }
-
-                            final message = _messages[index];
-                            return _buildMessageItem(message);
-                          },
+                    // Main title - always LawLink AI
+                    ShaderMask(
+                      shaderCallback:
+                          (bounds) => LinearGradient(
+                            colors: [
+                              Colors.blue.shade800,
+                              Colors.blue.shade300,
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ).createShader(bounds),
+                      child: const Text(
+                        'LawLink AI',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
                         ),
                       ),
                     ),
+                    // Subtitle - conversation title (if in a saved conversation)
+                    if (_currentConversationId != null && !_isNewConversation)
+                      GestureDetector(
+                        onTap: () {
+                          // Show dialog to rename conversation
+                          _showRenameDialog();
+                        },
+                        child: Text(
+                          _conversationTitle,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                            color: Colors.blue.shade600,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                   ],
+                ),
+                actions: [
+                  // New conversation button
+                  IconButton(
+                    icon: const Icon(Icons.add),
+                    tooltip: 'New Conversation',
+                    onPressed: _createNewConversation,
+                  ),
+
+                  // View conversations button
+                  IconButton(
+                    icon: const Icon(Icons.history),
+                    tooltip: 'Conversation History',
+                    onPressed: () => _navigateToConversationList(),
+                  ),
+
+                  // Language Selector
+                  Container(
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 0,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: DropdownButton<String>(
+                      value: _selectedLanguage,
+                      icon: Icon(
+                        Icons.language,
+                        color: Colors.blue.shade700,
+                        size: 19,
+                      ),
+                      underline: Container(),
+                      isDense: true, // Makes the button compact
+                      itemHeight: 48, // Smaller item height
+                      style: TextStyle(
+                        fontSize: 13, // Smaller font size
+                        color: Colors.blue.shade800,
+                      ),
+                      dropdownColor:
+                          Colors.white, // White dropdown menu background
+                      borderRadius: BorderRadius.circular(
+                        8,
+                      ), // Rounded corners for dropdown
+                      onChanged: (String? newValue) {
+                        if (newValue != null && newValue != _selectedLanguage) {
+                          setState(() {
+                            _selectedLanguage = newValue;
+                          });
+                          _setLanguageSystemPrompt(newValue);
+                        }
+                      },
+                      items:
+                          <String>['English', 'සිංහල'] // English, Sinhala
+                          .map<DropdownMenuItem<String>>((String value) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value),
+                            );
+                          }).toList(),
+                    ),
+                  ),
+                  // Reset button removed as requested
+                ],
+              ),
+            ),
+          ),
+          body: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Colors.white, Colors.blue.shade50],
+                stops: const [0.7, 1.0],
+              ),
+            ),
+            child: Column(
+              children: [
+                // Main content area with SafeArea
+                Expanded(
+                  child: SafeArea(
+                    bottom: false, // Don't apply bottom safe area
+                    child: Column(
+                      children: [
+                        // Status indicator
+                        if (_isListening || _isRecording)
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(8),
+                            color: Colors.red.shade100,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  _isListening ? Icons.mic : Icons.mic_none,
+                                  color: Colors.red,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  _isListening
+                                      ? 'Listening...'
+                                      : _isRecording
+                                      ? 'Recording...'
+                                      : '',
+                                  style: const TextStyle(color: Colors.red),
+                                ),
+                              ],
+                            ),
+                          ), // Modern Chat Interface
+                        Expanded(
+                          child: Container(
+                            color: Colors.transparent,
+                            child: ListView.builder(
+                              controller: _scrollController,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              itemCount:
+                                  _messages.length + (_isProcessing ? 1 : 0),
+                              itemBuilder: (context, index) {
+                                // Show loading indicator for AI response
+                                if (_isProcessing &&
+                                    index == _messages.length) {
+                                  return _buildTypingIndicator();
+                                }
+
+                                final message = _messages[index];
+                                return _buildMessageItem(message);
+                              },
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                // Input area outside SafeArea to extend to bottom edge
+                _buildInputArea(),
+              ],
+            ),
+          ),
+        ), // Loading overlay
+        if (_isLoading)
+          Container(
+            color: Colors.white.withOpacity(0.7),
+            child: Center(
+              child: Card(
+                elevation: 4,
+                color: Colors.white,
+                shadowColor: Colors.blue.withOpacity(0.2),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  side: BorderSide(color: Colors.blue.shade100, width: 0.5),
+                ),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 20,
+                    horizontal: 30,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          Colors.blue[500]!,
+                        ),
+                        strokeWidth: 2.5,
+                      ),
+                      const SizedBox(height: 18),
+                      Text(
+                        "Loading conversation...",
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 15,
+                          color: Colors.blue[700],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-            // Input area outside SafeArea to extend to bottom edge
-            _buildInputArea(),
-          ],
-        ),
-      ),
+          ),
+      ],
     );
   }
 }
