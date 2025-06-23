@@ -109,11 +109,11 @@ class _UserProfilePageState extends State<UserProfilePage> {
             surfaceTintColor: Colors.transparent,
             shadowColor: Colors.transparent,
             iconTheme: IconThemeData(color: Colors.blue.shade700),
-            actions: [
-              // Light/Dark mode toggle
+            actions: [              // Light/Dark mode toggle
               IconButton(
                 icon: const Icon(Icons.light_mode),
-                tooltip: 'Toggle Dark Mode',
+                color: Colors.blue.shade700, // Ensure consistent blue color
+                tooltip: 'Toggle Light Mode',
                 onPressed: () {
                   // Show Coming Soon alert
                   showDialog(

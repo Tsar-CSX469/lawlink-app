@@ -94,11 +94,10 @@ class _ProceduresPageState extends State<ProceduresPage> {
           fontWeight: FontWeight.bold,
         ),
         iconTheme: const IconThemeData(color: Colors.blue),
-        actions: [
-          // Light/Dark mode toggle
+        actions: [          // Light/Dark mode toggle
           IconButton(
-            icon: const Icon(Icons.light_mode, color: Colors.blue),
-            tooltip: 'Toggle Dark Mode',
+            icon: Icon(Icons.light_mode, color: Colors.blue.shade700), // Ensure consistent blue color
+            tooltip: 'Toggle Light Mode',
             onPressed: () {
               // Show Coming Soon alert
               showDialog(

@@ -47,11 +47,11 @@ class QuizMenuPage extends StatelessWidget {
             surfaceTintColor: Colors.transparent,
             shadowColor: Colors.transparent,
             iconTheme: IconThemeData(color: Colors.blue.shade700),
-            actions: [
-              // Light/Dark mode toggle
+            actions: [              // Light/Dark mode toggle
               IconButton(
                 icon: const Icon(Icons.light_mode),
-                tooltip: 'Toggle Dark Mode',
+                tooltip: 'Toggle Light Mode',
+                color: Colors.blue.shade700, // Ensure consistent blue color
                 onPressed: () {
                   // Show Coming Soon alert
                   showDialog(
@@ -402,60 +402,28 @@ class QuizMenuPage extends StatelessWidget {
   void _showComingSoonDialog(BuildContext context, String quizType) {
     showDialog(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: Row(
-            children: [
-              Icon(
-                Icons.timelapse_rounded,
+      builder:
+          (context) => AlertDialog(
+            title: Text(
+              'Coming Soon!',
+              style: TextStyle(
                 color: Colors.blue.shade700,
-                size: 24,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                '$quizType Quiz',
-                style: TextStyle(
-                  color: Colors.blue.shade800,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.hourglass_empty,
-                size: 48,
-                color: Colors.blue.shade400,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'This quiz is coming soon! Stay tuned for updates.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16, color: Colors.grey.shade700),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text(
-                'OK',
-                style: TextStyle(
-                  color: Colors.blue.shade700,
-                  fontWeight: FontWeight.bold,
-                ),
+                fontWeight: FontWeight.bold,
               ),
             ),
-          ],
-        );
-      },
+            content: Text(
+              '$quizType quiz will be available in a future update!',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(
+                  'OK',
+                  style: TextStyle(color: Colors.blue.shade700),
+                ),
+              ),
+            ],
+          ),
     );
   }
 }
