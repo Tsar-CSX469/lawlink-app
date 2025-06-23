@@ -94,6 +94,44 @@ class _ProceduresPageState extends State<ProceduresPage> {
           fontWeight: FontWeight.bold,
         ),
         iconTheme: const IconThemeData(color: Colors.blue),
+        actions: [
+          // Light/Dark mode toggle
+          IconButton(
+            icon: Icon(
+              Icons.light_mode,
+              color: Colors.blue.shade700,
+            ), // Ensure consistent blue color
+            tooltip: 'Toggle Light Mode',
+            onPressed: () {
+              // Show Coming Soon alert
+              showDialog(
+                context: context,
+                builder:
+                    (context) => AlertDialog(
+                      title: Text(
+                        'Coming Soon!',
+                        style: TextStyle(
+                          color: Colors.blue.shade700,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      content: const Text(
+                        'Dark mode functionality will be available in the next update!',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: Text(
+                            'OK',
+                            style: TextStyle(color: Colors.blue.shade700),
+                          ),
+                        ),
+                      ],
+                    ),
+              );
+            },
+          ),
+        ],
       ),
       body: Container(
         decoration: BoxDecoration(

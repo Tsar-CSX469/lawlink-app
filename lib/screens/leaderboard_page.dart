@@ -204,12 +204,50 @@ class _LeaderboardPageState extends State<LeaderboardPage>
                 surfaceTintColor: Colors.transparent,
                 shadowColor: Colors.transparent,
                 centerTitle: true,
+                actions: [
+                  // Light/Dark mode toggle
+                  IconButton(
+                    icon: Icon(Icons.light_mode, color: Colors.blue.shade700),
+                    tooltip: 'Toggle Dark Mode',
+                    onPressed: () {
+                      // Show Coming Soon alert
+                      showDialog(
+                        context: context,
+                        builder:
+                            (context) => AlertDialog(
+                              title: Text(
+                                'Coming Soon!',
+                                style: TextStyle(
+                                  color: Colors.blue.shade700,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              content: const Text(
+                                'Dark mode functionality will be available in the next update!',
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: Text(
+                                    'OK',
+                                    style: TextStyle(
+                                      color: Colors.blue.shade700,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                      );
+                    },
+                  ),
+                ],
                 title: ShaderMask(
-                  shaderCallback: (bounds) => LinearGradient(
-                    colors: [Colors.blue.shade800, Colors.blue.shade300],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ).createShader(bounds),
+                  shaderCallback:
+                      (bounds) => LinearGradient(
+                        colors: [Colors.blue.shade800, Colors.blue.shade300],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ).createShader(bounds),
                   child: const Text(
                     '🏆 Leaderboard',
                     style: TextStyle(
@@ -225,10 +263,7 @@ class _LeaderboardPageState extends State<LeaderboardPage>
                 decoration: BoxDecoration(
                   color: Colors.white,
                   border: Border(
-                    bottom: BorderSide(
-                      color: Colors.grey.shade200,
-                      width: 1,
-                    ),
+                    bottom: BorderSide(color: Colors.grey.shade200, width: 1),
                   ),
                 ),
                 child: TabBar(
@@ -247,19 +282,26 @@ class _LeaderboardPageState extends State<LeaderboardPage>
                     fontSize: 14,
                   ),
                   indicatorSize: TabBarIndicatorSize.label,
-                  tabs: _quizCategories.map((category) => Tab(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(category.icon, size: 18),
-                          const SizedBox(width: 8),
-                          Text(category.name),
-                        ],
-                      ),
-                    ),
-                  )).toList(),
+                  tabs:
+                      _quizCategories
+                          .map(
+                            (category) => Tab(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(category.icon, size: 18),
+                                    const SizedBox(width: 8),
+                                    Text(category.name),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          )
+                          .toList(),
                 ),
               ),
             ],
@@ -269,16 +311,22 @@ class _LeaderboardPageState extends State<LeaderboardPage>
       body: SafeArea(
         child: Container(
           color: Colors.white,
-          child: _isLoading 
-              ? _buildLoadingState()
-              : _error != null
+          child:
+              _isLoading
+                  ? _buildLoadingState()
+                  : _error != null
                   ? _buildErrorState()
                   : TabBarView(
-                      controller: _tabController,
-                      children: _quizCategories
-                          .map((category) => _buildLeaderboardList(quizFilter: category.id))
-                          .toList(),
-                    ),
+                    controller: _tabController,
+                    children:
+                        _quizCategories
+                            .map(
+                              (category) => _buildLeaderboardList(
+                                quizFilter: category.id,
+                              ),
+                            )
+                            .toList(),
+                  ),
         ),
       ),
     );
@@ -378,8 +426,8 @@ class _LeaderboardPageState extends State<LeaderboardPage>
 
     // We'll only use top 3 entries
     final topEntries = entries.take(3).toList();
-      // Use only top entries
-    
+    // Use only top entries
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16),
       child: Column(
@@ -407,18 +455,18 @@ class _LeaderboardPageState extends State<LeaderboardPage>
                 const Color(0xFFC0C0C0), // Silver
                 const Color(0xFFCD7F32), // Bronze
               ];
-              
+
               final icons = [
                 Icons.emoji_events,
-                Icons.workspace_premium, 
-                Icons.military_tech
+                Icons.workspace_premium,
+                Icons.military_tech,
               ];
-              
+
               return _buildSimpleRankItem(
-                topEntries[index], 
+                topEntries[index],
                 index + 1,
                 medalColors[index],
-                icons[index]
+                icons[index],
               );
             },
           ),
@@ -427,16 +475,16 @@ class _LeaderboardPageState extends State<LeaderboardPage>
       ),
     );
   }
-  
+
   Widget _buildSimpleRankItem(
-    LeaderboardEntry entry, 
-    int position, 
+    LeaderboardEntry entry,
+    int position,
     Color medalColor,
-    IconData icon
+    IconData icon,
   ) {
     final percentage = (entry.score / entry.total) * 100;
     final isCurrentUser = _auth.currentUser?.uid == entry.userId;
-    
+
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
       decoration: BoxDecoration(
@@ -474,13 +522,7 @@ class _LeaderboardPageState extends State<LeaderboardPage>
                   ),
                 ],
               ),
-              child: Center(
-                child: Icon(
-                  icon,
-                  color: Colors.white,
-                  size: 18,
-                ),
-              ),
+              child: Center(child: Icon(icon, color: Colors.white, size: 18)),
             ),
             const SizedBox(width: 12),
             // User info
@@ -492,7 +534,9 @@ class _LeaderboardPageState extends State<LeaderboardPage>
                     radius: 16,
                     backgroundColor: Colors.blue.shade50,
                     child: Text(
-                      entry.userName.isNotEmpty ? entry.userName[0].toUpperCase() : 'U',
+                      entry.userName.isNotEmpty
+                          ? entry.userName[0].toUpperCase()
+                          : 'U',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
@@ -521,7 +565,10 @@ class _LeaderboardPageState extends State<LeaderboardPage>
                             ),
                             if (isCurrentUser)
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 1,
+                                ),
                                 margin: const EdgeInsets.only(left: 4),
                                 decoration: BoxDecoration(
                                   color: Colors.blue.shade50,
@@ -558,13 +605,17 @@ class _LeaderboardPageState extends State<LeaderboardPage>
               height: 24,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: isCurrentUser ? Colors.blue.shade100 : Colors.grey.shade100,
+                color:
+                    isCurrentUser ? Colors.blue.shade100 : Colors.grey.shade100,
               ),
               child: Center(
                 child: Text(
                   '#$position',
                   style: TextStyle(
-                    color: isCurrentUser ? Colors.blue.shade700 : Colors.grey.shade800,
+                    color:
+                        isCurrentUser
+                            ? Colors.blue.shade700
+                            : Colors.grey.shade800,
                     fontWeight: FontWeight.bold,
                     fontSize: 10,
                   ),

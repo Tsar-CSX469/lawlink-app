@@ -335,7 +335,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
     _textController.clear();
     try {
       List<Message> historyToSend = List.from(_messages);
-      const int maxTurns = 10;
+      const int maxTurns = 15;
       if (historyToSend.length > maxTurns) {
         historyToSend = historyToSend.sublist(historyToSend.length - maxTurns);
       }
@@ -661,9 +661,15 @@ class _ChatbotPageState extends State<ChatbotPage> {
             ),
             title: Row(
               children: [
-                Icon(Icons.mic, color: Colors.blue[700]),
+                Icon(Icons.mic, color: Colors.blue.shade700),
                 const SizedBox(width: 8),
-                const Text('Audio Message'),
+                Text(
+                  'Audio Message',
+                  style: TextStyle(
+                    color: Colors.blue.shade700,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ],
             ),
             content: Column(
@@ -714,7 +720,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
                 onPressed: () => Navigator.pop(context),
                 child: Text(
                   'Cancel',
-                  style: TextStyle(color: Colors.grey[700]),
+                  style: TextStyle(color: Colors.blue.shade700),
                 ),
               ),
               ElevatedButton(
@@ -924,9 +930,13 @@ class _ChatbotPageState extends State<ChatbotPage> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
+                Text(
                   'Choose Attachment',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue.shade700,
+                  ),
                 ),
                 const SizedBox(height: 20),
                 Row(
@@ -1484,80 +1494,8 @@ class _ChatbotPageState extends State<ChatbotPage> {
       );
     }
   }
-
-  Future<void> _saveCurrentConversation() async {
-    try {
-      // Create new conversation if needed
-      if (_currentConversationId == null) {
-        await _createNewConversation();
-        if (_currentConversationId == null) {
-          // If creation failed, show error and return
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Could not create conversation'),
-              behavior: SnackBarBehavior.floating,
-              margin: EdgeInsets.only(bottom: 100, left: 20, right: 20),
-            ),
-          );
-          return;
-        }
-      }
-
-      // Check if conversation exists
-      bool exists = await _chatStorageService.conversationExists(
-        _currentConversationId!,
-      );
-      if (!exists) {
-        // If it doesn't exist, recreate it
-        _currentConversationId = await _chatStorageService.createConversation(
-          _conversationTitle,
-        );
-        if (_currentConversationId == null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Could not recreate conversation'),
-              behavior: SnackBarBehavior.floating,
-              margin: EdgeInsets.only(bottom: 100, left: 20, right: 20),
-            ),
-          );
-          return;
-        }
-      } // Now save the messages
-      await _chatStorageService.saveMessages(
-        _currentConversationId!,
-        _messages,
-      );
-      _isNewConversation = false;
-
-      // Show a floating notification away from the text input area
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Conversation saved'),
-          duration: Duration(milliseconds: 800), // Shorter duration
-          behavior:
-              SnackBarBehavior.floating, // Float instead of docked at bottom
-          margin: EdgeInsets.only(
-            bottom: 100, // Position higher up from bottom
-            left: 20,
-            right: 20,
-          ),
-        ),
-      );
-    } catch (e) {
-      print('Error saving conversation: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to save conversation: $e'),
-          behavior: SnackBarBehavior.floating,
-          margin: EdgeInsets.only(
-            bottom: 100, // Position higher up from bottom
-            left: 20,
-            right: 20,
-          ),
-        ),
-      );
-    }
-  }
+  // This method is now called through autoSaveCurrentConversation
+  // Keeping implementation in case it's needed in future updates
 
   Future<void> _loadConversation(String conversationId, String title) async {
     // Show a loading indicator
@@ -1705,19 +1643,32 @@ class _ChatbotPageState extends State<ChatbotPage> {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('Rename Conversation'),
+            title: Text(
+              'Rename Conversation',
+              style: TextStyle(
+                color: Colors.blue.shade700,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             content: TextField(
               controller: titleController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Conversation Title',
                 hintText: 'Enter a title for this conversation',
+                labelStyle: TextStyle(color: Colors.blue.shade600),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Colors.blue.shade700),
+                ),
               ),
               autofocus: true,
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel'),
+                child: Text(
+                  'Cancel',
+                  style: TextStyle(color: Colors.blue.shade700),
+                ),
               ),
               TextButton(
                 onPressed: () {
@@ -1727,7 +1678,10 @@ class _ChatbotPageState extends State<ChatbotPage> {
                   }
                   Navigator.pop(context);
                 },
-                child: const Text('Save'),
+                child: Text(
+                  'Save',
+                  style: TextStyle(color: Colors.blue.shade700),
+                ),
               ),
             ],
           ),
@@ -1815,7 +1769,10 @@ class _ChatbotPageState extends State<ChatbotPage> {
                     spreadRadius: 0, // No spread, just blur
                     blurRadius:
                         15, // Adjust for desired blur intensity of the shadow
-                    offset: Offset(0, 1), // Shadow primarily below the app bar
+                    offset: const Offset(
+                      0,
+                      1,
+                    ), // Shadow primarily below the app bar
                   ),
                 ],
               ),
@@ -1827,49 +1784,96 @@ class _ChatbotPageState extends State<ChatbotPage> {
                 shadowColor: Colors.transparent,
                 centerTitle: false,
                 iconTheme: IconThemeData(color: Colors.blue.shade700),
-                title: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Main title - always LawLink AI
-                    ShaderMask(
-                      shaderCallback:
-                          (bounds) => LinearGradient(
-                            colors: [
-                              Colors.blue.shade800,
-                              Colors.blue.shade300,
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ).createShader(bounds),
-                      child: const Text(
-                        'LawLink AI',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                    // Subtitle - conversation title (always show if we have a conversation ID)
-                    if (_currentConversationId != null)
-                      GestureDetector(
-                        onTap: () {
-                          // Show dialog to rename conversation
-                          _showRenameDialog();
-                        },
-                        child: Text(
-                          _conversationTitle,
+                titleSpacing: 4, // Reduce spacing to make more room
+                title: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    maxWidth: 150,
+                  ), // Constrain the width of the title
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Main title - always LawLink AI
+                      ShaderMask(
+                        shaderCallback:
+                            (bounds) => LinearGradient(
+                              colors: [
+                                Colors.blue.shade800,
+                                Colors.blue.shade300,
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ).createShader(bounds),
+                        child: const Text(
+                          'LawLink AI',
                           style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w400,
-                            color: Colors.blue.shade600,
+                            fontSize: 18, // Slightly smaller font size
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
                           ),
-                          overflow: TextOverflow.ellipsis,
+                          overflow:
+                              TextOverflow
+                                  .ellipsis, // Prevent text from overflowing
                         ),
                       ),
-                  ],
+                      // Subtitle - conversation title (if in a saved conversation)
+                      if (_currentConversationId != null && !_isNewConversation)
+                        GestureDetector(
+                          onTap: () {
+                            // Show dialog to rename conversation
+                            _showRenameDialog();
+                          },
+                          child: Text(
+                            _conversationTitle,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w400,
+                              color: Colors.blue.shade600,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
                 actions: [
+                  // Light/Dark mode toggle
+                  IconButton(
+                    icon: const Icon(Icons.light_mode),
+                    tooltip: 'Toggle Light Mode',
+                    color: Colors.blue.shade700, // Ensure consistent blue color
+                    onPressed: () {
+                      // Show Coming Soon alert
+                      showDialog(
+                        context: context,
+                        builder:
+                            (context) => AlertDialog(
+                              title: Text(
+                                'Coming Soon!',
+                                style: TextStyle(
+                                  color: Colors.blue.shade700,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              content: const Text(
+                                'Dark mode functionality will be available in the next update!',
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: Text(
+                                    'OK',
+                                    style: TextStyle(
+                                      color: Colors.blue.shade700,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                      );
+                    },
+                  ),
+
                   // New conversation button
                   IconButton(
                     icon: const Icon(Icons.add),
@@ -1935,7 +1939,6 @@ class _ChatbotPageState extends State<ChatbotPage> {
                           }).toList(),
                     ),
                   ),
-                  // Reset button removed as requested
                 ],
               ),
             ),

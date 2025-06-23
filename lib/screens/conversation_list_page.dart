@@ -160,8 +160,42 @@ class _ConversationListPageState extends State<ConversationListPage> {
             fontWeight: FontWeight.w500,
             color: Colors.blue.shade700,
           ),
-        ),
-        actions: [
+        ),        actions: [
+          // Light/Dark mode toggle
+          IconButton(
+            icon: const Icon(Icons.light_mode),
+            color: Colors.blue.shade700, // Ensure consistent blue color
+            tooltip: 'Toggle Light Mode',
+            onPressed: () {
+              // Show Coming Soon alert
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: Text(
+                    'Coming Soon!',
+                    style: TextStyle(
+                      color: Colors.blue.shade700,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  content: const Text(
+                    'Dark mode functionality will be available in the next update!',
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text(
+                        'OK',
+                        style: TextStyle(
+                          color: Colors.blue.shade700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
           IconButton(
             icon: Icon(Icons.refresh, size: 22, color: Colors.blue.shade600),
             onPressed: _loadConversations,
