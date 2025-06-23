@@ -154,6 +154,40 @@ class _MainPageState extends State<MainPage> {
             surfaceTintColor: Colors.transparent,
             shadowColor: Colors.transparent,
             actions: [
+              // Light/Dark mode toggle
+              IconButton(
+                icon: Icon(Icons.light_mode, color: Colors.blue.shade700),
+                tooltip: 'Toggle Dark Mode',
+                onPressed: () {
+                  // Show Coming Soon alert
+                  showDialog(
+                    context: context,
+                    builder:
+                        (context) => AlertDialog(
+                          title: Text(
+                            'Coming Soon!',
+                            style: TextStyle(
+                              color: Colors.blue.shade700,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          content: const Text(
+                            'Dark mode functionality will be available in the next update!',
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: Text(
+                                'OK',
+                                style: TextStyle(color: Colors.blue.shade700),
+                              ),
+                            ),
+                          ],
+                        ),
+                  );
+                },
+              ),
+
               // Profile icon button
               GestureDetector(
                 onTap: () {

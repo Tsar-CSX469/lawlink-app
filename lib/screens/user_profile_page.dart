@@ -110,6 +110,39 @@ class _UserProfilePageState extends State<UserProfilePage> {
             shadowColor: Colors.transparent,
             iconTheme: IconThemeData(color: Colors.blue.shade700),
             actions: [
+              // Light/Dark mode toggle
+              IconButton(
+                icon: const Icon(Icons.light_mode),
+                tooltip: 'Toggle Dark Mode',
+                onPressed: () {
+                  // Show Coming Soon alert
+                  showDialog(
+                    context: context,
+                    builder:
+                        (context) => AlertDialog(
+                          title: Text(
+                            'Coming Soon!',
+                            style: TextStyle(
+                              color: Colors.blue.shade700,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          content: const Text(
+                            'Dark mode functionality will be available in the next update!',
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: Text(
+                                'OK',
+                                style: TextStyle(color: Colors.blue.shade700),
+                              ),
+                            ),
+                          ],
+                        ),
+                  );
+                },
+              ),
               Padding(
                 padding: const EdgeInsets.only(right: 10),
                 child: Container(

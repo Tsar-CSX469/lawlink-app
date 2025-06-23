@@ -186,6 +186,39 @@ class _ConversationListPageState extends State<ConversationListPage> {
               ),
             ),
             actions: [
+              // Light/Dark mode toggle
+              IconButton(
+                icon: const Icon(Icons.light_mode),
+                tooltip: 'Toggle Dark Mode',
+                onPressed: () {
+                  // Show Coming Soon alert
+                  showDialog(
+                    context: context,
+                    builder:
+                        (context) => AlertDialog(
+                          title: Text(
+                            'Coming Soon!',
+                            style: TextStyle(
+                              color: Colors.blue.shade700,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          content: const Text(
+                            'Dark mode functionality will be available in the next update!',
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: Text(
+                                'OK',
+                                style: TextStyle(color: Colors.blue.shade700),
+                              ),
+                            ),
+                          ],
+                        ),
+                  );
+                },
+              ),
               IconButton(
                 icon: Icon(Icons.refresh, color: Colors.blue.shade700),
                 onPressed: _loadConversations,
@@ -564,7 +597,8 @@ class _ConversationListPageState extends State<ConversationListPage> {
                     },
                   ),
                 ),
-      ),      floatingActionButton:
+      ),
+      floatingActionButton:
           _conversations.isNotEmpty
               ? FloatingActionButton(
                 onPressed: () {
@@ -574,10 +608,7 @@ class _ConversationListPageState extends State<ConversationListPage> {
                 elevation: 4,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
-                  side: BorderSide(
-                    color: Colors.blue.shade100,
-                    width: 1,
-                  ),
+                  side: BorderSide(color: Colors.blue.shade100, width: 1),
                 ),
                 child: Icon(Icons.add, color: Colors.blue.shade600),
               )
