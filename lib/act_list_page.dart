@@ -111,7 +111,8 @@ class ActListPageState extends State<ActListPage> {
           ),
         ),
         iconTheme: IconThemeData(color: Colors.blue.shade700),
-        actions: [          // Light/Dark mode toggle
+        actions: [
+          // Light/Dark mode toggle
           IconButton(
             icon: const Icon(Icons.light_mode),
             color: Colors.blue.shade700, // Ensure consistent blue color

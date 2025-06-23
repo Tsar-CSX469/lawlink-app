@@ -335,7 +335,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
     _textController.clear();
     try {
       List<Message> historyToSend = List.from(_messages);
-      const int maxTurns = 10;
+      const int maxTurns = 15;
       if (historyToSend.length > maxTurns) {
         historyToSend = historyToSend.sublist(historyToSend.length - maxTurns);
       }

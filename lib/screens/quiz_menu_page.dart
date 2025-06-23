@@ -47,7 +47,8 @@ class QuizMenuPage extends StatelessWidget {
             surfaceTintColor: Colors.transparent,
             shadowColor: Colors.transparent,
             iconTheme: IconThemeData(color: Colors.blue.shade700),
-            actions: [              // Light/Dark mode toggle
+            actions: [
+              // Light/Dark mode toggle
               IconButton(
                 icon: const Icon(Icons.light_mode),
                 tooltip: 'Toggle Light Mode',
