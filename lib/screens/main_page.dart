@@ -154,6 +154,40 @@ class _MainPageState extends State<MainPage> {
             surfaceTintColor: Colors.transparent,
             shadowColor: Colors.transparent,
             actions: [
+              // Light/Dark mode toggle
+              IconButton(
+                icon: Icon(Icons.light_mode, color: Colors.blue.shade700),
+                tooltip: 'Toggle Dark Mode',
+                onPressed: () {
+                  // Show Coming Soon alert
+                  showDialog(
+                    context: context,
+                    builder:
+                        (context) => AlertDialog(
+                          title: Text(
+                            'Coming Soon!',
+                            style: TextStyle(
+                              color: Colors.blue.shade700,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          content: const Text(
+                            'Dark mode functionality will be available in the next update!',
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: Text(
+                                'OK',
+                                style: TextStyle(color: Colors.blue.shade700),
+                              ),
+                            ),
+                          ],
+                        ),
+                  );
+                },
+              ),
+
               // Profile icon button
               GestureDetector(
                 onTap: () {
@@ -251,25 +285,47 @@ class _MainPageState extends State<MainPage> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   // Greeting text
-                                  Text(
-                                    greeting,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                      color: Colors.blue.shade600,
-                                      letterSpacing: 0.3,
+                                  ShaderMask(
+                                    shaderCallback:
+                                        (bounds) => LinearGradient(
+                                          colors: [
+                                            Colors.blue.shade800,
+                                            Colors.blue.shade300,
+                                          ],
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                        ).createShader(bounds),
+                                    child: Text(
+                                      greeting,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.white,
+                                        letterSpacing: 0.3,
+                                      ),
                                     ),
                                   ),
                                   const SizedBox(height: 5),
                                   Row(
                                     children: [
-                                      Text(
-                                        _userName,
-                                        style: TextStyle(
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.blue.shade800,
-                                          letterSpacing: -0.5,
+                                      ShaderMask(
+                                        shaderCallback:
+                                            (bounds) => LinearGradient(
+                                              colors: [
+                                                Colors.blue.shade800,
+                                                Colors.blue.shade300,
+                                              ],
+                                              begin: Alignment.topLeft,
+                                              end: Alignment.bottomRight,
+                                            ).createShader(bounds),
+                                        child: Text(
+                                          _userName,
+                                          style: const TextStyle(
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                            letterSpacing: -0.5,
+                                          ),
                                         ),
                                       ),
                                       const SizedBox(width: 5),
@@ -343,22 +399,6 @@ class _MainPageState extends State<MainPage> {
                                     onTap: () {
                                       Navigator.pushNamed(context, '/quiz');
                                     },
-                                  ),
-
-                                  // Law Library Card
-                                  _buildFeatureCard(
-                                    title: "Law Library",
-                                    icon: Icons.menu_book_rounded,
-                                    color: Colors.blue.shade700,
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder:
-                                              (context) => const ActListPage(),
-                                        ),
-                                      );
-                                    },
                                   ), // LawLink AI Card
                                   _buildFeatureCard(
                                     title: "LawLink AI",
@@ -387,6 +427,22 @@ class _MainPageState extends State<MainPage> {
                                           builder:
                                               (context) =>
                                                   const LegalProceduresPage(),
+                                        ),
+                                      );
+                                    },
+                                  ),
+
+                                  // Law Library Card
+                                  _buildFeatureCard(
+                                    title: "Law Library",
+                                    icon: Icons.menu_book_rounded,
+                                    color: Colors.blue.shade700,
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder:
+                                              (context) => const ActListPage(),
                                         ),
                                       );
                                     },

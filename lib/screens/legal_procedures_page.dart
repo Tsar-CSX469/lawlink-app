@@ -30,10 +30,9 @@ class _LegalProceduresPageState extends State<LegalProceduresPage> {
 
   Future<void> _loadCategories() async {
     try {
-      final snapshot = await FirebaseFirestore.instance
-          .collection('legal_procedures')
-          .get();
-      
+      final snapshot =
+          await FirebaseFirestore.instance.collection('legal_procedures').get();
+
       final categories = <String>{'All'};
       for (final doc in snapshot.docs) {
         final data = doc.data();
@@ -41,7 +40,7 @@ class _LegalProceduresPageState extends State<LegalProceduresPage> {
           categories.add(data['category'].toString());
         }
       }
-      
+
       if (mounted) {
         setState(() {
           _categories = categories.toList()..sort();
@@ -57,24 +56,28 @@ class _LegalProceduresPageState extends State<LegalProceduresPage> {
     if (user == null) return 'Not Started';
 
     try {
-      final doc = await FirebaseFirestore.instance
-          .collection('user_procedures')
-          .doc('${user.uid}_$procedureId')
-          .get();
+      final doc =
+          await FirebaseFirestore.instance
+              .collection('user_procedures')
+              .doc('${user.uid}_$procedureId')
+              .get();
 
       if (!doc.exists) return 'Not Started';
 
-      final completedSteps = List<int>.from(doc.data()?['completedSteps'] ?? []);
-      
-      final procedureDoc = await FirebaseFirestore.instance
-          .collection('legal_procedures')
-          .doc(procedureId)
-          .get();
-      
+      final completedSteps = List<int>.from(
+        doc.data()?['completedSteps'] ?? [],
+      );
+
+      final procedureDoc =
+          await FirebaseFirestore.instance
+              .collection('legal_procedures')
+              .doc(procedureId)
+              .get();
+
       if (!procedureDoc.exists) return 'Not Started';
-      
+
       final totalSteps = (procedureDoc.data()?['steps'] as List?)?.length ?? 0;
-      
+
       if (completedSteps.isEmpty) return 'Not Started';
       if (completedSteps.length == totalSteps) return 'Completed';
       return 'In Progress';
@@ -147,15 +150,15 @@ class _LegalProceduresPageState extends State<LegalProceduresPage> {
 
   bool _matchesSearch(Map<String, dynamic> data) {
     if (_searchQuery.isEmpty) return true;
-    
+
     final title = (data['title'] ?? '').toString().toLowerCase();
     final description = (data['description'] ?? '').toString().toLowerCase();
     final category = (data['category'] ?? '').toString().toLowerCase();
     final query = _searchQuery.toLowerCase();
-    
-    return title.contains(query) || 
-           description.contains(query) || 
-           category.contains(query);
+
+    return title.contains(query) ||
+        description.contains(query) ||
+        category.contains(query);
   }
 
   bool _matchesCategory(Map<String, dynamic> data) {
@@ -166,144 +169,197 @@ class _LegalProceduresPageState extends State<LegalProceduresPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Legal Procedures'),
-        elevation: 0,
-        backgroundColor: Colors.blue.shade50,
-        titleTextStyle: const TextStyle(
-          color: Colors.blue,
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
+      extendBodyBehindAppBar: false,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: Container(
+          decoration: BoxDecoration(
+            color:
+                Theme.of(context).appBarTheme.backgroundColor ?? Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.blue.withOpacity(0.1),
+                spreadRadius: 0,
+                blurRadius: 15,
+                offset: const Offset(0, 1),
+              ),
+            ],
+          ),
+          child: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            scrolledUnderElevation: 0,
+            surfaceTintColor: Colors.transparent,
+            shadowColor: Colors.transparent,
+            title: ShaderMask(
+              shaderCallback:
+                  (bounds) => LinearGradient(
+                    colors: [Colors.blue.shade800, Colors.blue.shade300],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ).createShader(bounds),
+              child: const Text(
+                'Legal Procedures',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            iconTheme: IconThemeData(color: Colors.blue.shade700),
+            actions: [
+              // Light/Dark mode toggle
+              IconButton(
+                icon: const Icon(Icons.light_mode),
+                color: Colors.blue.shade700, // Ensure consistent blue color
+                tooltip: 'Toggle Light Mode',
+                onPressed: () {
+                  // Show Coming Soon alert
+                  showDialog(
+                    context: context,
+                    builder:
+                        (context) => AlertDialog(
+                          title: Text(
+                            'Coming Soon!',
+                            style: TextStyle(
+                              color: Colors.blue.shade700,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          content: const Text(
+                            'Dark mode functionality will be available in the next update!',
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: Text(
+                                'OK',
+                                style: TextStyle(color: Colors.blue.shade700),
+                              ),
+                            ),
+                          ],
+                        ),
+                  );
+                },
+              ),
+            ],
+          ),
         ),
-        iconTheme: const IconThemeData(color: Colors.blue),
       ),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Colors.blue.shade50, Colors.white],
+            colors: [Colors.white, Colors.blue.shade50],
+            stops: const [0.7, 1.0],
           ),
         ),
         child: Column(
           children: [
-            // Header section
-            Container(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Legal Procedures',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blue,
+            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.9),
+                  borderRadius: BorderRadius.circular(25),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 5),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Find and track your legal procedures',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  
-                  // Search bar
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.1),
-                          spreadRadius: 1,
-                          blurRadius: 10,
-                          offset: const Offset(0, 1),
-                        ),
-                      ],
-                    ),
-                    child: TextField(
-                      controller: _searchController,
-                      onChanged: (value) {
-                        setState(() {
-                          _searchQuery = value;
-                        });
-                      },
-                      decoration: InputDecoration(
-                        hintText: 'Search procedures...',
-                        prefixIcon: const Icon(Icons.search, color: Colors.blue),
-                        suffixIcon: _searchQuery.isNotEmpty
+                  ],
+                ),
+                child: TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: 'Search procedures...',
+                    prefixIcon: Icon(Icons.search, color: Colors.blue.shade700),
+                    suffixIcon:
+                        _searchQuery.isNotEmpty
                             ? IconButton(
-                                icon: const Icon(Icons.clear, color: Colors.grey),
-                                onPressed: () {
-                                  _searchController.clear();
-                                  setState(() {
-                                    _searchQuery = '';
-                                  });
-                                },
-                              )
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() {
+                                  _searchQuery = '';
+                                });
+                              },
+                            )
                             : null,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: BorderSide.none,
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 16,
-                        ),
-                      ),
-                    ),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 15),
                   ),
-                  
-                  const SizedBox(height: 16),
-                  
-                  // Category filters
-                  SizedBox(
-                    height: 40,
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: _categories.length,
-                      itemBuilder: (context, index) {
-                        final category = _categories[index];
-                        final isSelected = _selectedCategory == category;
-                        
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 8.0),
-                          child: FilterChip(
-                            label: Text(category),
-                            selected: isSelected,
-                            onSelected: (selected) {
-                              setState(() {
-                                _selectedCategory = category;
-                              });
-                            },
-                            backgroundColor: Colors.white,
-                            selectedColor: Colors.blue.withOpacity(0.2),
-                            checkmarkColor: Colors.blue,
-                            labelStyle: TextStyle(
-                              color: isSelected ? Colors.blue : Colors.grey.shade700,
-                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
+                  onChanged: (value) {
+                    setState(() {
+                      _searchQuery = value;
+                    });
+                  },
+                ),
               ),
             ),
-            
+            const SizedBox(height: 8), // Category filters
+            Padding(
+              padding: const EdgeInsets.only(top: 8, bottom: 4),
+              child: SizedBox(
+                height: 40,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _categories.length,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemBuilder: (context, index) {
+                    final category = _categories[index];
+                    final isSelected = _selectedCategory == category;
+
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: FilterChip(
+                        label: Text(category),
+                        selected: isSelected,
+                        onSelected: (selected) {
+                          setState(() {
+                            _selectedCategory = category;
+                          });
+                        },
+                        backgroundColor: Colors.white,
+                        selectedColor: Colors.blue.shade100,
+                        checkmarkColor: Colors.blue.shade700,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                          side: BorderSide(
+                            color:
+                                isSelected
+                                    ? Colors.blue.shade700
+                                    : Colors.grey.shade300,
+                            width: 1,
+                          ),
+                        ),
+                        labelStyle: TextStyle(
+                          color:
+                              isSelected
+                                  ? Colors.blue.shade700
+                                  : Colors.grey.shade700,
+                          fontWeight:
+                              isSelected ? FontWeight.w600 : FontWeight.normal,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+
             // Procedures list
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance
-                    .collection('legal_procedures')
-                    .snapshots(),
+                stream:
+                    FirebaseFirestore.instance
+                        .collection('legal_procedures')
+                        .snapshots(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(
@@ -376,10 +432,11 @@ class _LegalProceduresPageState extends State<LegalProceduresPage> {
                     );
                   }
 
-                  final docs = snapshot.data!.docs.where((doc) {
-                    final data = doc.data() as Map<String, dynamic>;
-                    return _matchesSearch(data) && _matchesCategory(data);
-                  }).toList();
+                  final docs =
+                      snapshot.data!.docs.where((doc) {
+                        final data = doc.data() as Map<String, dynamic>;
+                        return _matchesSearch(data) && _matchesCategory(data);
+                      }).toList();
 
                   if (docs.isEmpty) {
                     return Center(
@@ -413,39 +470,51 @@ class _LegalProceduresPageState extends State<LegalProceduresPage> {
                   }
 
                   return ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: 8.0,
+                    ),
                     itemCount: docs.length,
                     itemBuilder: (context, index) {
                       final doc = docs[index];
                       final data = doc.data() as Map<String, dynamic>;
                       final category = data['category'] ?? '';
                       final estimatedTime = data['estimated_time'] ?? '';
-                      
+
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 16.0),
                         child: Card(
-                          elevation: 2,
+                          margin: const EdgeInsets.only(bottom: 16),
+                          elevation: 4,
+                          shadowColor: Colors.blue.withOpacity(0.2),
+                          color: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
+                            side: BorderSide(
+                              color: Colors.blue.shade100,
+                              width: 1,
+                            ),
                           ),
                           child: FutureBuilder<String>(
                             future: _getProcedureStatus(doc.id),
                             builder: (context, statusSnapshot) {
-                              final status = statusSnapshot.data ?? 'Not Started';
+                              final status =
+                                  statusSnapshot.data ?? 'Not Started';
                               final statusColor = _getStatusColor(status);
                               final statusIcon = _getStatusIcon(status);
                               final categoryColor = _getCategoryColor(category);
                               final categoryIcon = _getCategoryIcon(category);
-                              
+
                               return InkWell(
                                 onTap: () {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => ProcedureDetailPage(
-                                        procedureId: doc.id,
-                                        procedureData: data,
-                                      ),
+                                      builder:
+                                          (context) => ProcedureDetailPage(
+                                            procedureId: doc.id,
+                                            procedureData: data,
+                                          ),
                                     ),
                                   );
                                 },
@@ -453,15 +522,19 @@ class _LegalProceduresPageState extends State<LegalProceduresPage> {
                                 child: Padding(
                                   padding: const EdgeInsets.all(16.0),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Row(
                                         children: [
                                           Container(
                                             padding: const EdgeInsets.all(12),
                                             decoration: BoxDecoration(
-                                              color: categoryColor.withOpacity(0.1),
-                                              borderRadius: BorderRadius.circular(12),
+                                              color: categoryColor.withOpacity(
+                                                0.1,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
                                             ),
                                             child: Icon(
                                               categoryIcon,
@@ -472,7 +545,8 @@ class _LegalProceduresPageState extends State<LegalProceduresPage> {
                                           const SizedBox(width: 12),
                                           Expanded(
                                             child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
                                               children: [
                                                 Text(
                                                   data['title'] ?? 'No title',
@@ -483,21 +557,30 @@ class _LegalProceduresPageState extends State<LegalProceduresPage> {
                                                 ),
                                                 if (category.isNotEmpty)
                                                   Container(
-                                                    margin: const EdgeInsets.only(top: 4),
-                                                    padding: const EdgeInsets.symmetric(
-                                                      horizontal: 8,
-                                                      vertical: 2,
-                                                    ),
+                                                    margin:
+                                                        const EdgeInsets.only(
+                                                          top: 4,
+                                                        ),
+                                                    padding:
+                                                        const EdgeInsets.symmetric(
+                                                          horizontal: 8,
+                                                          vertical: 2,
+                                                        ),
                                                     decoration: BoxDecoration(
-                                                      color: categoryColor.withOpacity(0.1),
-                                                      borderRadius: BorderRadius.circular(12),
+                                                      color: categoryColor
+                                                          .withOpacity(0.1),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            12,
+                                                          ),
                                                     ),
                                                     child: Text(
                                                       category,
                                                       style: TextStyle(
                                                         fontSize: 12,
                                                         color: categoryColor,
-                                                        fontWeight: FontWeight.w500,
+                                                        fontWeight:
+                                                            FontWeight.w500,
                                                       ),
                                                     ),
                                                   ),
@@ -530,8 +613,11 @@ class _LegalProceduresPageState extends State<LegalProceduresPage> {
                                               vertical: 4,
                                             ),
                                             decoration: BoxDecoration(
-                                              color: statusColor.withOpacity(0.1),
-                                              borderRadius: BorderRadius.circular(8),
+                                              color: statusColor.withOpacity(
+                                                0.1,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
                                             ),
                                             child: Row(
                                               mainAxisSize: MainAxisSize.min,
@@ -556,13 +642,17 @@ class _LegalProceduresPageState extends State<LegalProceduresPage> {
                                           if (estimatedTime.isNotEmpty) ...[
                                             const SizedBox(width: 8),
                                             Container(
-                                              padding: const EdgeInsets.symmetric(
-                                                horizontal: 8,
-                                                vertical: 4,
-                                              ),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 8,
+                                                    vertical: 4,
+                                                  ),
                                               decoration: BoxDecoration(
-                                                color: Colors.blue.withOpacity(0.1),
-                                                borderRadius: BorderRadius.circular(8),
+                                                color: Colors.blue.withOpacity(
+                                                  0.1,
+                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
                                               ),
                                               child: Row(
                                                 mainAxisSize: MainAxisSize.min,
@@ -577,7 +667,8 @@ class _LegalProceduresPageState extends State<LegalProceduresPage> {
                                                     estimatedTime,
                                                     style: const TextStyle(
                                                       color: Colors.blue,
-                                                      fontWeight: FontWeight.w500,
+                                                      fontWeight:
+                                                          FontWeight.w500,
                                                       fontSize: 12,
                                                     ),
                                                   ),
