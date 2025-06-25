@@ -18,13 +18,13 @@ class ChatbotService {
     _apiKey = dotenv.env['GEMINI_API_KEY'] ?? '';
 
     _model = GenerativeModel(
-      model: 'gemini-2.0-flash',
+      model: 'gemini-2.5-flash',
       apiKey: _apiKey,
       generationConfig: GenerationConfig(
         temperature: 0.7,
         topK: 40,
         topP: 0.95,
-        maxOutputTokens: 1024,
+        maxOutputTokens: 2048,
       ),
     );
   }
@@ -296,12 +296,24 @@ class ChatbotService {
     return false;
   }
 
-  Future<String> analyzeImage(String imagePath) async {
+  Future<String> analyzeImage(String imagePath, {String? userQuestion}) async {
     try {
-      final imageFile = File(imagePath);
-      final imageBytes = await imageFile.readAsBytes();
+      // Initial message based on selected language to inform user that image processing has started
+      String processingMessage =
+          _selectedLanguage == 'English'
+              ? "📸 I'm analyzing your image from a legal perspective... One moment please.\n\n"
+              : "📸 මම නීතිමය දෘෂ්ටිකෝණයකින් ඔබගේ රූපය විශ්ලේෂණය කරමින් සිටිමි... මොහොතක් රැඳී සිටින්න.\n\n";
 
-      // Create a vision-specific model for image analysis
+      // Log image processing for debugging purposes
+      print('Starting image analysis for: $imagePath');
+      if (userQuestion != null && userQuestion.isNotEmpty) {
+        print('User question: $userQuestion');
+      }
+
+      final imageFile = File(imagePath);
+      final imageBytes =
+          await imageFile
+              .readAsBytes(); // Create a vision-specific model for image analysis
       final visionModel = GenerativeModel(
         model: 'gemini-2.0-flash',
         apiKey: _apiKey,
@@ -312,22 +324,45 @@ class ChatbotService {
           maxOutputTokens: 1024,
         ),
       );
-      String languageInstruction =
+
+      // Base instruction for image analysis
+      String baseInstruction =
           _selectedLanguage == 'English'
               ? "You are LawLink AI, a specialized legal assistant EXCLUSIVELY for Sri Lankan law. Please analyze this image ONLY in the context of Sri Lankan law. Identify any legal documents, signatures, or relevant legal content. Provide insights about what legal procedures or rights might be involved. If the image contains non-legal content, politely inform that you can only analyze content relevant to Sri Lankan law. Respond in English."
               : "ඔබ LawLink AI වන අතර, ශ්‍රී ලංකා නීතිය සඳහා විශේෂිත නීති සහකාරයෙකි. කරුණාකර ශ්‍රී ලංකා නීතිය පසුබිම් කරගෙන පමණක් මෙම රූපය විශ්ලේෂණය කරන්න. ඕනෑම නීතිමය ලේඛන, අත්සන් හෝ අදාළ නීතිමය අන්තර්ගතය හඳුනා ගන්න. අදාළ විය හැකි නීතිමය ක්‍රියාපටිපාටි හෝ අයිතිවාසිකම් පිළිබඳ අදහස් ලබා දෙන්න. රූපයේ නීති නොවන අන්තර්ගතයක් අඩංගු නම්, ඔබට ශ්‍රී ලංකා නීතියට අදාළ අන්තර්ගතය පමණක් විශ්ලේෂණය කළ හැකි බව විනීතව දැනුම් දෙන්න. කරුණාකර සිංහලෙන් පිළිතුරු දෙන්න.";
 
-      final content = [
-        Content.multi([
-          TextPart(languageInstruction),
-          DataPart('image/jpeg', imageBytes),
-        ]),
-      ];
+      // If user provided a question, add it to the instruction
+      if (userQuestion != null && userQuestion.isNotEmpty) {
+        String questionPrompt =
+            _selectedLanguage == 'English'
+                ? "\n\nThe user specifically asks: \"$userQuestion\" Please address this question in relation to the image."
+                : "\n\nපරිශීලකයා විශේෂයෙන් අසන්නේ: \"$userQuestion\" කරුණාකර රූපයට සම්බන්ධව මෙම ප්‍රශ්නය ගැන සලකා බලන්න.";
+        baseInstruction += questionPrompt;
+      }
 
-      final response = await visionModel.generateContent(content);
-      return response.text ??
-          'I couldn\'t analyze the image. Please try again.';
+      // Create a list to hold the content parts
+      List<Part> parts = [];
+
+      // Add the text instruction first
+      parts.add(TextPart(baseInstruction));
+
+      // Then add the image data
+      parts.add(DataPart('image/jpeg', imageBytes));
+
+      // Create content with proper "user" role formatting for Gemini 2.5 Flash
+      final content = Content("user", parts);
+
+      // Generate content with the proper model
+      final response = await visionModel.generateContent([content]);
+
+      // Get the result text
+      String result =
+          response.text ?? 'I couldn\'t analyze the image. Please try again.';
+
+      // Add the processing message at the beginning
+      return processingMessage + result;
     } catch (e) {
+      print('Error in analyzeImage: ${e.toString()}');
       return 'Error analyzing image: ${e.toString()}. Please ensure the image is valid and try again.';
     }
   }
@@ -370,7 +405,10 @@ Please provide:
 6. Recommendations or next steps
 ''';
 
-      final response = await _model.generateContent([Content.text(prompt)]);
+      // Create content with proper "user" role formatting for Gemini 2.5 Flash
+      final response = await _model.generateContent([
+        Content("user", [TextPart(prompt)]),
+      ]);
       return response.text ?? 'I couldn\'t analyze the document content.';
     } catch (e) {
       return 'Error analyzing text content: ${e.toString()}';
@@ -771,11 +809,10 @@ Include relevant contact information if available.''';
 පරිශීලකයා ශ්‍රී ලංකාවේ $specificLocation ආසන්නයේ නීති සේවා ගැන විමසයි.
 කරුණාකර $specificLocation හි හෝ ඒ අවට $lookingFor පිළිබඳ තොරතුරු සපයන්න.
 ලබා ගත හැකි නම් අදාළ සම්බන්ධතා තොරතුරු ඇතුළත් කරන්න.''';
-        }
-
-        // Use the AI model to get a response based on the location
-        final chat = _model.startChat();
-        final response = await chat.sendMessage(Content.text(enhancedQuery));
+        } // Use the AI model to get a response based on the location
+        // Instead of using a chat session, use direct content generation with system message
+        final systemMessage = Content("user", [TextPart(enhancedQuery)]);
+        final response = await _model.generateContent([systemMessage]);
 
         return response.text ??
             (language == 'English'
@@ -823,11 +860,10 @@ Include relevant contact information for this area if available.''';
 ඛණ්ඩාංක: ${position.latitude.toStringAsFixed(6)}, ${position.longitude.toStringAsFixed(6)}
 කරුණාකර ශ්‍රී ලංකාවේ මෙම ස්ථානයට ආසන්නව $lookingFor පිළිබඳ තොරතුරු සපයන්න.
 ලබා ගත හැකි නම් මෙම ප්‍රදේශය සඳහා අදාළ සම්බන්ධතා තොරතුරු ඇතුළත් කරන්න.''';
-      }
-
-      // Forward the enhanced query with location info to the model
-      final chat = _model.startChat();
-      final response = await chat.sendMessage(Content.text(enhancedQuery));
+      } // Forward the enhanced query with location info to the model
+      // Use direct content generation instead of chat session
+      final systemMessage = Content("user", [TextPart(enhancedQuery)]);
+      final response = await _model.generateContent([systemMessage]);
 
       return response.text ??
           (language == 'English'

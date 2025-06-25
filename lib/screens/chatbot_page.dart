@@ -38,9 +38,8 @@ class Message {
     this.audioPath,
     this.followUpTags = const [],
   });
-
   Content toGeminiContent() {
-    final role = isUser ? 'user' : 'assistant';
+    final role = isUser ? 'user' : 'model';
     final parts = [TextPart(text)];
     return Content(role, parts);
   }
@@ -841,7 +840,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
 
     _scrollToBottom();
 
-    // Process image with AI
+    // Process image with AI and ask for a question
     _processImageWithAI(imagePath);
   }
 
@@ -865,9 +864,95 @@ class _ChatbotPageState extends State<ChatbotPage> {
     _processDocumentWithAI(file);
   }
 
+  Future<String?> _askImageQuestion(BuildContext context) {
+    final TextEditingController questionController = TextEditingController();
+    final String dialogTitle =
+        _selectedLanguage == 'English'
+            ? 'Add a question about this image'
+            : 'මෙම රූපය ගැන ප්රශ්නයක් එකතු කරන්න';
+
+    final String hintText =
+        _selectedLanguage == 'English'
+            ? 'What would you like to know about this image?'
+            : 'මෙම රූපය ගැන ඔබ දැනගන්න කැමති කුමක්ද?';
+
+    final String okButtonText =
+        _selectedLanguage == 'English' ? 'Submit' : 'ඉදිරිපත් කරන්න';
+    final String skipButtonText =
+        _selectedLanguage == 'English' ? 'No Question' : 'ප්රශ්නයක් නැත';
+    final String cancelButtonText =
+        _selectedLanguage == 'English' ? 'Cancel' : 'අවලංගු කරන්න';
+
+    return showDialog<String>(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: Text(dialogTitle),
+            content: TextField(
+              controller: questionController,
+              decoration: InputDecoration(hintText: hintText),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, ''),
+                child: Text(skipButtonText),
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.blue.shade700,
+                ),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, null),
+                child: Text(cancelButtonText),
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.blue.shade700,
+                ),
+              ),
+              TextButton(
+                onPressed:
+                    () => Navigator.pop(context, questionController.text),
+                child: Text(okButtonText),
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.blue.shade700,
+                ),
+              ),
+            ],
+          ),
+    );
+  }
+
   Future<void> _processImageWithAI(String imagePath) async {
     try {
-      final response = await _chatbotService.analyzeImage(imagePath);
+      // Ask the user for a question about the image
+      final userQuestion = await _askImageQuestion(context);
+
+      // If user pressed Cancel, abort the image analysis
+      if (userQuestion == null) {
+        setState(() {
+          _isProcessing = false;
+        });
+        return;
+      }
+
+      // If user provided a question, add it as a user message before sending to AI
+      if (userQuestion.isNotEmpty) {
+        setState(() {
+          _messages.add(
+            Message(
+              isUser: true,
+              text: userQuestion,
+              timestamp: DateTime.now(),
+            ),
+          );
+        });
+        _scrollToBottom();
+      }
+
+      // Analyze the image with the user's question
+      final response = await _chatbotService.analyzeImage(
+        imagePath,
+        userQuestion: userQuestion.isNotEmpty ? userQuestion : null,
+      );
+
       final aiMessage = Message(
         isUser: false,
         text: response,
@@ -1347,27 +1432,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
               ),
             ),
           ),
-          // Audio recording button with tooltip
-          Tooltip(
-            message: _isRecording ? "Stop recording" : "Record audio message",
-            child: Container(
-              decoration: BoxDecoration(
-                color:
-                    _isRecording
-                        ? Colors.red.withOpacity(0.1)
-                        : Colors.transparent,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: IconButton(
-                icon: Icon(
-                  _isRecording ? Icons.stop_circle : Icons.fiber_manual_record,
-                  size: 22,
-                ),
-                onPressed: _isRecording ? _stopRecording : _startRecording,
-                color: _isRecording ? Colors.red : Colors.red[400],
-              ),
-            ),
-          ),
+          // Note: Audio recording button removed, giving more space to the text field
           Expanded(
             child: TextField(
               controller: _textController,
