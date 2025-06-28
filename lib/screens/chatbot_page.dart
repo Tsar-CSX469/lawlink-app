@@ -38,9 +38,8 @@ class Message {
     this.audioPath,
     this.followUpTags = const [],
   });
-
   Content toGeminiContent() {
-    final role = isUser ? 'user' : 'assistant';
+    final role = isUser ? 'user' : 'model';
     final parts = [TextPart(text)];
     return Content(role, parts);
   }
@@ -357,31 +356,50 @@ class _ChatbotPageState extends State<ChatbotPage> {
         timestamp: DateTime.now(),
         followUpTags: followUpTags,
       );
-      setState(() {
-        _messages.add(aiMessage);
-        _isProcessing = false;
-      });
-
-      // If this was the first user message, create the conversation immediately
+      setState(
+        () {
+          _messages.add(aiMessage);
+          _isProcessing = false;
+        },
+      ); // If this was the first user message, create the conversation immediately
       // This ensures the conversation name appears right after the first message
       if (isFirstUserMessage) {
         // Use the first user message as title
         String title = text.length > 30 ? text.substring(0, 30) + "..." : text;
 
-        // Create the conversation with a short delay so the title appears after first message      // Create conversation immediately instead of with a delay
-        _createNewConversation(conversationTitle: title);
+        // Create conversation immediately instead of with a delay
+        // But only if we don't already have a conversation ID
+        if (_currentConversationId == null) {
+          // This will create the conversation with the title
+          await _createNewConversation(conversationTitle: title);
 
-        // This ensures the conversation is saved right away
-        Future.delayed(const Duration(milliseconds: 500), () {
-          _autoSaveCurrentConversation();
-        });
+          // Save messages to the newly created conversation directly
+          // No need for autosave when we can do it directly
+          if (_currentConversationId != null) {
+            try {
+              await _chatStorageService.saveMessages(
+                _currentConversationId!,
+                _messages,
+              );
+              print(
+                "First message saved directly to conversation: $_currentConversationId",
+              );
+            } catch (e) {
+              print("Error saving first message: $e");
+            }
+          }
+        }
       }
-      // For subsequent messages, continue with normal auto-save logic
-      else if (_messages.length >= 3) {
-        // Only save after meaningful exchanges
-        Future.delayed(const Duration(milliseconds: 500), () {
-          _autoSaveCurrentConversation();
-        });
+      // For subsequent messages, save directly without using autosave
+      else if (_messages.length >= 3 && _currentConversationId != null) {
+        try {
+          await _chatStorageService.saveMessages(
+            _currentConversationId!,
+            _messages,
+          );
+        } catch (e) {
+          print("Error saving subsequent messages: $e");
+        }
       }
 
       _scrollToBottom();
@@ -822,7 +840,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
 
     _scrollToBottom();
 
-    // Process image with AI
+    // Process image with AI and ask for a question
     _processImageWithAI(imagePath);
   }
 
@@ -846,9 +864,95 @@ class _ChatbotPageState extends State<ChatbotPage> {
     _processDocumentWithAI(file);
   }
 
+  Future<String?> _askImageQuestion(BuildContext context) {
+    final TextEditingController questionController = TextEditingController();
+    final String dialogTitle =
+        _selectedLanguage == 'English'
+            ? 'Add a question about this image'
+            : 'මෙම රූපය ගැන ප්රශ්නයක් එකතු කරන්න';
+
+    final String hintText =
+        _selectedLanguage == 'English'
+            ? 'What would you like to know about this image?'
+            : 'මෙම රූපය ගැන ඔබ දැනගන්න කැමති කුමක්ද?';
+
+    final String okButtonText =
+        _selectedLanguage == 'English' ? 'Submit' : 'ඉදිරිපත් කරන්න';
+    final String skipButtonText =
+        _selectedLanguage == 'English' ? 'No Question' : 'ප්රශ්නයක් නැත';
+    final String cancelButtonText =
+        _selectedLanguage == 'English' ? 'Cancel' : 'අවලංගු කරන්න';
+
+    return showDialog<String>(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: Text(dialogTitle),
+            content: TextField(
+              controller: questionController,
+              decoration: InputDecoration(hintText: hintText),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, ''),
+                child: Text(skipButtonText),
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.blue.shade700,
+                ),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, null),
+                child: Text(cancelButtonText),
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.blue.shade700,
+                ),
+              ),
+              TextButton(
+                onPressed:
+                    () => Navigator.pop(context, questionController.text),
+                child: Text(okButtonText),
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.blue.shade700,
+                ),
+              ),
+            ],
+          ),
+    );
+  }
+
   Future<void> _processImageWithAI(String imagePath) async {
     try {
-      final response = await _chatbotService.analyzeImage(imagePath);
+      // Ask the user for a question about the image
+      final userQuestion = await _askImageQuestion(context);
+
+      // If user pressed Cancel, abort the image analysis
+      if (userQuestion == null) {
+        setState(() {
+          _isProcessing = false;
+        });
+        return;
+      }
+
+      // If user provided a question, add it as a user message before sending to AI
+      if (userQuestion.isNotEmpty) {
+        setState(() {
+          _messages.add(
+            Message(
+              isUser: true,
+              text: userQuestion,
+              timestamp: DateTime.now(),
+            ),
+          );
+        });
+        _scrollToBottom();
+      }
+
+      // Analyze the image with the user's question
+      final response = await _chatbotService.analyzeImage(
+        imagePath,
+        userQuestion: userQuestion.isNotEmpty ? userQuestion : null,
+      );
+
       final aiMessage = Message(
         isUser: false,
         text: response,
@@ -1328,27 +1432,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
               ),
             ),
           ),
-          // Audio recording button with tooltip
-          Tooltip(
-            message: _isRecording ? "Stop recording" : "Record audio message",
-            child: Container(
-              decoration: BoxDecoration(
-                color:
-                    _isRecording
-                        ? Colors.red.withOpacity(0.1)
-                        : Colors.transparent,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: IconButton(
-                icon: Icon(
-                  _isRecording ? Icons.stop_circle : Icons.fiber_manual_record,
-                  size: 22,
-                ),
-                onPressed: _isRecording ? _stopRecording : _startRecording,
-                color: _isRecording ? Colors.red : Colors.red[400],
-              ),
-            ),
-          ),
+          // Note: Audio recording button removed, giving more space to the text field
           Expanded(
             child: TextField(
               controller: _textController,
@@ -1700,61 +1784,28 @@ class _ChatbotPageState extends State<ChatbotPage> {
     }
   }
 
-  // Add this method to auto-save current conversation
+  // This method is now only used for manually triggered saves
+  // It doesn't create new conversations anymore - that's handled in _sendMessage
   Future<void> _autoSaveCurrentConversation() async {
-    // Only auto-save if we have more than 2 messages AND at least one is from the user
-    if (_messages.length >= 2 && _hasUserMessages()) {
+    // Only auto-save if we have messages AND a valid conversation ID
+    if (_messages.isNotEmpty &&
+        _currentConversationId != null &&
+        _hasUserMessages()) {
       try {
-        // If we don't have a conversation ID yet, create one based on first user message
-        if (_currentConversationId == null) {
-          // Find the first user message to use as a title
-          Message? firstUserMsg;
-          for (var msg in _messages) {
-            if (msg.isUser) {
-              firstUserMsg = msg;
-              break;
-            }
-          }
-
-          if (firstUserMsg != null) {
-            // Create a conversation using the first few words as title
-            String title =
-                firstUserMsg.text.length > 30
-                    ? firstUserMsg.text.substring(0, 30) + "..."
-                    : firstUserMsg.text;
-
-            await _createNewConversation(conversationTitle: title);
-
-            // Update UI to show the title immediately after the first message
-            // This allows the title to appear after the first message is sent,
-            // rather than waiting for the second message
-            setState(() {
-              _conversationTitle = title;
-              // _isNewConversation is kept as true until the actual save happens
-            });
-          } else {
-            // No user messages yet, don't create a conversation
-            return;
-          }
-        } // Now try to save the messages silently (without notifications)
-        if (_currentConversationId != null) {
-          try {
-            // Silent save - just save the messages without showing a notification
-            await _chatStorageService.saveMessages(
-              _currentConversationId!,
-              _messages,
-            );
-            _isNewConversation = false;
-            // No notification shown during auto-save
-          } catch (e) {
-            // Just log errors, don't notify user for auto-saves
-            print('Error in auto-save: $e');
-          }
-        }
+        print(
+          "Auto-saving messages to existing conversation: $_currentConversationId",
+        );
+        await _chatStorageService.saveMessages(
+          _currentConversationId!,
+          _messages,
+        );
+        _isNewConversation = false;
       } catch (e) {
         // Log the error but don't show UI notification for auto-save
         print('Error in auto-save: $e');
       }
+    } else {
+      print("Auto-save skipped - No conversation ID or no user messages");
     }
   }
 
