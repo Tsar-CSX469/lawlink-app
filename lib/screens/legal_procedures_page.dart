@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:lawlink/screens/procedure_detail_page.dart';
-import 'package:lawlink/services/notification_service.dart';
+import 'package:lawlink/services/enhanced_notification_service.dart';
 
 class LegalProceduresPage extends StatefulWidget {
   const LegalProceduresPage({Key? key}) : super(key: key);
@@ -338,23 +338,6 @@ class _LegalProceduresPageState extends State<LegalProceduresPage> {
             ),
             iconTheme: IconThemeData(color: Colors.blue.shade700),
             actions: [
-              // Manual notification check button (for testing)
-              IconButton(
-                icon: const Icon(Icons.notifications_active),
-                color: Colors.blue.shade700,
-                tooltip: 'Check Overdue Procedures',
-                onPressed: () async {
-                  await NotificationService.checkAndNotifyOverdueProcedures();
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Checked for overdue procedures'),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                  }
-                },
-              ),
               // Light/Dark mode toggle
               IconButton(
                 icon: const Icon(Icons.light_mode),

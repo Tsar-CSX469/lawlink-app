@@ -11,7 +11,7 @@ import 'package:lawlink/screens/consumer_quiz_page.dart';
 import 'package:lawlink/screens/quiz_menu_page.dart';
 import 'package:lawlink/screens/leaderboard_page.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:lawlink/services/notification_service.dart';
+import 'package:lawlink/services/enhanced_notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

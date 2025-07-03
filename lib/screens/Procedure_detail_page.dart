@@ -149,10 +149,6 @@ class _ProcedureDetailPageState extends State<ProcedureDetailPage>
 
     _updateProgressAnimation();
 
-    // Check if this is the first step being completed (transition to "In Progress")
-    final bool isFirstStep =
-        wasEmpty && completedSteps.isNotEmpty && isCompleted;
-
     try {
       final Map<String, dynamic> updateData = {
         'userId': user.uid,
@@ -162,14 +158,7 @@ class _ProcedureDetailPageState extends State<ProcedureDetailPage>
         'lastUpdated': FieldValue.serverTimestamp(),
       };
 
-      if (isFirstStep) {
-        updateData['status'] = 'In Progress';
-        updateData['statusUpdatedAt'] = FieldValue.serverTimestamp();
-        updateData['overdueNotificationSent'] =
-            false; // Reset notification flag
-      }
-
-      // If all steps are completed, update status to completed
+      // Determine total steps
       final stepsData = widget.procedureData['steps'];
       int totalSteps = 0;
 
@@ -180,14 +169,31 @@ class _ProcedureDetailPageState extends State<ProcedureDetailPage>
         totalSteps = 1;
       }
 
-      if (totalSteps > 0 && completedSteps.length == totalSteps) {
-        updateData['status'] = 'Completed';
-        updateData['statusUpdatedAt'] = FieldValue.serverTimestamp();
+      // Always set status based on current completion state
+      String newStatus;
+      bool shouldUpdateStatusTimestamp = false;
+
+      if (completedSteps.isEmpty) {
+        newStatus = 'Not Started';
+        shouldUpdateStatusTimestamp = true;
+      } else if (totalSteps > 0 && completedSteps.length == totalSteps) {
+        newStatus = 'Completed';
+        shouldUpdateStatusTimestamp = true;
+      } else {
+        newStatus = 'In Progress';
+        // Always update timestamp for "In Progress" status to ensure notifications work
+        shouldUpdateStatusTimestamp = true;
+        // Check if this is transitioning to "In Progress" for the first time
+        final bool isFirstStep =
+            wasEmpty && completedSteps.isNotEmpty && isCompleted;
+        if (isFirstStep) {
+          updateData['overdueNotificationSent'] =
+              false; // Reset notification flag
+        }
       }
 
-      // If no steps are completed, update status to not started
-      if (completedSteps.isEmpty) {
-        updateData['status'] = 'Not Started';
+      updateData['status'] = newStatus;
+      if (shouldUpdateStatusTimestamp) {
         updateData['statusUpdatedAt'] = FieldValue.serverTimestamp();
       }
 
