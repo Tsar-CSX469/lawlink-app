@@ -328,7 +328,7 @@ class NotificationService {
       }
 
       final now = DateTime.now();
-      final twoSecondsAgo = now.subtract(const Duration(seconds: 2));
+      final oneHourAgo = now.subtract(const Duration(hours: 1));
 
       final proceduresSnapshot =
           await FirebaseFirestore.instance
@@ -345,8 +345,8 @@ class NotificationService {
         if (statusUpdatedAt != null) {
           final statusDateTime = statusUpdatedAt.toDate();
 
-          // Check if the procedure has been "In Progress" for more than 2 seconds
-          if (statusDateTime.isBefore(twoSecondsAgo)) {
+          // Check if the procedure has been "In Progress" for more than 1 hour
+          if (statusDateTime.isBefore(oneHourAgo)) {
             // Check if we've already sent a notification for this procedure
             final notificationSent = data['overdueNotificationSent'] ?? false;
 
@@ -359,7 +359,7 @@ class NotificationService {
 
               // Get the procedure details to find total steps and incomplete ones
               String detailedBody =
-                  'Your procedure "$procedureName" has been in progress for more than 2 seconds.';
+                  'Your procedure "$procedureName" has been in progress for more than 1 hour.';
 
               if (procedureId != null) {
                 try {
