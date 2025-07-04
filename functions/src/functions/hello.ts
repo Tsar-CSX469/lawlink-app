@@ -1,6 +1,6 @@
 import * as functions from "firebase-functions";
 import { Request, Response } from 'express';
-import { createExpressApp } from "../common/express";
+import { createExpressApp } from "../express";
 import { asyncHandler, sendSuccess } from "../../utils/globalUtil";
 import { generateWelcomeMessage } from "../services/messageService";
 
@@ -13,7 +13,7 @@ const app = createExpressApp();
  */
 app.post('/greeting', asyncHandler(async (req: Request, res: Response) => {
   // Basic validation (optional for greeting)
-  const { name } = req.body;
+  const { name } = JSON.parse(req.body);
   
   // Generate message
   const message = generateWelcomeMessage(name || "Anonymous");
