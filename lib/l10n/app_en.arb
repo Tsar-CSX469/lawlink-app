@@ -325,6 +325,63 @@
     "description": "Privacy policy content"
   },
 
+  "@@comment_profile": "============================================================================",
+  "@@comment_profile_title": "USER PROFILE PAGE",
+  "@@comment_profile_end": "============================================================================",
+
+  "myProfile": "My Profile",
+  "@myProfile": {
+    "description": "User profile page title"
+  },
+  "logOut": "Log Out",
+  "@logOut": {
+    "description": "Log out button text"
+  },
+  "noUserLoggedIn": "No user logged in",
+  "@noUserLoggedIn": {
+    "description": "Message when no user is logged in"
+  },
+  "verifiedAccount": "Verified Account",
+  "@verifiedAccount": {
+    "description": "Verified account status text"
+  },
+  "emailNotVerified": "Email not verified",
+  "@emailNotVerified": {
+    "description": "Unverified email status text"
+  },
+  "accountInformation": "Account Information",
+  "@accountInformation": {
+    "description": "Account information section title"
+  },
+  "name": "Name",
+  "@name": {
+    "description": "Name field label"
+  },
+  "email": "Email",
+  "@email": {
+    "description": "Email field label"
+  },
+  "memberSince": "Member Since",
+  "@memberSince": {
+    "description": "Member since field label"
+  },
+  "notSet": "Not set",
+  "@notSet": {
+    "description": "Text when a field is not set"
+  },
+  "security": "Security",
+  "@security": {
+    "description": "Security section title"
+  },
+  "changePassword": "Change Password",
+  "@changePassword": {
+    "description": "Change password option"
+  },
+  "twoFactorAuth": "Two-Factor Authentication",
+  "@twoFactorAuth": {
+    "description": "Two-factor authentication option"
+  },
+
   "@@comment_theme": "============================================================================",
   "@@comment_theme_title": "THEME & UI",
   "@@comment_theme_end": "============================================================================",

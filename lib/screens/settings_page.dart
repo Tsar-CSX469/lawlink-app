@@ -17,11 +17,20 @@ class SettingsPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
-        title: Text(
-          l10n.settings,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+        title: ShaderMask(
+          shaderCallback:
+              (bounds) => LinearGradient(
+                colors: [Colors.blue.shade800, Colors.blue.shade300],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ).createShader(bounds),
+          child: Text(
+            l10n.settings,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
           ),
         ),
         flexibleSpace: Container(

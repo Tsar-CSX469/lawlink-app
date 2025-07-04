@@ -391,5 +391,62 @@
         "description": "The type of quiz that will be available"
       }
     }
+  },
+  
+  "@@comment_profile": "============================================================================",
+  "@@comment_profile_title": "USER PROFILE PAGE",
+  "@@comment_profile_end": "============================================================================",
+  
+  "myProfile": "මගේ පැතිකඩ",
+  "@myProfile": {
+    "description": "User profile page title"
+  },
+  "logOut": "ඉවත් වන්න",
+  "@logOut": {
+    "description": "Log out button text"
+  },
+  "noUserLoggedIn": "පරිශීලක ප්‍රවේශ වී නැත",
+  "@noUserLoggedIn": {
+    "description": "Message when no user is logged in"
+  },
+  "verifiedAccount": "සත්‍යාපිත ගිණුම",
+  "@verifiedAccount": {
+    "description": "Verified account status text"
+  },
+  "emailNotVerified": "ඊමේල් සත්‍යාපනය කර නැත",
+  "@emailNotVerified": {
+    "description": "Unverified email status text"
+  },
+  "accountInformation": "ගිණුම් තොරතුරු",
+  "@accountInformation": {
+    "description": "Account information section title"
+  },
+  "name": "නම",
+  "@name": {
+    "description": "Name field label"
+  },
+  "email": "ඊමේල්",
+  "@email": {
+    "description": "Email field label"
+  },
+  "memberSince": "සාමාජිකත්වය ලබා දුන් දිනය",
+  "@memberSince": {
+    "description": "Member since field label"
+  },
+  "notSet": "සකසා නැත",
+  "@notSet": {
+    "description": "Text when a field is not set"
+  },
+  "security": "ආරක්ෂාව",
+  "@security": {
+    "description": "Security section title"
+  },
+  "changePassword": "මුරපදය වෙනස් කරන්න",
+  "@changePassword": {
+    "description": "Change password option"
+  },
+  "twoFactorAuth": "ද්විමාන සත්‍යාපනය",
+  "@twoFactorAuth": {
+    "description": "Two-factor authentication option"
   }
 }
