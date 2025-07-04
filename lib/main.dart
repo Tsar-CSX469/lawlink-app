@@ -11,7 +11,12 @@ import 'package:lawlink/screens/consumer_quiz_page.dart';
 import 'package:lawlink/screens/quiz_menu_page.dart';
 import 'package:lawlink/screens/leaderboard_page.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:provider/provider.dart';
+import 'package:lawlink/services/language_service.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:lawlink/services/enhanced_notification_service.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,26 +34,44 @@ void main() async {
     print('Notification service initialization failed: $e');
   }
 
-  runApp(const LegalQuizGame());
+   runApp(
+    ChangeNotifierProvider(
+      create: (context) => LanguageService(),
+      child: const LegalQuizGame(),
+    ),
+  );
 }
 
 class LegalQuizGame extends StatelessWidget {
   const LegalQuizGame({super.key});
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'LawLink',
-      theme: ThemeData(primarySwatch: Colors.blue),
-      home: const AuthWrapper(),
-      routes: {
-        '/login': (context) => const LoginPage(),
-        '/register': (context) => const SignUpPage(),
-        '/home': (context) => const MainPage(),
-        '/profile': (context) => const UserProfilePage(),
-        '/quiz': (context) => const QuizMenuPage(),
-        '/quiz/consumer': (context) => const ConsumerQuizPage(),
-        '/procedures': (context) => const LegalProceduresPage(),
-        '/leaderboard': (context) => const LeaderboardPage(),
+    return Consumer<LanguageService>(
+      builder: (context, languageService, child) {
+        return MaterialApp(
+          title: 'LawLink',
+          theme: ThemeData(primarySwatch: Colors.blue),
+          home: const AuthWrapper(),
+          locale: languageService.currentLocale,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('en'), Locale('si')],
+          routes: {
+            '/login': (context) => const LoginPage(),
+            '/register': (context) => const SignUpPage(),
+            '/home': (context) => const MainPage(),
+            '/profile': (context) => const UserProfilePage(),
+            '/quiz': (context) => const QuizMenuPage(),
+            '/quiz/consumer': (context) => const ConsumerQuizPage(),
+            '/procedures': (context) => const LegalProceduresPage(),
+            '/leaderboard': (context) => const LeaderboardPage(),
+          },
+        );
+
       },
     );
   }

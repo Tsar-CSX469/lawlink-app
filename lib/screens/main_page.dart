@@ -5,9 +5,11 @@ import 'package:lawlink/services/auth_service.dart';
 import 'package:lawlink/screens/user_profile_page.dart';
 import 'package:lawlink/screens/chatbot_page.dart';
 import 'package:lawlink/screens/legal_procedures_page.dart';
+import 'package:lawlink/screens/settings_page.dart';
 import 'package:lawlink/screens/notifications_page.dart';
 import 'package:lawlink/widgets/notification_badge.dart';
 import 'package:lawlink/act_list_page.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -60,46 +62,20 @@ class _MainPageState extends State<MainPage> {
     }
   }
 
-  void _showFeatureComingSoonDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Text(
-              'Coming Soon',
-              style: TextStyle(color: Colors.blue.shade700),
-            ),
-            content: const Text(
-              'This feature will be available in a future update.',
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(
-                  'OK',
-                  style: TextStyle(color: Colors.blue.shade700),
-                ),
-              ),
-            ],
-          ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     // Get the time of day for the greeting
     final hour = DateTime.now().hour;
     String greeting;
 
     if (hour < 12) {
-      greeting = 'Good Morning';
+      greeting = l10n.goodMorning;
     } else if (hour < 17) {
-      greeting = 'Good Afternoon';
+      greeting = l10n.goodAfternoon;
     } else {
-      greeting = 'Good Evening';
+      greeting = l10n.goodEvening;
     }
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -195,7 +171,7 @@ class _MainPageState extends State<MainPage> {
               // Light/Dark mode toggle
               IconButton(
                 icon: Icon(Icons.light_mode, color: Colors.blue.shade700),
-                tooltip: 'Toggle Dark Mode',
+                tooltip: l10n.toggleDarkMode,
                 onPressed: () {
                   // Show Coming Soon alert
                   showDialog(
@@ -203,20 +179,18 @@ class _MainPageState extends State<MainPage> {
                     builder:
                         (context) => AlertDialog(
                           title: Text(
-                            'Coming Soon!',
+                            l10n.comingSoon,
                             style: TextStyle(
                               color: Colors.blue.shade700,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          content: const Text(
-                            'Dark mode functionality will be available in the next update!',
-                          ),
+                          content: Text(l10n.darkModeComingSoon),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.pop(context),
                               child: Text(
-                                'OK',
+                                l10n.ok,
                                 style: TextStyle(color: Colors.blue.shade700),
                               ),
                             ),
@@ -386,7 +360,7 @@ class _MainPageState extends State<MainPage> {
 
                                   // Simple welcome text
                                   Text(
-                                    "Welcome to LawLink",
+                                    l10n.welcomeToApp,
                                     style: TextStyle(
                                       color: Colors.blue.shade700,
                                       fontSize: 14,
@@ -408,9 +382,9 @@ class _MainPageState extends State<MainPage> {
                                   size: 20,
                                 ),
                                 const SizedBox(width: 8),
-                                const Text(
-                                  "Services",
-                                  style: TextStyle(
+                                Text(
+                                  l10n.services,
+                                  style: const TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -431,7 +405,7 @@ class _MainPageState extends State<MainPage> {
                                 children: [
                                   // Quiz Game Card
                                   _buildFeatureCard(
-                                    title: "Quiz Game",
+                                    title: l10n.quiz,
                                     icon: Icons.lightbulb_outline,
                                     color: Colors.blue.shade700,
                                     onTap: () {
@@ -439,7 +413,7 @@ class _MainPageState extends State<MainPage> {
                                     },
                                   ), // LawLink AI Card
                                   _buildFeatureCard(
-                                    title: "LawLink AI",
+                                    title: l10n.lawlinkAi,
                                     icon: Icons.bubble_chart_rounded,
                                     color: Colors.blue.shade700,
                                     onTap: () {
@@ -455,7 +429,7 @@ class _MainPageState extends State<MainPage> {
 
                                   // Procedures Card
                                   _buildFeatureCard(
-                                    title: "Procedures",
+                                    title: l10n.procedures,
                                     icon: Icons.assignment_outlined,
                                     color: Colors.blue.shade700,
                                     onTap: () {
@@ -472,7 +446,7 @@ class _MainPageState extends State<MainPage> {
 
                                   // Law Library Card
                                   _buildFeatureCard(
-                                    title: "Law Library",
+                                    title: l10n.acts,
                                     icon: Icons.menu_book_rounded,
                                     color: Colors.blue.shade700,
                                     onTap: () {
@@ -514,9 +488,14 @@ class _MainPageState extends State<MainPage> {
                               color: Colors.blue.shade700,
                             ),
                             onPressed: () {
-                              _showFeatureComingSoonDialog(context);
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const SettingsPage(),
+                                ),
+                              );
                             },
-                            tooltip: 'Settings',
+                            tooltip: l10n.settings,
                           ),
                         ),
                       ),

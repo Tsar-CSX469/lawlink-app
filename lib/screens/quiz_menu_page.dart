@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:lawlink/screens/consumer_quiz_page.dart';
 import 'package:lawlink/screens/leaderboard_page.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class QuizMenuPage extends StatelessWidget {
   const QuizMenuPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: PreferredSize(
@@ -32,9 +35,9 @@ class QuizMenuPage extends StatelessWidget {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ).createShader(bounds),
-              child: const Text(
-                'Quiz Game',
-                style: TextStyle(
+              child: Text(
+                l10n.quizGame,
+                style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
@@ -60,20 +63,18 @@ class QuizMenuPage extends StatelessWidget {
                     builder:
                         (context) => AlertDialog(
                           title: Text(
-                            'Coming Soon!',
+                            l10n.comingSoonExclamation,
                             style: TextStyle(
                               color: Colors.blue.shade700,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          content: const Text(
-                            'Dark mode functionality will be available in the next update!',
-                          ),
+                          content: Text(l10n.darkModeComingSoon),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.pop(context),
                               child: Text(
-                                'OK',
+                                l10n.ok,
                                 style: TextStyle(color: Colors.blue.shade700),
                               ),
                             ),
@@ -127,9 +128,9 @@ class QuizMenuPage extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              'Choose a Quiz Category',
-                              style: TextStyle(
+                            Text(
+                              l10n.chooseQuizCategory,
+                              style: const TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.black87,
@@ -137,7 +138,7 @@ class QuizMenuPage extends StatelessWidget {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'Test your knowledge in different areas of law',
+                              l10n.testKnowledgeLaw,
                               style: TextStyle(
                                 fontSize: 16,
                                 color: Colors.grey.shade600,
@@ -205,9 +206,9 @@ class QuizMenuPage extends StatelessWidget {
                                     ],
                                   ),
                                   const SizedBox(height: 6),
-                                  const Text(
-                                    'Rankings',
-                                    style: TextStyle(
+                                  Text(
+                                    l10n.rankings,
+                                    style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 11,
                                       fontWeight: FontWeight.bold,
@@ -233,8 +234,8 @@ class QuizMenuPage extends StatelessWidget {
                     children: [
                       _buildQuizCard(
                         context,
-                        title: 'Consumer Law',
-                        subtitle: 'Consumer Affairs Quiz',
+                        title: l10n.consumerLaw,
+                        subtitle: l10n.consumerAffairsQuiz,
                         icon: Icons.shopping_cart,
                         color: Colors.blue,
                         onTap: () {
@@ -248,35 +249,35 @@ class QuizMenuPage extends StatelessWidget {
                       ),
                       _buildQuizCard(
                         context,
-                        title: 'Criminal Law',
-                        subtitle: 'Coming Soon',
+                        title: l10n.criminalLaw,
+                        subtitle: l10n.comingSoon,
                         icon: Icons.gavel,
                         color: Colors.red,
                         isComingSoon: true,
                         onTap: () {
-                          _showComingSoonDialog(context, 'Criminal Law');
+                          _showComingSoonDialog(context, l10n.criminalLaw);
                         },
                       ),
                       _buildQuizCard(
                         context,
-                        title: 'Civil Law',
-                        subtitle: 'Coming Soon',
+                        title: l10n.civilLaw,
+                        subtitle: l10n.comingSoon,
                         icon: Icons.account_balance,
                         color: Colors.green,
                         isComingSoon: true,
                         onTap: () {
-                          _showComingSoonDialog(context, 'Civil Law');
+                          _showComingSoonDialog(context, l10n.civilLaw);
                         },
                       ),
                       _buildQuizCard(
                         context,
-                        title: 'Employment Law',
-                        subtitle: 'Coming Soon',
+                        title: l10n.employmentLaw,
+                        subtitle: l10n.comingSoon,
                         icon: Icons.work,
                         color: Colors.orange,
                         isComingSoon: true,
                         onTap: () {
-                          _showComingSoonDialog(context, 'Employment Law');
+                          _showComingSoonDialog(context, l10n.employmentLaw);
                         },
                       ),
                     ],
@@ -299,6 +300,8 @@ class QuizMenuPage extends StatelessWidget {
     required VoidCallback onTap,
     bool isComingSoon = false,
   }) {
+    final l10n = AppLocalizations.of(context)!;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -384,9 +387,9 @@ class QuizMenuPage extends StatelessWidget {
                       ),
                     ],
                   ),
-                  child: const Text(
-                    'Soon',
-                    style: TextStyle(
+                  child: Text(
+                    l10n.soon,
+                    style: const TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
@@ -401,25 +404,25 @@ class QuizMenuPage extends StatelessWidget {
   }
 
   void _showComingSoonDialog(BuildContext context, String quizType) {
+    final l10n = AppLocalizations.of(context)!;
+
     showDialog(
       context: context,
       builder:
           (context) => AlertDialog(
             title: Text(
-              'Coming Soon!',
+              l10n.comingSoonExclamation,
               style: TextStyle(
                 color: Colors.blue.shade700,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            content: Text(
-              '$quizType quiz will be available in a future update!',
-            ),
+            content: Text(l10n.quizWillBeAvailable(quizType)),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
                 child: Text(
-                  'OK',
+                  l10n.ok,
                   style: TextStyle(color: Colors.blue.shade700),
                 ),
               ),

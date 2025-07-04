@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ProcedureDetailPage extends StatefulWidget {
   final String procedureId;
@@ -220,13 +221,15 @@ class _ProcedureDetailPageState extends State<ProcedureDetailPage>
   }
 
   void _showStepCompletedAnimation(int stepIndex) {
+    final l10n = AppLocalizations.of(context)!;
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
           children: [
             const Icon(Icons.check_circle, color: Colors.white),
             const SizedBox(width: 8),
-            Text('Step ${stepIndex + 1} completed!'),
+            Text(l10n.stepCompleted('${stepIndex + 1}')),
           ],
         ),
         backgroundColor: Colors.green.shade600,
@@ -239,6 +242,7 @@ class _ProcedureDetailPageState extends State<ProcedureDetailPage>
   }
 
   Future<void> _submitComment() async {
+    final l10n = AppLocalizations.of(context)!;
     final user = FirebaseAuth.instance.currentUser;
     if (user == null || _commentController.text.trim().isEmpty) return;
 
@@ -264,11 +268,11 @@ class _ProcedureDetailPageState extends State<ProcedureDetailPage>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Row(
+            content: Row(
               children: [
-                Icon(Icons.comment, color: Colors.white),
-                SizedBox(width: 8),
-                Text('Comment added successfully'),
+                const Icon(Icons.comment, color: Colors.white),
+                const SizedBox(width: 8),
+                Text(l10n.commentAddedSuccessfully),
               ],
             ),
             backgroundColor: Colors.green.shade600,
@@ -285,11 +289,11 @@ class _ProcedureDetailPageState extends State<ProcedureDetailPage>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Row(
+            content: Row(
               children: [
-                Icon(Icons.error, color: Colors.white),
-                SizedBox(width: 8),
-                Text('Failed to add comment'),
+                const Icon(Icons.error, color: Colors.white),
+                const SizedBox(width: 8),
+                Text(l10n.failedToAddComment),
               ],
             ),
             backgroundColor: Colors.red.shade600,
@@ -311,6 +315,8 @@ class _ProcedureDetailPageState extends State<ProcedureDetailPage>
   }
 
   Future<void> _deleteComment(String commentId) async {
+    final l10n = AppLocalizations.of(context)!;
+
     try {
       await FirebaseFirestore.instance
           .collection('procedures')
@@ -324,11 +330,11 @@ class _ProcedureDetailPageState extends State<ProcedureDetailPage>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Row(
+            content: Row(
               children: [
-                Icon(Icons.delete, color: Colors.white),
-                SizedBox(width: 8),
-                Text('Comment deleted successfully'),
+                const Icon(Icons.delete, color: Colors.white),
+                const SizedBox(width: 8),
+                Text(l10n.commentDeletedSuccessfully),
               ],
             ),
             backgroundColor: Colors.orange.shade600,
@@ -345,11 +351,11 @@ class _ProcedureDetailPageState extends State<ProcedureDetailPage>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Row(
+            content: Row(
               children: [
-                Icon(Icons.error, color: Colors.white),
-                SizedBox(width: 8),
-                Text('Failed to delete comment'),
+                const Icon(Icons.error, color: Colors.white),
+                const SizedBox(width: 8),
+                Text(l10n.failedToDeleteComment),
               ],
             ),
             backgroundColor: Colors.red.shade600,
@@ -365,6 +371,8 @@ class _ProcedureDetailPageState extends State<ProcedureDetailPage>
   }
 
   void _showDeleteCommentDialog(String commentId) {
+    final l10n = AppLocalizations.of(context)!;
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -415,7 +423,7 @@ class _ProcedureDetailPageState extends State<ProcedureDetailPage>
                   vertical: 12,
                 ),
               ),
-              child: const Text('Delete', style: TextStyle(fontSize: 16)),
+              child: Text(l10n.delete, style: const TextStyle(fontSize: 16)),
             ),
           ],
         );
@@ -463,6 +471,7 @@ class _ProcedureDetailPageState extends State<ProcedureDetailPage>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final dynamic stepsData = widget.procedureData['steps'];
     final List<dynamic> steps;
 
