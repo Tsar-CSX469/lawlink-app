@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../services/quiz_api_service.dart';
 
 class ConsumerQuizPage extends StatefulWidget {
   const ConsumerQuizPage({super.key});
@@ -19,6 +19,10 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
   String _explanation = '';
   int _score = 0;
   int _selectedAnswerIndex = -1; // Track which answer the user selected
+  List<QuizAnswer> _userAnswers =
+      []; // Track all user answers for API submission
+  DateTime? _quizStartTime;
+  DateTime? _questionStartTime;
 
   // Animation controller for page transitions
   late PageController _pageController;
@@ -26,8 +30,10 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
   @override
   void initState() {
     super.initState();
-    _loadQuizFromFirestore();
+    _loadQuizFromApi();
     _pageController = PageController();
+    _quizStartTime = DateTime.now();
+    _questionStartTime = DateTime.now();
   }
 
   @override
@@ -36,30 +42,22 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
     super.dispose();
   }
 
-  Future<void> _loadQuizFromFirestore() async {
+  Future<void> _loadQuizFromApi() async {
     try {
-      final docSnapshot =
-          await FirebaseFirestore.instance
-              .collection('quiz')
-              .doc('consumer_affairs_quiz')
-              .get();
+      setState(() {
+        _isLoading = true;
+        _errorMessage = '';
+      });
 
-      if (docSnapshot.exists) {
-        final data = docSnapshot.data() as Map<String, dynamic>;
+      // Load quiz using Firebase Function instead of direct Firestore access
+      final quiz = await QuizApiService.getQuiz('consumer_affairs_quiz');
 
-        // Assuming the quiz questions are stored as an array in the document
-        final questionsData = data['questions'] as List<dynamic>? ?? [];
-        setState(() {
-          _questions =
-              questionsData.map((q) => _convertFirestoreQuestion(q)).toList();
-          _isLoading = false;
-        });
-      } else {
-        setState(() {
-          _errorMessage = 'Quiz not found in database';
-          _isLoading = false;
-        });
-      }
+      // Convert API response to existing format for compatibility
+      final questionsData = quiz['questions'] as List<dynamic>? ?? [];
+      setState(() {
+        _questions = questionsData.map((q) => _convertApiQuestion(q)).toList();
+        _isLoading = false;
+      });
     } catch (e) {
       setState(() {
         _errorMessage = 'Error loading quiz: ${e.toString()}';
@@ -68,29 +66,60 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
     }
   }
 
-  Map<String, dynamic> _convertFirestoreQuestion(
-    Map<String, dynamic> firestoreQuestion,
-  ) {
-    // Convert Firestore question format to local format
-    final options = firestoreQuestion['options'] as List<dynamic>;
-    final correctAnswerId = firestoreQuestion['correctAnswer'] as String;
+  Map<String, dynamic> _convertApiQuestion(Map<String, dynamic> apiQuestion) {
+    // Convert API question format to existing local format for compatibility
+    final options = apiQuestion['options'] as List<dynamic>;
 
     return {
-      'question': firestoreQuestion['question'] as String,
+      'question': apiQuestion['question'] as String,
       'answers':
           options.map((option) {
             final optionMap = option as Map<String, dynamic>;
             return {
               'text': optionMap['text'] as String,
-              'correct': optionMap['id'] == correctAnswerId,
+              'correct':
+                  false, // We don't know the correct answer from API (security)
             };
           }).toList(),
-      'explanation': firestoreQuestion['explanation'] as String,
-      'points': firestoreQuestion['points'] as int? ?? 10,
-      'category': firestoreQuestion['category'] as String? ?? '',
-      'difficulty': firestoreQuestion['difficulty'] as String? ?? 'medium',
-      'references': firestoreQuestion['references'] as List<dynamic>? ?? [],
+      'explanation': '', // Will be provided after submission
+      'points': apiQuestion['points'] as int? ?? 10,
+      'category': apiQuestion['category'] as String? ?? '',
+      'difficulty': apiQuestion['difficulty'] as String? ?? 'medium',
+      'references': apiQuestion['references'] as List<dynamic>? ?? [],
+      'id': apiQuestion['id'] as String, // Store question ID for API submission
+      'options': options, // Store original options for API submission
     };
+  }
+
+  Future<void> _validateAnswerRealTime(int answerIndex) async {
+    final question = _questions[_currentQuestion];
+    final selectedOption = question['options'][answerIndex];
+
+    try {
+      // Call the API to validate the answer in real-time
+      final validation = await QuizApiService.validateAnswer(
+        quizId: 'consumer_affairs_quiz',
+        questionId: question['id'],
+        selectedOptionId: selectedOption['id'],
+      );
+
+      // Update the UI with real-time feedback
+      _answerQuestion(
+        validation['isCorrect'] as bool,
+        validation['explanation'] as String? ?? '',
+        validation['points'] as int? ?? 0,
+        answerIndex: answerIndex,
+      );
+    } catch (e) {
+      // If validation fails, provide neutral feedback
+      _answerQuestion(
+        false,
+        'Unable to validate answer at this time.',
+        0,
+        answerIndex: answerIndex,
+      );
+      print('Error validating answer: $e');
+    }
   }
 
   void _answerQuestion(
@@ -99,12 +128,26 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
     int points, {
     int? answerIndex,
   }) {
+    // Record the user's answer for API submission
+    final question = _questions[_currentQuestion];
+    final questionStartTime = _questionStartTime ?? DateTime.now();
+    final timeSpent = DateTime.now().difference(questionStartTime).inSeconds;
+
+    if (answerIndex != null && question['options'] != null) {
+      final selectedOption = question['options'][answerIndex];
+      final userAnswer = QuizAnswer(
+        questionId: question['id'],
+        selectedOptionId: selectedOption['id'],
+        timeSpent: timeSpent,
+      );
+      _userAnswers.add(userAnswer);
+    }
+
     setState(() {
       _answered = true;
       _isCorrect = correct;
       _explanation = explanation;
-      _selectedAnswerIndex =
-          answerIndex ?? -1; // Store the selected answer index
+      _selectedAnswerIndex = answerIndex ?? -1;
       if (correct) {
         _score += points;
       }
@@ -119,17 +162,266 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
         _isCorrect = false;
         _explanation = '';
         _selectedAnswerIndex = -1; // Reset the selected answer index
+        _questionStartTime = DateTime.now(); // Reset question start time
       });
     } else {
-      _showQuizComplete();
+      _submitQuizToApi();
     }
   }
 
-  void _showQuizComplete() async {
-    final percentage = ((_score / _getTotalPossibleScore()) * 100).round();
+  Future<void> _submitQuizToApi() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        _showErrorDialog('You must be logged in to submit the quiz.');
+        return;
+      }
 
-    // Upload the score to Firestore
-    await _uploadScoreToFirestore();
+      final quizStartTime = _quizStartTime ?? DateTime.now();
+      final totalDuration = DateTime.now().difference(quizStartTime).inSeconds;
+
+      // Submit using Firebase Function
+      final result = await QuizApiService.submitQuiz(
+        quizId: 'consumer_affairs_quiz',
+        userId: user.uid,
+        answers: _userAnswers.map((a) => a.toJson()).toList(),
+        duration: totalDuration,
+      );
+
+      // Parse the result and update the score
+      final quizResult = QuizResult.fromJson(result);
+
+      setState(() {
+        _score = quizResult.score;
+      });
+
+      // Show the quiz complete dialog with real results
+      _showQuizCompleteDialog(quizResult);
+    } catch (e) {
+      String errorMessage = e.toString();
+
+      // Handle specific timing errors with better UI
+      if (errorMessage.contains('⏱️') || errorMessage.contains('too fast')) {
+        _showTimingErrorDialog(
+          'Submission Too Fast',
+          'Please take more time to read and answer each question carefully. This ensures fair assessment for all users.',
+          'I\'ll Take More Time',
+        );
+      } else if (errorMessage.contains('⏰') ||
+          errorMessage.contains('time limit exceeded')) {
+        _showTimingErrorDialog(
+          'Time Limit Exceeded',
+          'You have exceeded the maximum time allowed for this quiz. Please try again and complete within the time limit.',
+          'Try Again',
+        );
+      } else {
+        _showErrorDialog(
+          'Failed to submit quiz: ${errorMessage.replaceAll('Exception: ', '')}',
+        );
+      }
+    }
+  }
+
+  void _showTimingErrorDialog(String title, String message, String buttonText) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Row(
+            children: [
+              Icon(
+                title.contains('Fast') ? Icons.timer_off : Icons.timer,
+                color: title.contains('Fast') ? Colors.orange : Colors.red,
+                size: 28,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                title.contains('Fast')
+                    ? Icons.slow_motion_video
+                    : Icons.access_time,
+                size: 60,
+                color:
+                    title.contains('Fast')
+                        ? Colors.orange.shade300
+                        : Colors.red.shade300,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                message,
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: Colors.black87,
+                  height: 1.4,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              if (title.contains('Fast')) ...[
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.shade50,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.orange.shade200),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.info_outline,
+                        color: Colors.orange.shade700,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Minimum time: 5 seconds per question',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.orange.shade700,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                // Reset quiz to allow retry
+                if (title.contains('Fast')) {
+                  setState(() {
+                    _currentQuestion = 0;
+                    _answered = false;
+                    _isCorrect = false;
+                    _explanation = '';
+                    _selectedAnswerIndex = -1;
+                    _userAnswers.clear();
+                    _quizStartTime = DateTime.now();
+                    _questionStartTime = DateTime.now();
+                  });
+                  _pageController.animateToPage(
+                    0,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  );
+                }
+              },
+              style: TextButton.styleFrom(
+                backgroundColor:
+                    title.contains('Fast') ? Colors.orange : Colors.red,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              child: Text(
+                buttonText,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            backgroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: Row(
+              children: [
+                Icon(Icons.error_outline, color: Colors.red, size: 28),
+                const SizedBox(width: 10),
+                const Text(
+                  'Error',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.error_outline, size: 60, color: Colors.red.shade300),
+                const SizedBox(height: 16),
+                Text(
+                  message,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: Colors.black87,
+                    height: 1.4,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                style: TextButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                child: const Text(
+                  'OK',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+              ),
+            ],
+          ),
+    );
+  }
+
+  void _showQuizCompleteDialog(QuizResult result) {
+    final percentage = result.percentage;
 
     showDialog(
       context: context,
@@ -290,29 +582,6 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
     );
   }
 
-  Future<void> _uploadScoreToFirestore() async {
-    try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) {
-        print('No user is currently logged in.');
-        return;
-      }
-
-      final scoreDoc = {
-        'userId': user.uid,
-        'quizId': 'consumer_affairs_quiz',
-        'score': _score,
-        'total': _getTotalPossibleScore(),
-        'completedAt': Timestamp.now(),
-      };
-
-      await FirebaseFirestore.instance.collection('scores').add(scoreDoc);
-      print('Score uploaded successfully.');
-    } catch (e) {
-      print('Failed to upload score: $e');
-    }
-  }
-
   void _restartQuiz() {
     setState(() {
       _currentQuestion = 0;
@@ -320,6 +589,10 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
       _isCorrect = false;
       _explanation = '';
       _score = 0;
+      _selectedAnswerIndex = -1;
+      _userAnswers.clear();
+      _quizStartTime = DateTime.now();
+      _questionStartTime = DateTime.now();
     });
   }
 
@@ -516,7 +789,7 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
                                 _isLoading = true;
                                 _errorMessage = '';
                               });
-                              _loadQuizFromFirestore();
+                              _loadQuizFromApi();
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.blue.shade600,
@@ -921,26 +1194,18 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
                     ...(question['answers'] as List<Map<String, Object>>).map((
                       answer,
                     ) {
-                      final isCorrect = answer['correct'] as bool;
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 12.0),
                         child: IntrinsicHeight(
                           child: Stack(
                             children: [
-                              // Answer button with shimmer effect when selected
+                              // Answer button
                               Container(
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(16),
                                   boxShadow: [
                                     BoxShadow(
-                                      color:
-                                          _answered && isCorrect
-                                              ? Colors.green.withOpacity(0.2)
-                                              : (_answered &&
-                                                  !isCorrect &&
-                                                  _isAnswerSelected(answer))
-                                              ? Colors.red.withOpacity(0.2)
-                                              : Colors.blue.withOpacity(0.05),
+                                      color: Colors.blue.withOpacity(0.05),
                                       blurRadius: 8,
                                       spreadRadius: 0,
                                       offset: const Offset(0, 2),
@@ -963,12 +1228,9 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
                                                       .indexWhere(
                                                         (a) => a == answer,
                                                       );
-                                              _answerQuestion(
-                                                isCorrect,
-                                                question['explanation']
-                                                    as String,
-                                                currentPoints,
-                                                answerIndex: answerIndex,
+                                              // Use real-time validation instead of hardcoded values
+                                              _validateAnswerRealTime(
+                                                answerIndex,
                                               );
                                             },
                                     borderRadius: BorderRadius.circular(16),
@@ -979,19 +1241,13 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
                                     child: Ink(
                                       decoration: BoxDecoration(
                                         gradient: LinearGradient(
-                                          colors: _getAnswerGradient(
-                                            answer,
-                                            isCorrect,
-                                          ),
+                                          colors: _getAnswerGradient(answer),
                                           begin: Alignment.topLeft,
                                           end: Alignment.bottomRight,
                                         ),
                                         borderRadius: BorderRadius.circular(16),
                                         border: Border.all(
-                                          color: _getBorderColor(
-                                            answer,
-                                            isCorrect,
-                                          ),
+                                          color: _getBorderColor(answer),
                                           width: 1.5,
                                         ),
                                       ),
@@ -1008,29 +1264,24 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
                                                 style: TextStyle(
                                                   fontSize: 16,
                                                   fontWeight:
-                                                      _answered && isCorrect
+                                                      _answered &&
+                                                              _isAnswerSelected(
+                                                                answer,
+                                                              )
                                                           ? FontWeight.bold
                                                           : FontWeight.normal,
                                                   color: _getAnswerTextColor(
                                                     answer,
-                                                    isCorrect,
                                                   ),
                                                 ),
                                               ),
                                             ),
-                                            if (_answered)
+                                            if (_answered &&
+                                                _isAnswerSelected(answer))
                                               Icon(
-                                                isCorrect
-                                                    ? Icons
-                                                        .check_circle_outline_rounded
-                                                    : (answer ==
-                                                            question['answers'][_getSelectedAnswerIndex()]
-                                                        ? Icons.cancel_outlined
-                                                        : null),
-                                                color:
-                                                    isCorrect
-                                                        ? Colors.green.shade700
-                                                        : Colors.red.shade700,
+                                                Icons
+                                                    .check_circle_outline_rounded,
+                                                color: Colors.blue.shade700,
                                                 size: 24,
                                               ),
                                           ],
@@ -1238,46 +1489,37 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
     }
   }
 
-  List<Color> _getAnswerGradient(Map<String, Object> answer, bool isCorrect) {
+  List<Color> _getAnswerGradient(Map<String, Object> answer) {
     if (!_answered) {
       return [Colors.white, Colors.white];
     }
-    if (isCorrect) {
-      return [Colors.green.shade50, Colors.green.shade100];
-    }
 
     if (_isAnswerSelected(answer)) {
-      return [Colors.red.shade50, Colors.red.shade100];
+      return [Colors.blue.shade50, Colors.blue.shade100];
     }
 
     return [Colors.white.withOpacity(0.7), Colors.white.withOpacity(0.7)];
   }
 
-  Color _getAnswerTextColor(Map<String, Object> answer, bool isCorrect) {
+  Color _getAnswerTextColor(Map<String, Object> answer) {
     if (!_answered) {
       return Colors.grey.shade800;
     }
-    if (isCorrect) {
-      return Colors.green.shade800;
-    }
 
     if (_isAnswerSelected(answer)) {
-      return Colors.red.shade800;
+      return Colors.blue.shade800;
     }
 
     return Colors.grey.shade500;
   }
 
-  Color _getBorderColor(Map<String, Object> answer, bool isCorrect) {
+  Color _getBorderColor(Map<String, Object> answer) {
     if (!_answered) {
       return Colors.grey.shade200;
     }
-    if (isCorrect) {
-      return Colors.green.shade300;
-    }
 
     if (_isAnswerSelected(answer)) {
-      return Colors.red.shade300;
+      return Colors.blue.shade300;
     }
 
     return Colors.grey.shade200;
@@ -1286,26 +1528,6 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
   bool _isAnswerSelected(Map<String, Object> answer) {
     if (!_answered) return false;
     return answer ==
-        _questions[_currentQuestion]['answers'][_getSelectedAnswerIndex()];
-  }
-
-  int _getSelectedAnswerIndex() {
-    // If we have tracked the selected answer index, use it
-    if (_selectedAnswerIndex >= 0) {
-      return _selectedAnswerIndex;
-    }
-
-    // Otherwise fallback to previous behavior (finding correct answer when correct, or first incorrect when wrong)
-    final answers =
-        _questions[_currentQuestion]['answers'] as List<Map<String, Object>>;
-    for (int i = 0; i < answers.length; i++) {
-      if (_isCorrect && answers[i]['correct'] as bool) {
-        return i;
-      }
-      if (!_isCorrect && !(answers[i]['correct'] as bool)) {
-        return i;
-      }
-    }
-    return 0;
+        _questions[_currentQuestion]['answers'][_selectedAnswerIndex];
   }
 }
