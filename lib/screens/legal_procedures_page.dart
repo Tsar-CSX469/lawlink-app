@@ -52,6 +52,27 @@ class _LegalProceduresPageState extends State<LegalProceduresPage> {
     }
   }
 
+  String _getLocalizedCategory(String englishCategory, AppLocalizations l10n) {
+    switch (englishCategory.toLowerCase()) {
+      case 'all':
+        return l10n.all;
+      case 'traffic':
+        return l10n.traffic;
+      case 'business':
+        return l10n.business;
+      case 'property':
+        return l10n.property;
+      case 'marriage':
+        return l10n.marriage;
+      case 'consumer':
+        return l10n.consumer;
+      case 'court':
+        return l10n.court;
+      default:
+        return englishCategory;
+    }
+  }
+
   Future<String> _getProcedureStatus(String procedureId) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return 'Not Started';
@@ -277,7 +298,7 @@ class _LegalProceduresPageState extends State<LegalProceduresPage> {
                 child: TextField(
                   controller: _searchController,
                   decoration: InputDecoration(
-                    hintText: 'Search procedures...',
+                    hintText: l10n.searchProcedures,
                     prefixIcon: Icon(Icons.search, color: Colors.blue.shade700),
                     suffixIcon:
                         _searchQuery.isNotEmpty
@@ -314,11 +335,15 @@ class _LegalProceduresPageState extends State<LegalProceduresPage> {
                   itemBuilder: (context, index) {
                     final category = _categories[index];
                     final isSelected = _selectedCategory == category;
+                    final localizedCategory = _getLocalizedCategory(
+                      category,
+                      l10n,
+                    );
 
                     return Padding(
                       padding: const EdgeInsets.only(right: 8.0),
                       child: FilterChip(
-                        label: Text(category),
+                        label: Text(localizedCategory),
                         selected: isSelected,
                         onSelected: (selected) {
                           setState(() {
@@ -576,7 +601,10 @@ class _LegalProceduresPageState extends State<LegalProceduresPage> {
                                                           ),
                                                     ),
                                                     child: Text(
-                                                      category,
+                                                      _getLocalizedCategory(
+                                                        category,
+                                                        l10n,
+                                                      ),
                                                       style: TextStyle(
                                                         fontSize: 12,
                                                         color: categoryColor,

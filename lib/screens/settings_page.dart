@@ -16,34 +16,46 @@ class SettingsPage extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
-      appBar: AppBar(
-        title: ShaderMask(
-          shaderCallback:
-              (bounds) => LinearGradient(
-                colors: [Colors.blue.shade800, Colors.blue.shade300],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ).createShader(bounds),
-          child: Text(
-            l10n.settings,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-        ),
-        flexibleSpace: Container(
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: Container(
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Colors.blue.shade700, Colors.blue.shade500],
+            color:
+                Theme.of(context).appBarTheme.backgroundColor ?? Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.blue.withOpacity(0.1),
+                spreadRadius: 0,
+                blurRadius: 15,
+                offset: const Offset(0, 1),
+              ),
+            ],
+          ),
+          child: AppBar(
+            title: ShaderMask(
+              shaderCallback:
+                  (bounds) => LinearGradient(
+                    colors: [Colors.blue.shade800, Colors.blue.shade300],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ).createShader(bounds),
+              child: Text(
+                l10n.settings,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
             ),
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            scrolledUnderElevation: 0,
+            surfaceTintColor: Colors.transparent,
+            shadowColor: Colors.transparent,
+            iconTheme: IconThemeData(color: Colors.blue.shade700),
           ),
         ),
-        iconTheme: const IconThemeData(color: Colors.white),
-        elevation: 0,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),

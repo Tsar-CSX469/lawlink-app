@@ -288,6 +288,46 @@
     "description": "Legal procedures page title"
   },
   
+  "searchProcedures": "ක්‍රියාමාර්ග සොයන්න...",
+  "@searchProcedures": {
+    "description": "Search placeholder text for procedures"
+  },
+  
+  "all": "සියල්ල",
+  "@all": {
+    "description": "All categories filter option"
+  },
+  
+  "traffic": "ගමනාගමන",
+  "@traffic": {
+    "description": "Traffic category"
+  },
+  
+  "business": "ව්‍යාපාර",
+  "@business": {
+    "description": "Business category"
+  },
+  
+  "property": "දේපල",
+  "@property": {
+    "description": "Property category"
+  },
+  
+  "marriage": "විවාහ",
+  "@marriage": {
+    "description": "Marriage category"
+  },
+  
+  "consumer": "පාරිභෝගික",
+  "@consumer": {
+    "description": "Consumer category"
+  },
+  
+  "court": "අධිකරණ",
+  "@court": {
+    "description": "Court category"
+  },
+  
   "stepCompleted": "පියවර {stepNumber} සම්පූර්ණ කරන ලදී!",
   "@stepCompleted": {
     "description": "Message shown when a step is completed",

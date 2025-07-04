@@ -240,6 +240,38 @@
   "@legalProcedures": {
     "description": "Legal procedures page title"
   },
+  "searchProcedures": "Search procedures...",
+  "@searchProcedures": {
+    "description": "Search placeholder text for procedures"
+  },
+  "all": "All",
+  "@all": {
+    "description": "All categories filter option"
+  },
+  "traffic": "Traffic",
+  "@traffic": {
+    "description": "Traffic category"
+  },
+  "business": "Business",
+  "@business": {
+    "description": "Business category"
+  },
+  "property": "Property",
+  "@property": {
+    "description": "Property category"
+  },
+  "marriage": "Marriage",
+  "@marriage": {
+    "description": "Marriage category"
+  },
+  "consumer": "Consumer",
+  "@consumer": {
+    "description": "Consumer category"
+  },
+  "court": "Court",
+  "@court": {
+    "description": "Court category"
+  },
   "stepCompleted": "Step {stepNumber} completed!",
   "@stepCompleted": {
     "description": "Step completion message",
