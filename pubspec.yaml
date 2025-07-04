@@ -39,7 +39,7 @@ dependencies:
     # Flutter AI Toolkit & Chatbot dependencies
   dash_chat_2: ^0.0.21
   flutter_chat_ui: ^1.6.12
-  google_generative_ai: ^0.4.3
+  google_generative_ai: ^0.4.7
   speech_to_text: ^7.0.0
   file_picker: ^10.2.0
   image_picker: ^1.0.4
