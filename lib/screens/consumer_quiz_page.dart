@@ -19,6 +19,7 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
   String _explanation = '';
   int _score = 0;
   int _selectedAnswerIndex = -1; // Track which answer the user selected
+  String? _correctOptionId; // Track the correct option ID from API response
   List<QuizAnswer> _userAnswers =
       []; // Track all user answers for API submission
   DateTime? _quizStartTime;
@@ -108,6 +109,7 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
         validation['isCorrect'] as bool,
         validation['explanation'] as String? ?? '',
         validation['points'] as int? ?? 0,
+        correctOptionId: validation['correctOptionId'] as String?,
         answerIndex: answerIndex,
       );
     } catch (e) {
@@ -117,6 +119,7 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
         'Unable to validate answer at this time.',
         0,
         answerIndex: answerIndex,
+        correctOptionId: null, // No correct answer info available
       );
       print('Error validating answer: $e');
     }
@@ -127,6 +130,7 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
     String explanation,
     int points, {
     int? answerIndex,
+    String? correctOptionId,
   }) {
     // Record the user's answer for API submission
     final question = _questions[_currentQuestion];
@@ -148,6 +152,7 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
       _isCorrect = correct;
       _explanation = explanation;
       _selectedAnswerIndex = answerIndex ?? -1;
+      _correctOptionId = correctOptionId; // Store the correct option ID
       if (correct) {
         _score += points;
       }
@@ -162,6 +167,7 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
         _isCorrect = false;
         _explanation = '';
         _selectedAnswerIndex = -1; // Reset the selected answer index
+        _correctOptionId = null; // Reset the correct option ID
         _questionStartTime = DateTime.now(); // Reset question start time
       });
     } else {
@@ -590,6 +596,7 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
       _explanation = '';
       _score = 0;
       _selectedAnswerIndex = -1;
+      _correctOptionId = null; // Reset the correct option ID
       _userAnswers.clear();
       _quizStartTime = DateTime.now();
       _questionStartTime = DateTime.now();
@@ -1277,14 +1284,16 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
                                               ),
                                             ),
                                             if (_answered &&
-                                                _isAnswerSelected(answer))
+                                                (_isAnswerSelected(answer) ||
+                                                    _isCorrectAnswer(answer)))
                                               Icon(
-                                                _isCorrect
+                                                // Show green checkmark for correct answer, red X for incorrect selected answer
+                                                _isCorrectAnswer(answer)
                                                     ? Icons
                                                         .check_circle_outline_rounded
                                                     : Icons.cancel_outlined,
                                                 color:
-                                                    _isCorrect
+                                                    _isCorrectAnswer(answer)
                                                         ? Colors.green.shade700
                                                         : Colors.red.shade700,
                                                 size: 24,
@@ -1499,13 +1508,14 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
       return [Colors.white, Colors.white];
     }
 
-    if (_isAnswerSelected(answer)) {
-      // Selected answer: green if correct, red if incorrect
-      if (_isCorrect) {
-        return [Colors.green.shade50, Colors.green.shade100];
-      } else {
-        return [Colors.red.shade50, Colors.red.shade100];
-      }
+    // Check if this is the correct answer (always highlight in green when answered)
+    if (_isCorrectAnswer(answer)) {
+      return [Colors.green.shade50, Colors.green.shade100];
+    }
+
+    // Check if this is the selected answer and it's incorrect
+    if (_isAnswerSelected(answer) && !_isCorrect) {
+      return [Colors.red.shade50, Colors.red.shade100];
     }
 
     // Unselected answers become faded when an answer is selected
@@ -1517,13 +1527,14 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
       return Colors.grey.shade800;
     }
 
-    if (_isAnswerSelected(answer)) {
-      // Selected answer: green text if correct, red text if incorrect
-      if (_isCorrect) {
-        return Colors.green.shade800;
-      } else {
-        return Colors.red.shade800;
-      }
+    // Check if this is the correct answer (always green text when answered)
+    if (_isCorrectAnswer(answer)) {
+      return Colors.green.shade800;
+    }
+
+    // Check if this is the selected answer and it's incorrect
+    if (_isAnswerSelected(answer) && !_isCorrect) {
+      return Colors.red.shade800;
     }
 
     // Unselected answers become faded gray when an answer is selected
@@ -1535,13 +1546,14 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
       return Colors.grey.shade200;
     }
 
-    if (_isAnswerSelected(answer)) {
-      // Selected answer: green border if correct, red border if incorrect
-      if (_isCorrect) {
-        return Colors.green.shade300;
-      } else {
-        return Colors.red.shade300;
-      }
+    // Check if this is the correct answer (always green border when answered)
+    if (_isCorrectAnswer(answer)) {
+      return Colors.green.shade300;
+    }
+
+    // Check if this is the selected answer and it's incorrect
+    if (_isAnswerSelected(answer) && !_isCorrect) {
+      return Colors.red.shade300;
     }
 
     // Unselected answers keep light gray border when an answer is selected
@@ -1552,5 +1564,25 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
     if (!_answered) return false;
     return answer ==
         _questions[_currentQuestion]['answers'][_selectedAnswerIndex];
+  }
+
+  // Helper method to check if an answer option is the correct one
+  bool _isCorrectAnswer(Map<String, Object> answer) {
+    if (!_answered || _correctOptionId == null) return false;
+
+    // Find the option in the original options array that matches this answer
+    final question = _questions[_currentQuestion];
+    final options = question['options'] as List<dynamic>?;
+
+    if (options == null) return false;
+
+    // Find the matching option by text and check its ID
+    for (final option in options) {
+      if (option is Map<String, dynamic> && option['text'] == answer['text']) {
+        return option['id'] == _correctOptionId;
+      }
+    }
+
+    return false;
   }
 }
