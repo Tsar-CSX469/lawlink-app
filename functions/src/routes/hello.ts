@@ -1,8 +1,8 @@
 import * as functions from "firebase-functions";
 import { Request, Response } from 'express';
-import { createExpressApp } from "../../common/express";
-import { asyncHandler, sendSuccess } from "../../../utils/globalUtil";
-import { generateWelcomeMessage } from "../../services/messageService";
+import { createExpressApp } from "../common/express";
+import { asyncHandler, sendSuccess } from "../../utils/globalUtil";
+import { generateWelcomeMessage } from "../services/messageService";
 
 // Create Express app
 const app = createExpressApp();
