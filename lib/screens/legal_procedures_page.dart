@@ -800,11 +800,6 @@ class _LegalProceduresPageState extends State<LegalProceduresPage> {
                                                       size: 14,
                                                       color: statusColor,
                                                     ),
-                                                    child: Text(
-                                                      _getLocalizedCategory(
-                                                        category,
-                                                        l10n,
-                                                      ),
                                                     const SizedBox(width: 4),
                                                     Text(
                                                       status,
