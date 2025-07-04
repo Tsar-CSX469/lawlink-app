@@ -382,7 +382,6 @@ class SettingsPage extends StatelessWidget {
             children: [
               _buildLanguageTile(
                 context,
-                flag: '🇺🇸',
                 language: l10n.english,
                 isSelected: languageService.isEnglish,
                 onTap: () {
@@ -390,10 +389,8 @@ class SettingsPage extends StatelessWidget {
                   Navigator.pop(context);
                 },
               ),
-              const SizedBox(height: 8),
               _buildLanguageTile(
                 context,
-                flag: '🇱🇰',
                 language: l10n.sinhala,
                 isSelected: languageService.isSinhala,
                 onTap: () {
@@ -419,42 +416,23 @@ class SettingsPage extends StatelessWidget {
 
   Widget _buildLanguageTile(
     BuildContext context, {
-    required String flag,
     required String language,
     required bool isSelected,
     required VoidCallback onTap,
   }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: isSelected ? Colors.blue.shade50 : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: isSelected ? Colors.blue.shade200 : Colors.transparent,
-          ),
-        ),
-        child: Row(
-          children: [
-            Text(flag, style: const TextStyle(fontSize: 24)),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                language,
-                style: TextStyle(
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                  color:
-                      isSelected ? Colors.blue.shade700 : Colors.grey.shade800,
-                ),
-              ),
-            ),
-            if (isSelected)
-              Icon(Icons.check, color: Colors.blue.shade600, size: 20),
-          ],
-        ),
+    return ListTile(
+      title: Text(
+        language,
+        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
       ),
+      leading: Radio<bool>(
+        value: true,
+        groupValue: isSelected,
+        onChanged: (_) => onTap(),
+        activeColor: Colors.blue.shade600,
+      ),
+      onTap: onTap,
+      dense: true,
     );
   }
 
