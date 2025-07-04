@@ -349,7 +349,6 @@ class _LegalProceduresPageState extends State<LegalProceduresPage> {
       // but don't call setState to avoid visual flicker
       _voteCache.remove(procedureId);
       await _getVoteData(procedureId);
-      
     } catch (e) {
       print('Error handling vote: $e');
 
