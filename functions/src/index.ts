@@ -5,7 +5,7 @@ import * as admin from "firebase-admin";
 // Initialize Firebase Admin
 admin.initializeApp();
 
-// Create a callable function with v1 API that should work with any firebase-tools version
+// Export a simple HTTP function that responds with a greeting
 export const helloLawLink = functions.https.onRequest((req, res) => {
   const name = req.body.name || "Annonymous";
   res.json({
