@@ -6,12 +6,12 @@ import 'package:lawlink/screens/login_page.dart';
 import 'package:lawlink/screens/signup_page.dart';
 import 'package:lawlink/screens/main_page.dart';
 import 'package:lawlink/screens/user_profile_page.dart';
-import 'package:lawlink/screens/legal_procedures_page.dart'; 
+import 'package:lawlink/screens/legal_procedures_page.dart';
 import 'package:lawlink/screens/consumer_quiz_page.dart';
 import 'package:lawlink/screens/quiz_menu_page.dart';
 import 'package:lawlink/screens/leaderboard_page.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-
+import 'package:lawlink/services/enhanced_notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,6 +20,15 @@ void main() async {
   await dotenv.load(fileName: ".env");
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // Initialize notification service
+  try {
+    await NotificationService.initialize();
+    await NotificationService.requestPermissions();
+  } catch (e) {
+    print('Notification service initialization failed: $e');
+  }
+
   runApp(const LegalQuizGame());
 }
 
@@ -36,12 +45,11 @@ class LegalQuizGame extends StatelessWidget {
         '/register': (context) => const SignUpPage(),
         '/home': (context) => const MainPage(),
         '/profile': (context) => const UserProfilePage(),
-        '/quiz': (context) => const QuizMenuPage(), 
-        '/quiz/consumer': (context) => const ConsumerQuizPage(), 
+        '/quiz': (context) => const QuizMenuPage(),
+        '/quiz/consumer': (context) => const ConsumerQuizPage(),
         '/procedures': (context) => const LegalProceduresPage(),
         '/leaderboard': (context) => const LeaderboardPage(),
       },
     );
   }
 }
-
