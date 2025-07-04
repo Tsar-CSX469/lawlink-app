@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:lawlink/screens/procedure_detail_page.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class LegalProceduresPage extends StatefulWidget {
   const LegalProceduresPage({Key? key}) : super(key: key);
@@ -168,6 +169,8 @@ class _LegalProceduresPageState extends State<LegalProceduresPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       extendBodyBehindAppBar: false,
       appBar: PreferredSize(
@@ -198,9 +201,9 @@ class _LegalProceduresPageState extends State<LegalProceduresPage> {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ).createShader(bounds),
-              child: const Text(
-                'Legal Procedures',
-                style: TextStyle(
+              child: Text(
+                l10n.legalProcedures,
+                style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
@@ -213,7 +216,7 @@ class _LegalProceduresPageState extends State<LegalProceduresPage> {
               IconButton(
                 icon: const Icon(Icons.light_mode),
                 color: Colors.blue.shade700, // Ensure consistent blue color
-                tooltip: 'Toggle Light Mode',
+                tooltip: l10n.toggleLightMode,
                 onPressed: () {
                   // Show Coming Soon alert
                   showDialog(
@@ -221,20 +224,18 @@ class _LegalProceduresPageState extends State<LegalProceduresPage> {
                     builder:
                         (context) => AlertDialog(
                           title: Text(
-                            'Coming Soon!',
+                            l10n.comingSoonExclamation,
                             style: TextStyle(
                               color: Colors.blue.shade700,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          content: const Text(
-                            'Dark mode functionality will be available in the next update!',
-                          ),
+                          content: Text(l10n.darkModeComingSoon),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.pop(context),
                               child: Text(
-                                'OK',
+                                l10n.ok,
                                 style: TextStyle(color: Colors.blue.shade700),
                               ),
                             ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ConsumerQuizPage extends StatefulWidget {
   const ConsumerQuizPage({super.key});
@@ -126,6 +127,7 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
   }
 
   void _showQuizComplete() async {
+    final l10n = AppLocalizations.of(context)!;
     final percentage = ((_score / _getTotalPossibleScore()) * 100).round();
 
     // Upload the score to Firestore
@@ -189,7 +191,7 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              Text('Percentage: $percentage%'),
+              Text(l10n.percentage(percentage.toString())),
               const SizedBox(height: 8),
               Column(
                 children: [
@@ -240,7 +242,7 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
                     vertical: 8,
                   ),
                 ),
-                child: const Text('Restart Quiz'),
+                child: Text(l10n.restartQuiz),
               ),
             ),
             Container(
@@ -281,7 +283,7 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
                   ),
                   textStyle: const TextStyle(fontWeight: FontWeight.bold),
                 ),
-                child: const Text('View Leaderboard'),
+                child: Text(l10n.viewLeaderboard),
               ),
             ),
           ],
@@ -332,6 +334,8 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     if (_isLoading) {
       return Scaffold(
         extendBodyBehindAppBar: true,
