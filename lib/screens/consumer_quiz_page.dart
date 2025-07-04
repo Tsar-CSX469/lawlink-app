@@ -17,10 +17,21 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
   @override
   void initState() {
     super.initState();
-    _quizService.loadQuizFromFirestore().then((_) {
-      setState(() {});
-    });
+    _initializeQuiz();
     _pageController = PageController();
+  }
+
+  // Initialize quiz with lives system
+  Future<void> _initializeQuiz() async {
+    await _quizService.loadUserLives();
+    await _quizService.loadQuizFromFirestore();
+    
+    // Create game session when quiz starts
+    if (_quizService.questions.isNotEmpty) {
+      await _quizService.createGameSession('consumer_affairs_quiz');
+    }
+    
+    setState(() {});
   }
 
   @override
@@ -63,33 +74,208 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
           SafeArea(
             bottom: true,
             maintainBottomViewPadding: true,
-            child: QuizQuestionWidget(
-              quizService: _quizService,
-              onAnswer: (correct, explanation, points, answerIndex) {
-                setState(() {
-                  _quizService.answerQuestion(
-                      correct, explanation, points, answerIndex);
-                });
-              },
-              onNext: () {
-                if (_quizService.currentQuestion <
-                    _quizService.questions.length - 1) {
+            child: IgnorePointer(
+              ignoring: _quizService.gameOver,
+              child: QuizQuestionWidget(
+                quizService: _quizService,
+                onAnswer: (correct, explanation, points, answerIndex) async {
                   setState(() {
-                    _quizService.nextQuestion();
+                    _quizService.answerQuestion(
+                        correct, explanation, points, answerIndex);
                   });
-                } else {
-                  QuizCompletionDialog.show(context, _quizService,
-                      onRestart: () {
+                  
+                  // Handle life reduction through service (includes database update)
+                  if (!correct) {
+                    await _quizService.reduceLife();
+                    
+                    // Check if game over after life reduction
+                    if (_quizService.gameOver) {
+                      Future.delayed(const Duration(milliseconds: 1500), () {
+                        if (mounted) {
+                          _showGameOverDialog();
+                        }
+                      });
+                    }
+                  }
+                  
+                  // Update UI after life changes
+                  setState(() {});
+                },
+                onNext: () async {
+                  if (_quizService.currentQuestion <
+                      _quizService.questions.length - 1) {
                     setState(() {
-                      _quizService.restartQuiz();
+                      _quizService.nextQuestion();
                     });
-                  });
-                }
-              },
+                  } else {
+                    // Complete game session when quiz finishes
+                    await _quizService.completeGameSession();
+                    
+                    if (mounted) {
+                      QuizCompletionDialog.show(context, _quizService,
+                          onRestart: () async {
+                        await _quizService.loadUserLives(); // Reload current lives
+                        await _quizService.createGameSession('consumer_affairs_quiz'); // New session
+                        setState(() {
+                          _quizService.restartQuizWithLives();
+                        });
+                      });
+                    }
+                  }
+                },
+              ),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildLivesIndicator() {
+    final currentLives = _quizService.currentLives;
+    
+    return Container(
+      margin: const EdgeInsets.only(right: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: currentLives > 2 ? Colors.green.shade100 : 
+               currentLives > 1 ? Colors.orange.shade100 : 
+               Colors.red.shade100,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: currentLives > 2 ? Colors.green.shade300 : 
+                 currentLives > 1 ? Colors.orange.shade300 : 
+                 Colors.red.shade300,
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            child: Icon(
+              _quizService.isLifeAnimating ? Icons.heart_broken : Icons.favorite,
+              color: currentLives > 2 ? Colors.green.shade600 : 
+                     currentLives > 1 ? Colors.orange.shade600 : 
+                     Colors.red.shade600,
+              size: 16,
+            ),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            '$currentLives',
+            style: TextStyle(
+              color: currentLives > 2 ? Colors.green.shade700 : 
+                     currentLives > 1 ? Colors.orange.shade700 : 
+                     Colors.red.shade700,
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showGameOverDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Row(
+            children: [
+              Icon(Icons.heart_broken, color: Colors.red.shade400, size: 28),
+              const SizedBox(width: 8),
+              const Text(
+                'Game Over!',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'You\'ve run out of lives!',
+                style: TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Final Score: ${_quizService.score}',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 12),
+              FutureBuilder<Duration?>(
+                future: _quizService.getTimeUntilNextLife(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData && snapshot.data != null) {
+                    final duration = snapshot.data!;
+                    final hours = duration.inHours;
+                    final minutes = duration.inMinutes.remainder(60);
+                    
+                    return Text(
+                      'Next life in: ${hours}h ${minutes}m',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey.shade600,
+                      ),
+                    );
+                  }
+                  return const SizedBox.shrink();
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).pop(); // Go back to previous screen
+              },
+              child: const Text('Exit Quiz'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                
+                // Check if user has lives to restart
+                await _quizService.loadUserLives();
+                if (_quizService.currentLives > 0) {
+                  await _quizService.createGameSession('consumer_affairs_quiz');
+                  setState(() {
+                    _quizService.restartQuizWithLives();
+                  });
+                } else {
+                  // Show message about no lives
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('No lives available. Wait for regeneration.'),
+                      ),
+                    );
+                  }
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue.shade600,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Restart Quiz'),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -131,6 +317,10 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
           shadowColor: Colors.transparent,
           iconTheme: IconThemeData(color: Colors.blue.shade700),
           actions: [
+            // Lives indicator
+            _buildLivesIndicator(),
+            
+            // Score container
             Container(
               margin: const EdgeInsets.only(right: 16),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -269,9 +459,7 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: () {
-                            setState(() {
-                              _quizService.loadQuizFromFirestore();
-                            });
+                            _initializeQuiz();
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.blue.shade600,

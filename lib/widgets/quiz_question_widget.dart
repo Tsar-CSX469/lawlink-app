@@ -278,17 +278,45 @@ class QuizQuestionWidget extends StatelessWidget {
                         ),
                         const SizedBox(width: 12),
                         Expanded(
-                          child: Text(
-                            quizService.isCorrect
-                                ? 'Correct! (+$currentPoints pts)'
-                                : 'Incorrect.',
-                            style: TextStyle(
-                              color: quizService.isCorrect
-                                  ? Colors.green.shade800
-                                  : Colors.red.shade800,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                quizService.isCorrect
+                                    ? 'Correct! (+$currentPoints pts)'
+                                    : 'Incorrect.',
+                                style: TextStyle(
+                                  color: quizService.isCorrect
+                                      ? Colors.green.shade800
+                                      : Colors.red.shade800,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              // Add life loss indicator for wrong answers
+                              if (!quizService.isCorrect)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 4),
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.heart_broken,
+                                        color: Colors.red.shade600,
+                                        size: 16,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        '-1 Life',
+                                        style: TextStyle(
+                                          color: Colors.red.shade600,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                            ],
                           ),
                         ),
                       ],
