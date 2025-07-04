@@ -12,8 +12,7 @@ const app = createExpressApp();
  * Body: { name?: string }
  */
 app.post('/greeting', asyncHandler(async (req: Request, res: Response) => {
-  // Basic validation (optional for greeting)
-  const { name } = JSON.parse(req.body);
+  const { name } = req.body || {};
   
   // Generate message
   const message = generateWelcomeMessage(name || "Anonymous");
