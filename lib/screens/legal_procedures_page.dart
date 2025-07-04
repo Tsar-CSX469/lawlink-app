@@ -270,6 +270,55 @@ class _LegalProceduresPageState extends State<LegalProceduresPage> {
     }
 
     try {
+      // Get current vote data before making changes
+      final currentVoteData = await _getVoteData(procedureId);
+      final currentUserVote = currentVoteData['userVote'];
+
+      // Optimistically update the cache for immediate UI feedback
+      Map<String, dynamic> optimisticVoteData = Map.from(currentVoteData);
+
+      if (currentUserVote == voteType) {
+        // User is removing their vote
+        if (voteType == 'upvote') {
+          optimisticVoteData['upvotes'] =
+              (optimisticVoteData['upvotes'] as int) - 1;
+        } else {
+          optimisticVoteData['downvotes'] =
+              (optimisticVoteData['downvotes'] as int) - 1;
+        }
+        optimisticVoteData['userVote'] = null;
+      } else {
+        // User is changing their vote or voting for the first time
+        if (currentUserVote == 'upvote') {
+          optimisticVoteData['upvotes'] =
+              (optimisticVoteData['upvotes'] as int) - 1;
+        } else if (currentUserVote == 'downvote') {
+          optimisticVoteData['downvotes'] =
+              (optimisticVoteData['downvotes'] as int) - 1;
+        }
+
+        if (voteType == 'upvote') {
+          optimisticVoteData['upvotes'] =
+              (optimisticVoteData['upvotes'] as int) + 1;
+        } else {
+          optimisticVoteData['downvotes'] =
+              (optimisticVoteData['downvotes'] as int) + 1;
+        }
+        optimisticVoteData['userVote'] = voteType;
+      }
+
+      optimisticVoteData['netVotes'] =
+          (optimisticVoteData['upvotes'] as int) -
+          (optimisticVoteData['downvotes'] as int);
+
+      // Update cache with optimistic data
+      _voteCache[procedureId] = optimisticVoteData;
+
+      // Update UI immediately
+      if (mounted) {
+        setState(() {});
+      }
+
       final voteCollection = FirebaseFirestore.instance.collection(
         'procedure_votes',
       );
@@ -286,10 +335,6 @@ class _LegalProceduresPageState extends State<LegalProceduresPage> {
         await doc.reference.delete();
       }
 
-      // Get current vote data to check if it's the same vote type
-      final currentVoteData = await _getVoteData(procedureId);
-      final currentUserVote = currentVoteData['userVote'];
-
       if (currentUserVote != voteType) {
         // Add new vote
         await voteCollection.add({
@@ -300,14 +345,20 @@ class _LegalProceduresPageState extends State<LegalProceduresPage> {
         });
       }
 
-      // Clear cache for this procedure to force refresh
+      // Silently refresh the cache with actual data from server
+      // but don't call setState to avoid visual flicker
       _voteCache.remove(procedureId);
+      await _getVoteData(procedureId);
+      
+    } catch (e) {
+      print('Error handling vote: $e');
 
+      // Revert optimistic update on error
+      _voteCache.remove(procedureId);
       if (mounted) {
         setState(() {});
       }
-    } catch (e) {
-      print('Error handling vote: $e');
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Error processing vote. Please try again.'),

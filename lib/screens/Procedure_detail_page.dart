@@ -224,16 +224,15 @@ class _ProcedureDetailPageState extends State<ProcedureDetailPage>
     final l10n = AppLocalizations.of(context)!;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.check_circle, color: Colors.white),
-            const SizedBox(width: 8),
-            Text(l10n.stepCompleted('${stepIndex + 1}')),
-          ],
-        ),
-        backgroundColor: Colors.green.shade600,
-        duration: const Duration(seconds: 2),
+      SnackBar(          content: Row(
+            children: [
+              const Icon(Icons.check_circle, color: Colors.white),
+              const SizedBox(width: 8),
+              Text(l10n.stepCompleted('${stepIndex + 1}')),
+            ],
+          ),
+          backgroundColor: Colors.blue.shade600,
+          duration: const Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.all(16),
@@ -275,7 +274,7 @@ class _ProcedureDetailPageState extends State<ProcedureDetailPage>
                 Text(l10n.commentAddedSuccessfully),
               ],
             ),
-            backgroundColor: Colors.green.shade600,
+            backgroundColor: Colors.blue.shade600,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
@@ -801,7 +800,7 @@ class _ProcedureDetailPageState extends State<ProcedureDetailPage>
                                     decoration: BoxDecoration(
                                       color:
                                           completedSteps.length == steps.length
-                                              ? Colors.green
+                                              ? Colors.blue.shade600
                                               : categoryColor,
                                       borderRadius: BorderRadius.circular(20),
                                     ),
@@ -831,7 +830,7 @@ class _ProcedureDetailPageState extends State<ProcedureDetailPage>
                                               AlwaysStoppedAnimation<Color>(
                                                 completedSteps.length ==
                                                         steps.length
-                                                    ? Colors.green
+                                                    ? Colors.blue.shade600
                                                     : Colors.blue.shade700,
                                               ),
                                           minHeight: 8,
@@ -905,17 +904,16 @@ class _ProcedureDetailPageState extends State<ProcedureDetailPage>
                                     horizontal: 20,
                                     vertical: 8,
                                   ),
-                                  decoration: BoxDecoration(
-                                    color:
-                                        isCompleted
-                                            ? Colors.green.withOpacity(0.1)
-                                            : Colors.grey.shade50,
-                                    borderRadius: BorderRadius.circular(16),
-                                    border: Border.all(
-                                      color:
-                                          isCompleted
-                                              ? Colors.green.withOpacity(0.3)
-                                              : Colors.grey.shade200,
+                                  decoration: BoxDecoration(                                        color:
+                                            isCompleted
+                                                ? Colors.blue.shade50
+                                                : Colors.grey.shade50,
+                                        borderRadius: BorderRadius.circular(16),
+                                        border: Border.all(
+                                          color:
+                                              isCompleted
+                                                  ? Colors.blue.shade300
+                                                  : Colors.grey.shade200,
                                       width: 1.5,
                                     ),
                                   ),
@@ -932,7 +930,7 @@ class _ProcedureDetailPageState extends State<ProcedureDetailPage>
                                           decoration: BoxDecoration(
                                             color:
                                                 isCompleted
-                                                    ? Colors.green
+                                                    ? Colors.blue.shade600
                                                     : Colors.blue.shade700
                                                         .withOpacity(0.2),
                                             borderRadius: BorderRadius.circular(
@@ -982,7 +980,7 @@ class _ProcedureDetailPageState extends State<ProcedureDetailPage>
                                         ),
                                     controlAffinity:
                                         ListTileControlAffinity.trailing,
-                                    activeColor: Colors.green,
+                                    activeColor: Colors.blue.shade600,
                                     checkColor: Colors.white,
                                   ),
                                 );
