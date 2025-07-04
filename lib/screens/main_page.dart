@@ -6,6 +6,8 @@ import 'package:lawlink/screens/user_profile_page.dart';
 import 'package:lawlink/screens/chatbot_page.dart';
 import 'package:lawlink/screens/legal_procedures_page.dart';
 import 'package:lawlink/screens/settings_page.dart';
+import 'package:lawlink/screens/notifications_page.dart';
+import 'package:lawlink/widgets/notification_badge.dart';
 import 'package:lawlink/act_list_page.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -21,6 +23,7 @@ class _MainPageState extends State<MainPage> {
   String _userName = 'User';
   String? _profileImageUrl;
   bool _isLoading = true;
+  final GlobalKey<NotificationBadgeState> _notificationBadgeKey = GlobalKey();
 
   @override
   void initState() {
@@ -130,6 +133,41 @@ class _MainPageState extends State<MainPage> {
             surfaceTintColor: Colors.transparent,
             shadowColor: Colors.transparent,
             actions: [
+              // Notification icon with badge
+              NotificationBadge(
+                key: _notificationBadgeKey,
+                onTap: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const NotificationsPage(),
+                    ),
+                  );
+                  // Refresh badge when returning from notifications page
+                  _notificationBadgeKey.currentState?.refresh();
+                },
+                child: Container(
+                  margin: const EdgeInsets.only(right: 8),
+                  child: IconButton(
+                    icon: Icon(
+                      Icons.notifications_outlined,
+                      color: Colors.blue.shade700,
+                    ),
+                    tooltip: 'Notifications',
+                    onPressed: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const NotificationsPage(),
+                        ),
+                      );
+                      // Refresh badge when returning from notifications page
+                      _notificationBadgeKey.currentState?.refresh();
+                    },
+                  ),
+                ),
+              ),
+
               // Light/Dark mode toggle
               IconButton(
                 icon: Icon(Icons.light_mode, color: Colors.blue.shade700),

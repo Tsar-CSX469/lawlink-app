@@ -15,6 +15,8 @@ import 'package:provider/provider.dart';
 import 'package:lawlink/services/language_service.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:lawlink/services/enhanced_notification_service.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,7 +25,16 @@ void main() async {
   await dotenv.load(fileName: ".env");
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  runApp(
+
+  // Initialize notification service
+  try {
+    await NotificationService.initialize();
+    await NotificationService.requestPermissions();
+  } catch (e) {
+    print('Notification service initialization failed: $e');
+  }
+
+   runApp(
     ChangeNotifierProvider(
       create: (context) => LanguageService(),
       child: const LegalQuizGame(),
@@ -60,6 +71,7 @@ class LegalQuizGame extends StatelessWidget {
             '/leaderboard': (context) => const LeaderboardPage(),
           },
         );
+
       },
     );
   }
