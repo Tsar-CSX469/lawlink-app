@@ -325,7 +325,9 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
                     _answered = false;
                     _isCorrect = false;
                     _explanation = '';
+                    _score = 0; // Reset the score
                     _selectedAnswerIndex = -1;
+                    _correctOptionId = null; // Reset the correct option ID
                     _userAnswers.clear();
                     _quizStartTime = DateTime.now();
                     _questionStartTime = DateTime.now();
