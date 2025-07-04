@@ -40,7 +40,7 @@
     }
   },
   
-  "welcomeToApp": "නීති සම්බන්ධයට සාදරයෙන් පිළිගනිමු",
+  "welcomeToApp": "Lawlink වෙත සාදරයෙන් පිළිගනිමු!",
   "@welcomeToApp": {
     "description": "Welcome message for new users"
   },
