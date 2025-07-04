@@ -1279,9 +1279,14 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
                                             if (_answered &&
                                                 _isAnswerSelected(answer))
                                               Icon(
-                                                Icons
-                                                    .check_circle_outline_rounded,
-                                                color: Colors.blue.shade700,
+                                                _isCorrect
+                                                    ? Icons
+                                                        .check_circle_outline_rounded
+                                                    : Icons.cancel_outlined,
+                                                color:
+                                                    _isCorrect
+                                                        ? Colors.green.shade700
+                                                        : Colors.red.shade700,
                                                 size: 24,
                                               ),
                                           ],
@@ -1495,9 +1500,15 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
     }
 
     if (_isAnswerSelected(answer)) {
-      return [Colors.blue.shade50, Colors.blue.shade100];
+      // Selected answer: green if correct, red if incorrect
+      if (_isCorrect) {
+        return [Colors.green.shade50, Colors.green.shade100];
+      } else {
+        return [Colors.red.shade50, Colors.red.shade100];
+      }
     }
 
+    // Unselected answers become faded when an answer is selected
     return [Colors.white.withOpacity(0.7), Colors.white.withOpacity(0.7)];
   }
 
@@ -1507,9 +1518,15 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
     }
 
     if (_isAnswerSelected(answer)) {
-      return Colors.blue.shade800;
+      // Selected answer: green text if correct, red text if incorrect
+      if (_isCorrect) {
+        return Colors.green.shade800;
+      } else {
+        return Colors.red.shade800;
+      }
     }
 
+    // Unselected answers become faded gray when an answer is selected
     return Colors.grey.shade500;
   }
 
@@ -1519,9 +1536,15 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
     }
 
     if (_isAnswerSelected(answer)) {
-      return Colors.blue.shade300;
+      // Selected answer: green border if correct, red border if incorrect
+      if (_isCorrect) {
+        return Colors.green.shade300;
+      } else {
+        return Colors.red.shade300;
+      }
     }
 
+    // Unselected answers keep light gray border when an answer is selected
     return Colors.grey.shade200;
   }
 
