@@ -1,38 +1,49 @@
 # LawLink CI/CD Pipeline
 
-This README outlines the CI/CD setup for the **LawLink Flutter application**.
+This document describes the CI/CD pipeline for the LawLink Flutter application.
 
----
+## Pipeline Steps
 
-## Pipeline Overview
-
-The pipeline currently handles:
-- Code analysis (`flutter analyze`)
-- Format check (`dart format`)
-- Unit tests with coverage
+**Step 1: Test & Analyze**
+- Code analysis with `flutter analyze`
+- Code formatting check with `dart format`
+- Unit tests with coverage reporting
 - Triggered on pushes to `main`/`develop` and PRs to `main`
 
----
+**Step 2: Build APK**
+- Debug APK build
+- Release APK build
+- Android App Bundle (AAB) build
+- Upload artifacts with retention policies
+- Dynamic build numbering
 
-## Setup Summary
-
-**Prerequisites:**
-- GitHub repo
-- Flutter project
-- Basic test files
-
-**Key Files:**
-- `.github/workflows/ci-cd.yml`
-- `test/widget_test.dart`
-- `test/chat_storage_service_test.dart`
-
----
-
-## Run Tests Locally
+## Local Testing
 
 ```bash
 flutter pub get
-flutter analyze
+flutter analyze --no-fatal-infos
 dart format --set-exit-if-changed .
 flutter test
 flutter test --coverage
+```
+
+## Build Commands
+
+```bash
+flutter build apk --debug
+flutter build apk --release
+flutter build appbundle --release
+```
+
+## Artifacts
+
+- Debug APK: 30 days retention
+- Release APK: 90 days retention
+- Release AAB: 90 days retention
+
+## Next Steps
+
+Future enhancements:
+- Firebase App Distribution deployment
+- Google Play Store integration
+- iOS build support
