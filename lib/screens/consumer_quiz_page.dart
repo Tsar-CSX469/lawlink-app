@@ -530,7 +530,7 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              Text('Percentage: $percentage%'),
+              Text('$percentage%'),
               const SizedBox(height: 8),
               Column(
                 children: [
@@ -722,6 +722,82 @@ class ConsumerQuizPageState extends State<ConsumerQuizPage> {
     // Check if using the modular approach (lives system)
     if (_questions.isEmpty && _quizService.questions.isNotEmpty) {
       return _buildModularQuizInterface();
+    }
+
+    if (_isLoading) {
+      return Scaffold(
+        extendBodyBehindAppBar: true,
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(kToolbarHeight),
+          child: Container(
+            decoration: BoxDecoration(
+              color:
+                  Theme.of(context).appBarTheme.backgroundColor ?? Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.blue.withOpacity(0.1),
+                  spreadRadius: 0,
+                  blurRadius: 15,
+                  offset: const Offset(0, 1),
+                ),
+              ],
+            ),
+            child: AppBar(
+              title: ShaderMask(
+                shaderCallback:
+                    (bounds) => LinearGradient(
+                      colors: [Colors.blue.shade800, Colors.blue.shade300],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ).createShader(bounds),
+                child: const Text(
+                  'Consumer Quiz',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              scrolledUnderElevation: 0,
+              surfaceTintColor: Colors.transparent,
+              shadowColor: Colors.transparent,
+              iconTheme: IconThemeData(color: Colors.blue.shade700),
+            ),
+          ),
+        ),
+        body: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Colors.white, Colors.blue.shade50],
+              stops: const [0.7, 1.0],
+            ),
+          ),
+          child: const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                ),
+                SizedBox(height: 20),
+                Text(
+                  'Loading quiz questions...',
+                  style: TextStyle(
+                    color: Colors.blue,
+                    fontWeight: FontWeight.w500,
+                    fontSize: 16,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
     }
 
     // Use traditional interface for API-based quiz

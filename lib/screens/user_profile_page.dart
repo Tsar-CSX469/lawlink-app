@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../services/auth_service.dart';
 
 class UserProfilePage extends StatefulWidget {
@@ -36,6 +37,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     if (_isLoading) {
       return Scaffold(
         body: Center(
@@ -57,10 +60,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
               stops: const [0.7, 1.0],
             ),
           ),
-          child: const Center(
+          child: Center(
             child: Text(
-              'No user logged in',
-              style: TextStyle(fontSize: 18, color: Colors.grey),
+              l10n.noUserLoggedIn,
+              style: const TextStyle(fontSize: 18, color: Colors.grey),
             ),
           ),
         ),
@@ -94,9 +97,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ).createShader(bounds),
-              child: const Text(
-                'My Profile',
-                style: TextStyle(
+              child: Text(
+                l10n.myProfile,
+                style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
@@ -114,7 +117,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
               IconButton(
                 icon: const Icon(Icons.light_mode),
                 color: Colors.blue.shade700, // Ensure consistent blue color
-                tooltip: 'Toggle Light Mode',
+                tooltip: l10n.toggleLightMode,
                 onPressed: () {
                   // Show Coming Soon alert
                   showDialog(
@@ -122,20 +125,18 @@ class _UserProfilePageState extends State<UserProfilePage> {
                     builder:
                         (context) => AlertDialog(
                           title: Text(
-                            'Coming Soon!',
+                            l10n.comingSoonExclamation,
                             style: TextStyle(
                               color: Colors.blue.shade700,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          content: const Text(
-                            'Dark mode functionality will be available in the next update!',
-                          ),
+                          content: Text(l10n.darkModeComingSoon),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.pop(context),
                               child: Text(
-                                'OK',
+                                l10n.ok,
                                 style: TextStyle(color: Colors.blue.shade700),
                               ),
                             ),
@@ -158,9 +159,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
                   ),
                   child: ElevatedButton.icon(
                     icon: const Icon(Icons.logout, size: 16),
-                    label: const Text(
-                      'Log Out',
-                      style: TextStyle(fontSize: 12),
+                    label: Text(
+                      l10n.logOut,
+                      style: const TextStyle(fontSize: 12),
                     ),
                     onPressed: () async {
                       await _authService.signOut();
@@ -277,8 +278,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
                             const SizedBox(width: 6),
                             Text(
                               _currentUser!.emailVerified
-                                  ? 'Verified Account'
-                                  : 'Email not verified',
+                                  ? l10n.verifiedAccount
+                                  : l10n.emailNotVerified,
                               style: TextStyle(
                                 color:
                                     _currentUser!.emailVerified
@@ -319,7 +320,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                             ),
                             const SizedBox(width: 12),
                             Text(
-                              'Account Information',
+                              l10n.accountInformation,
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -330,23 +331,23 @@ class _UserProfilePageState extends State<UserProfilePage> {
                         ),
                         const SizedBox(height: 16),
                         _buildInfoRow(
-                          label: 'Name',
+                          label: l10n.name,
                           value:
                               _currentUser!.displayName ??
                               userData?['username'] ??
-                              'Not set',
+                              l10n.notSet,
                           icon: Icons.person_outline,
                         ),
                         const Divider(height: 24),
                         _buildInfoRow(
-                          label: 'Email',
-                          value: _currentUser!.email ?? 'Not set',
+                          label: l10n.email,
+                          value: _currentUser!.email ?? l10n.notSet,
                           icon: Icons.email_outlined,
                         ),
                         if (userData?['createdAt'] != null) ...[
                           const Divider(height: 24),
                           _buildInfoRow(
-                            label: 'Member Since',
+                            label: l10n.memberSince,
                             value: _formatDate(userData!['createdAt']),
                             icon: Icons.calendar_today_outlined,
                           ),
@@ -381,7 +382,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                             ),
                             const SizedBox(width: 12),
                             Text(
-                              'Security',
+                              l10n.security,
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -396,7 +397,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                             Icons.lock_outline,
                             color: Colors.blue.shade400,
                           ),
-                          title: const Text('Change Password'),
+                          title: Text(l10n.changePassword),
                           trailing: const Icon(Icons.chevron_right),
                           contentPadding: EdgeInsets.zero,
                           onTap: () {
@@ -410,7 +411,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                             Icons.verified_user_outlined,
                             color: Colors.blue.shade400,
                           ),
-                          title: const Text('Two-Factor Authentication'),
+                          title: Text(l10n.twoFactorAuth),
                           trailing: const Icon(Icons.chevron_right),
                           contentPadding: EdgeInsets.zero,
                           onTap: () {
@@ -480,17 +481,16 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   void _showFeatureComingSoonDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder:
           (context) => AlertDialog(
             title: Text(
-              'Coming Soon',
+              l10n.comingSoon,
               style: TextStyle(color: Colors.blue.shade700),
             ),
-            content: const Text(
-              'This feature will be available in a future update.',
-            ),
+            content: Text(l10n.featureComingSoon),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),
@@ -498,7 +498,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
               TextButton(
                 onPressed: () => Navigator.pop(context),
                 child: Text(
-                  'OK',
+                  l10n.ok,
                   style: TextStyle(color: Colors.blue.shade700),
                 ),
               ),
