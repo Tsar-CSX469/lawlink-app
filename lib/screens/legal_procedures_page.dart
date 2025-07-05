@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:lawlink/screens/procedure_detail_page.dart';
+import 'package:lawlink/screens/Procedure_detail_page.dart';
 
 class LegalProceduresPage extends StatefulWidget {
   const LegalProceduresPage({Key? key}) : super(key: key);
