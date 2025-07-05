@@ -30,7 +30,7 @@ void main() async {
   try {
     await dotenv.load(fileName: ".env");
     print('✅ Environment variables loaded successfully');
-    
+
     // Verify critical environment variables
     final geminiKey = dotenv.env['GEMINI_API_KEY'];
     if (geminiKey == null || geminiKey.isEmpty) {
@@ -45,7 +45,9 @@ void main() async {
 
   // Initialize Firebase
   try {
-    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
     print('✅ Firebase initialized successfully');
   } catch (e) {
     print('❌ Firebase initialization failed: $e');

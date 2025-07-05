@@ -23,7 +23,7 @@ class ChatbotService {
     try {
       // Get API key from environment variables
       _apiKey = dotenv.env['GEMINI_API_KEY'] ?? '';
-      
+
       if (_apiKey.isEmpty) {
         throw Exception('GEMINI_API_KEY not found in environment variables');
       }
@@ -38,7 +38,7 @@ class ChatbotService {
           maxOutputTokens: 2048,
         ),
       );
-      
+
       _isInitialized = true;
       print('✅ ChatbotService initialized successfully');
     } catch (e) {
@@ -66,7 +66,7 @@ class ChatbotService {
           ? "Sorry, I'm currently unable to process your request. There was an issue initializing the AI service: $errorMsg. Please try again later."
           : "සමාවන්න, මට දැනට ඔබේ ඉල්ලීම සැකසීමට නොහැක. AI සේවාව ආරම්භ කිරීමේදී ගැටලුවක් ඇතිවිය: $errorMsg. කරුණාකර පසුව නැවත උත්සහ කරන්න.";
     }
-    
+
     try {
       // Check if asking about who created LawLink AI
       if (_isAskingAboutCreator(newMessageText)) {

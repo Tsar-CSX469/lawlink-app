@@ -159,7 +159,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
   @override
   void initState() {
     super.initState();
-    
+
     // Initialize chatbot service safely
     try {
       _chatbotService = ChatbotService();
@@ -302,12 +302,14 @@ class _ChatbotPageState extends State<ChatbotPage> {
 
   Future<void> _sendMessage(String text) async {
     if (text.trim().isEmpty) return;
-    
+
     // Check if chatbot service is available
     if (_chatbotService == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Chatbot service is not available. Please try again later.'),
+          content: Text(
+            'Chatbot service is not available. Please try again later.',
+          ),
           backgroundColor: Colors.red,
         ),
       );
