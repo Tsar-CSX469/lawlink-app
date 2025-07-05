@@ -11,6 +11,7 @@ import 'package:lawlink/screens/consumer_quiz_page.dart';
 import 'package:lawlink/screens/quiz_menu_page.dart';
 import 'package:lawlink/screens/leaderboard_page.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:lawlink/act_list_page.dart';
 import 'package:provider/provider.dart';
 import 'package:lawlink/services/language_service.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -88,6 +89,7 @@ class LegalQuizGame extends StatelessWidget {
             '/quiz/consumer': (context) => const ConsumerQuizPage(),
             '/procedures': (context) => const LegalProceduresPage(),
             '/leaderboard': (context) => const LeaderboardPage(),
+            '/acts': (context) => const ActListPage(),
           },
         );
       },
