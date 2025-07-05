@@ -12,22 +12,43 @@ class ChatbotService {
   late final String _apiKey;
   late GenerativeModel _model;
   String _selectedLanguage = 'English';
+  bool _isInitialized = false;
+  String? _initializationError;
 
   ChatbotService() {
-    // Get API key from environment variables
-    _apiKey = dotenv.env['GEMINI_API_KEY'] ?? '';
-
-    _model = GenerativeModel(
-      model: 'gemini-2.5-flash',
-      apiKey: _apiKey,
-      generationConfig: GenerationConfig(
-        temperature: 0.7,
-        topK: 40,
-        topP: 0.95,
-        maxOutputTokens: 2048,
-      ),
-    );
+    _initializeService();
   }
+
+  void _initializeService() {
+    try {
+      // Get API key from environment variables
+      _apiKey = dotenv.env['GEMINI_API_KEY'] ?? '';
+      
+      if (_apiKey.isEmpty) {
+        throw Exception('GEMINI_API_KEY not found in environment variables');
+      }
+
+      _model = GenerativeModel(
+        model: 'gemini-2.5-flash',
+        apiKey: _apiKey,
+        generationConfig: GenerationConfig(
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 2048,
+        ),
+      );
+      
+      _isInitialized = true;
+      print('✅ ChatbotService initialized successfully');
+    } catch (e) {
+      _initializationError = e.toString();
+      print('❌ ChatbotService initialization failed: $e');
+    }
+  }
+
+  bool get isInitialized => _isInitialized;
+  String? get initializationError => _initializationError;
 
   void sendSystemPrompt(String language) {
     _selectedLanguage = language;
@@ -38,6 +59,14 @@ class ChatbotService {
     List<Message> chatHistory, {
     BuildContext? context,
   }) async {
+    // Check if service is properly initialized
+    if (!_isInitialized) {
+      final errorMsg = _initializationError ?? 'Service not initialized';
+      return _selectedLanguage == 'English'
+          ? "Sorry, I'm currently unable to process your request. There was an issue initializing the AI service: $errorMsg. Please try again later."
+          : "සමාවන්න, මට දැනට ඔබේ ඉල්ලීම සැකසීමට නොහැක. AI සේවාව ආරම්භ කිරීමේදී ගැටලුවක් ඇතිවිය: $errorMsg. කරුණාකර පසුව නැවත උත්සහ කරන්න.";
+    }
+    
     try {
       // Check if asking about who created LawLink AI
       if (_isAskingAboutCreator(newMessageText)) {

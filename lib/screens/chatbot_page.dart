@@ -155,11 +155,19 @@ class _ChatbotPageState extends State<ChatbotPage> {
   String _recordedAudioPath = '';
   final ScrollController _scrollController = ScrollController();
 
-  late ChatbotService _chatbotService;
+  late ChatbotService? _chatbotService;
   @override
   void initState() {
     super.initState();
-    _chatbotService = ChatbotService(); // Initialize here
+    
+    // Initialize chatbot service safely
+    try {
+      _chatbotService = ChatbotService();
+      print('✅ ChatbotService created in initState');
+    } catch (e) {
+      print('❌ Failed to create ChatbotService in initState: $e');
+      _chatbotService = null;
+    }
 
     // Initialize without blocking the UI
     _isLoading = false;
@@ -180,11 +188,6 @@ class _ChatbotPageState extends State<ChatbotPage> {
     _textController.dispose();
     _scrollController.dispose();
     super.dispose();
-  }
-
-  Future<void> _initializeServices() async {
-    await _requestPermissions();
-    await _initializeSpeech();
   }
 
   /// Quick, non-blocking initialization
@@ -299,6 +302,17 @@ class _ChatbotPageState extends State<ChatbotPage> {
 
   Future<void> _sendMessage(String text) async {
     if (text.trim().isEmpty) return;
+    
+    // Check if chatbot service is available
+    if (_chatbotService == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Chatbot service is not available. Please try again later.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
 
     // Check if the text is a follow-up tag from a previous message
     bool isFollowUpTag = false;
@@ -357,7 +371,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
       // Use the original query with context if this is a follow-up tag
       final query = isFollowUpTag ? originalQuery : text;
 
-      final response = await _chatbotService.sendMessage(
+      final response = await _chatbotService!.sendMessage(
         query,
         historyToSend,
         context: context,
@@ -794,7 +808,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
 
     _scrollToBottom(); // Process audio with speech-to-text
     // Note: In a real implementation, you would send the audio to a speech-to-text service
-    final response = await _chatbotService.sendMessage(
+    final response = await _chatbotService!.sendMessage(
       "User sent an audio message",
       List.from(_messages),
       context: context,
@@ -963,7 +977,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
       }
 
       // Analyze the image with the user's question
-      final response = await _chatbotService.analyzeImage(
+      final response = await _chatbotService!.analyzeImage(
         imagePath,
         userQuestion: userQuestion.isNotEmpty ? userQuestion : null,
       );
@@ -987,7 +1001,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
 
   Future<void> _processDocumentWithAI(PlatformFile file) async {
     try {
-      final response = await _chatbotService.analyzeDocument(file);
+      final response = await _chatbotService!.analyzeDocument(file);
       final aiMessage = Message(
         isUser: false,
         text: response,
@@ -1520,7 +1534,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
     // Add a system message to set the language (not visible to user)
 
     // Send system message to chatbot service without displaying in UI
-    _chatbotService.sendSystemPrompt(language);
+    _chatbotService?.sendSystemPrompt(language);
 
     // Add a user-visible message about language change
     final Message languageChangeMessage = Message(
@@ -1722,7 +1736,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
       }
 
       // Use an invisible query to refresh the context
-      await _chatbotService.sendMessage(
+      await _chatbotService!.sendMessage(
         "Refresh your memory with the conversation context. Don't reply to this message.",
         recentMessages,
       );

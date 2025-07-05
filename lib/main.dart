@@ -22,16 +22,25 @@ import 'package:lawlink/services/background_chat_service.dart';
 import 'package:lawlink/services/chatbot_initialization_service.dart';
 
 void main() async {
+  // Ensure Flutter binding is initialized first
   WidgetsFlutterBinding.ensureInitialized();
   print('🚀 App starting...');
 
-  // Load environment variables (optional - may not exist in all environments)
+  // Load environment variables FIRST (critical for API keys)
   try {
     await dotenv.load(fileName: ".env");
     print('✅ Environment variables loaded successfully');
+    
+    // Verify critical environment variables
+    final geminiKey = dotenv.env['GEMINI_API_KEY'];
+    if (geminiKey == null || geminiKey.isEmpty) {
+      print('⚠️ Warning: GEMINI_API_KEY not found in environment variables');
+    } else {
+      print('✅ GEMINI_API_KEY found (${geminiKey.length} characters)');
+    }
   } catch (e) {
-    print('⚠️ Environment variables not found or failed to load: $e');
-    // Continue without .env file
+    print('❌ Environment variables failed to load: $e');
+    print('⚠️ App may not function properly without environment variables');
   }
 
   // Initialize Firebase
