@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ProcedureDetailPage extends StatefulWidget {
   final String procedureId;
@@ -85,9 +86,18 @@ class _ProcedureDetailPageState extends State<ProcedureDetailPage>
   }
 
   void _updateProgressAnimation() {
-    final steps = widget.procedureData['steps'] as List? ?? [];
-    if (steps.isNotEmpty) {
-      final progress = completedSteps.length / steps.length;
+    final stepsData = widget.procedureData['steps'];
+    int totalSteps = 0;
+
+    if (stepsData is List) {
+      totalSteps = stepsData.length;
+    } else if (stepsData is String) {
+      // If steps is a string, treat it as a single step
+      totalSteps = 1;
+    }
+
+    if (totalSteps > 0) {
+      final progress = completedSteps.length / totalSteps;
       _progressAnimationController.animateTo(progress);
     }
   }
@@ -125,6 +135,8 @@ class _ProcedureDetailPageState extends State<ProcedureDetailPage>
   Future<void> _toggleStepCompletion(int stepIndex, bool isCompleted) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
+    // Check current completion state
+    final bool wasEmpty = completedSteps.isEmpty;
 
     setState(() {
       if (isCompleted) {
@@ -139,15 +151,57 @@ class _ProcedureDetailPageState extends State<ProcedureDetailPage>
     _updateProgressAnimation();
 
     try {
+      final Map<String, dynamic> updateData = {
+        'userId': user.uid,
+        'procedureId': widget.procedureId,
+        'procedureName': widget.procedureData['title'] ?? 'Unknown Procedure',
+        'completedSteps': completedSteps,
+        'lastUpdated': FieldValue.serverTimestamp(),
+      };
+
+      // Determine total steps
+      final stepsData = widget.procedureData['steps'];
+      int totalSteps = 0;
+
+      if (stepsData is List) {
+        totalSteps = stepsData.length;
+      } else if (stepsData is String) {
+        // If steps is a string, treat it as a single step
+        totalSteps = 1;
+      }
+
+      // Always set status based on current completion state
+      String newStatus;
+      bool shouldUpdateStatusTimestamp = false;
+
+      if (completedSteps.isEmpty) {
+        newStatus = 'Not Started';
+        shouldUpdateStatusTimestamp = true;
+      } else if (totalSteps > 0 && completedSteps.length == totalSteps) {
+        newStatus = 'Completed';
+        shouldUpdateStatusTimestamp = true;
+      } else {
+        newStatus = 'In Progress';
+        // Always update timestamp for "In Progress" status to ensure notifications work
+        shouldUpdateStatusTimestamp = true;
+        // Check if this is transitioning to "In Progress" for the first time
+        final bool isFirstStep =
+            wasEmpty && completedSteps.isNotEmpty && isCompleted;
+        if (isFirstStep) {
+          updateData['overdueNotificationSent'] =
+              false; // Reset notification flag
+        }
+      }
+
+      updateData['status'] = newStatus;
+      if (shouldUpdateStatusTimestamp) {
+        updateData['statusUpdatedAt'] = FieldValue.serverTimestamp();
+      }
+
       await FirebaseFirestore.instance
           .collection('user_procedures')
           .doc('${user.uid}_${widget.procedureId}')
-          .set({
-            'userId': user.uid,
-            'procedureId': widget.procedureId,
-            'completedSteps': completedSteps,
-            'lastUpdated': FieldValue.serverTimestamp(),
-          });
+          .set(updateData);
 
       // Show success animation
       if (isCompleted) {
@@ -155,7 +209,6 @@ class _ProcedureDetailPageState extends State<ProcedureDetailPage>
       }
     } catch (e) {
       print('Error saving progress: $e');
-      // Revert the UI change if save failed
       setState(() {
         if (isCompleted) {
           completedSteps.remove(stepIndex);
@@ -168,16 +221,18 @@ class _ProcedureDetailPageState extends State<ProcedureDetailPage>
   }
 
   void _showStepCompletedAnimation(int stepIndex) {
+    final l10n = AppLocalizations.of(context)!;
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
           children: [
             const Icon(Icons.check_circle, color: Colors.white),
             const SizedBox(width: 8),
-            Text('Step ${stepIndex + 1} completed!'),
+            Text(l10n.stepCompleted('${stepIndex + 1}')),
           ],
         ),
-        backgroundColor: Colors.green.shade600,
+        backgroundColor: Colors.blue.shade600,
         duration: const Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -187,6 +242,7 @@ class _ProcedureDetailPageState extends State<ProcedureDetailPage>
   }
 
   Future<void> _submitComment() async {
+    final l10n = AppLocalizations.of(context)!;
     final user = FirebaseAuth.instance.currentUser;
     if (user == null || _commentController.text.trim().isEmpty) return;
 
@@ -212,14 +268,14 @@ class _ProcedureDetailPageState extends State<ProcedureDetailPage>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Row(
+            content: Row(
               children: [
-                Icon(Icons.comment, color: Colors.white),
-                SizedBox(width: 8),
-                Text('Comment added successfully'),
+                const Icon(Icons.comment, color: Colors.white),
+                const SizedBox(width: 8),
+                Text(l10n.commentAddedSuccessfully),
               ],
             ),
-            backgroundColor: Colors.green.shade600,
+            backgroundColor: Colors.blue.shade600,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
@@ -233,11 +289,11 @@ class _ProcedureDetailPageState extends State<ProcedureDetailPage>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Row(
+            content: Row(
               children: [
-                Icon(Icons.error, color: Colors.white),
-                SizedBox(width: 8),
-                Text('Failed to add comment'),
+                const Icon(Icons.error, color: Colors.white),
+                const SizedBox(width: 8),
+                Text(l10n.failedToAddComment),
               ],
             ),
             backgroundColor: Colors.red.shade600,
@@ -259,6 +315,8 @@ class _ProcedureDetailPageState extends State<ProcedureDetailPage>
   }
 
   Future<void> _deleteComment(String commentId) async {
+    final l10n = AppLocalizations.of(context)!;
+
     try {
       await FirebaseFirestore.instance
           .collection('procedures')
@@ -272,11 +330,11 @@ class _ProcedureDetailPageState extends State<ProcedureDetailPage>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Row(
+            content: Row(
               children: [
-                Icon(Icons.delete, color: Colors.white),
-                SizedBox(width: 8),
-                Text('Comment deleted successfully'),
+                const Icon(Icons.delete, color: Colors.white),
+                const SizedBox(width: 8),
+                Text(l10n.commentDeletedSuccessfully),
               ],
             ),
             backgroundColor: Colors.orange.shade600,
@@ -293,11 +351,11 @@ class _ProcedureDetailPageState extends State<ProcedureDetailPage>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Row(
+            content: Row(
               children: [
-                Icon(Icons.error, color: Colors.white),
-                SizedBox(width: 8),
-                Text('Failed to delete comment'),
+                const Icon(Icons.error, color: Colors.white),
+                const SizedBox(width: 8),
+                Text(l10n.failedToDeleteComment),
               ],
             ),
             backgroundColor: Colors.red.shade600,
@@ -313,6 +371,8 @@ class _ProcedureDetailPageState extends State<ProcedureDetailPage>
   }
 
   void _showDeleteCommentDialog(String commentId) {
+    final l10n = AppLocalizations.of(context)!;
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -363,7 +423,7 @@ class _ProcedureDetailPageState extends State<ProcedureDetailPage>
                   vertical: 12,
                 ),
               ),
-              child: const Text('Delete', style: TextStyle(fontSize: 16)),
+              child: Text(l10n.delete, style: const TextStyle(fontSize: 16)),
             ),
           ],
         );
@@ -411,7 +471,19 @@ class _ProcedureDetailPageState extends State<ProcedureDetailPage>
 
   @override
   Widget build(BuildContext context) {
-    final List<dynamic> steps = widget.procedureData['steps'] ?? [];
+    final l10n = AppLocalizations.of(context)!;
+    final dynamic stepsData = widget.procedureData['steps'];
+    final List<dynamic> steps;
+
+    if (stepsData is List) {
+      steps = stepsData;
+    } else if (stepsData is String) {
+      // If steps is a string, treat it as a single step
+      steps = [stepsData];
+    } else {
+      steps = [];
+    }
+
     final List<dynamic> prerequisites =
         widget.procedureData['prerequisites'] ?? [];
     final String category = widget.procedureData['category'] ?? '';
@@ -729,7 +801,7 @@ class _ProcedureDetailPageState extends State<ProcedureDetailPage>
                                     decoration: BoxDecoration(
                                       color:
                                           completedSteps.length == steps.length
-                                              ? Colors.green
+                                              ? Colors.blue.shade600
                                               : categoryColor,
                                       borderRadius: BorderRadius.circular(20),
                                     ),
@@ -759,7 +831,7 @@ class _ProcedureDetailPageState extends State<ProcedureDetailPage>
                                               AlwaysStoppedAnimation<Color>(
                                                 completedSteps.length ==
                                                         steps.length
-                                                    ? Colors.green
+                                                    ? Colors.blue.shade600
                                                     : Colors.blue.shade700,
                                               ),
                                           minHeight: 8,
@@ -836,13 +908,13 @@ class _ProcedureDetailPageState extends State<ProcedureDetailPage>
                                   decoration: BoxDecoration(
                                     color:
                                         isCompleted
-                                            ? Colors.green.withOpacity(0.1)
+                                            ? Colors.blue.shade50
                                             : Colors.grey.shade50,
                                     borderRadius: BorderRadius.circular(16),
                                     border: Border.all(
                                       color:
                                           isCompleted
-                                              ? Colors.green.withOpacity(0.3)
+                                              ? Colors.blue.shade300
                                               : Colors.grey.shade200,
                                       width: 1.5,
                                     ),
@@ -860,7 +932,7 @@ class _ProcedureDetailPageState extends State<ProcedureDetailPage>
                                           decoration: BoxDecoration(
                                             color:
                                                 isCompleted
-                                                    ? Colors.green
+                                                    ? Colors.blue.shade600
                                                     : Colors.blue.shade700
                                                         .withOpacity(0.2),
                                             borderRadius: BorderRadius.circular(
@@ -910,7 +982,7 @@ class _ProcedureDetailPageState extends State<ProcedureDetailPage>
                                         ),
                                     controlAffinity:
                                         ListTileControlAffinity.trailing,
-                                    activeColor: Colors.green,
+                                    activeColor: Colors.blue.shade600,
                                     checkColor: Colors.white,
                                   ),
                                 );

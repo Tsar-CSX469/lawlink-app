@@ -14,6 +14,7 @@ import 'package:lawlink/services/chatbot_service.dart';
 import 'package:lawlink/services/elevenlabs_service.dart';
 import 'package:flutter/services.dart';
 import 'package:lawlink/services/firebase_chat_storage_service.dart';
+import 'package:lawlink/services/chatbot_initialization_service.dart';
 import 'package:lawlink/screens/conversation_list_page.dart';
 
 class Message {
@@ -160,28 +161,12 @@ class _ChatbotPageState extends State<ChatbotPage> {
     super.initState();
     _chatbotService = ChatbotService(); // Initialize here
 
-    // Make sure we're not in loading state on initialization
+    // Initialize without blocking the UI
     _isLoading = false;
-    _initializeSpeech();
-    _requestPermissions();
 
-    // Initialize with loading state true
-    setState(() {
-      _isLoading = true;
-    });
-
+    // Simple initialization without blocking dialogs
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await _initializeServices();
-      // Add welcome message after initialization and set loading to false
-      if (_messages.isEmpty) {
-        _addWelcomeMessage();
-      }
-
-      setState(() {
-        _isLoading = false;
-      });
-
-      // Don't create conversation immediately - wait until user interacts
+      await _quickInitialization();
     });
   }
 
@@ -202,31 +187,42 @@ class _ChatbotPageState extends State<ChatbotPage> {
     await _initializeSpeech();
   }
 
-  Future<void> _requestPermissions() async {
-    final micStatus = await Permission.microphone.request();
-    if (micStatus.isDenied) {
-      // Show a dialog explaining why microphone permission is needed
-      showDialog(
-        context: context,
-        builder:
-            (context) => AlertDialog(
-              title: const Text('Microphone Permission Required'),
-              content: const Text(
-                'LawLink AI needs microphone access for speech recognition and voice messages. Please grant permission in your device settings.',
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('OK'),
-                ),
-              ],
-            ),
-      );
+  /// Quick, non-blocking initialization
+  Future<void> _quickInitialization() async {
+    // Initialize speech in background first (no blocking dialogs)
+    try {
+      await _initializeSpeech();
+    } catch (e) {
+      print('Speech initialization failed: $e');
     }
 
-    // Request other permissions
-    await Permission.storage.request();
-    await Permission.camera.request();
+    // Check if permissions were already granted via the initialization service
+    if (ChatbotInitializationService.isReady) {
+      // All good, nothing more to do
+    } else {
+      // If not ready, the floating button handled permissions,
+      // so we can just show a subtle indicator that some features might be limited
+      print('Chatbot not fully initialized, some features may be limited');
+    }
+
+    // Add welcome message after a short delay to ensure UI is ready
+    await Future.delayed(const Duration(milliseconds: 100));
+    if (_messages.isEmpty) {
+      setState(() {
+        _addWelcomeMessage();
+      });
+      // Force scroll to bottom after the UI updates
+      await Future.delayed(const Duration(milliseconds: 200));
+      _ensureWelcomeMessageVisible();
+    }
+  }
+
+  Future<void> _requestPermissions() async {
+    // Use the initialization service instead of showing blocking dialogs
+    if (!ChatbotInitializationService.isReady) {
+      // The initialization service will handle permissions gracefully
+      await ChatbotInitializationService.initializeAsync(context: context);
+    }
   }
 
   Future<void> _initializeSpeech() async {
@@ -275,10 +271,29 @@ class _ChatbotPageState extends State<ChatbotPage> {
     );
 
     _messages.add(welcomeMessage);
+  }
 
-    // Make sure to scroll down to show the welcome message
-    Future.delayed(Duration(milliseconds: 300), () {
-      _scrollToBottom();
+  void _ensureWelcomeMessageVisible() {
+    // Make sure to scroll down to show the welcome message with multiple attempts
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients && _messages.isNotEmpty) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+
+    // Additional delayed scroll attempt to ensure it works
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (_scrollController.hasClients && _messages.isNotEmpty) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
     });
   }
 
@@ -1548,6 +1563,10 @@ class _ChatbotPageState extends State<ChatbotPage> {
             _messages.clear();
             _addWelcomeMessage();
           });
+          // Ensure the welcome message is visible
+          Future.delayed(const Duration(milliseconds: 100), () {
+            _ensureWelcomeMessageVisible();
+          });
         }
 
         print('Created new conversation with ID: $_currentConversationId');
@@ -1583,6 +1602,10 @@ class _ChatbotPageState extends State<ChatbotPage> {
         // If we timed out, add a welcome message so the user doesn't see an empty chat
         if (_messages.isEmpty) {
           _addWelcomeMessage();
+          // Ensure the welcome message is visible
+          Future.delayed(const Duration(milliseconds: 100), () {
+            _ensureWelcomeMessageVisible();
+          });
         }
       }
     });
@@ -1603,6 +1626,12 @@ class _ChatbotPageState extends State<ChatbotPage> {
             _addWelcomeMessage();
           }
         });
+        // Ensure the welcome message is visible
+        if (_messages.isNotEmpty) {
+          Future.delayed(const Duration(milliseconds: 100), () {
+            _ensureWelcomeMessageVisible();
+          });
+        }
         return;
       }
 
@@ -1648,6 +1677,12 @@ class _ChatbotPageState extends State<ChatbotPage> {
           _addWelcomeMessage();
         }
       });
+      // Ensure the welcome message is visible
+      if (_messages.isNotEmpty) {
+        Future.delayed(const Duration(milliseconds: 100), () {
+          _ensureWelcomeMessageVisible();
+        });
+      }
     }
   }
 

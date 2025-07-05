@@ -1,0 +1,532 @@
+{
+  "@@locale": "si",
+  
+  "@@comment_app_branding": "============================================================================",
+  "@@comment_app_branding_title": "APP BRANDING",
+  "@@comment_app_branding_end": "============================================================================",
+  
+  "appTitle": "LawLink",
+  "@appTitle": {
+    "description": "The title/name of the app - kept in English as requested"
+  },
+  
+  "@@comment_main": "============================================================================",
+  "@@comment_main_title": "MAIN PAGE - GREETINGS & CORE FEATURES",
+  "@@comment_main_end": "============================================================================",
+  
+  "goodMorning": "සුභ උදෑසනක්",
+  "@goodMorning": {
+    "description": "Good morning greeting"
+  },
+  
+  "goodAfternoon": "සුභ දහවලක්",
+  "@goodAfternoon": {
+    "description": "Good afternoon greeting"
+  },
+  
+  "goodEvening": "සුභ සන්ධ්‍යාවක්",
+  "@goodEvening": {
+    "description": "Good evening greeting"
+  },
+  
+  "welcomeBack": "නැවත සාදරයෙන් පිළිගනිමු, {name}!",
+  "@welcomeBack": {
+    "description": "Welcome back message with user name",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "description": "User's name"
+      }
+    }
+  },
+  
+  "welcomeToApp": "Lawlink වෙත සාදරයෙන් පිළිගනිමු!",
+  "@welcomeToApp": {
+    "description": "Welcome message for new users"
+  },
+  
+  "lawGamePlatform": "ඔබගේ සම්පූර්ණ නීති අධ්‍යාපන වේදිකාව",
+  "@lawGamePlatform": {
+    "description": "App tagline describing it as a comprehensive legal education platform"
+  },
+  
+  "quiz": "ප්‍රශ්නාවලිය",
+  "@quiz": {
+    "description": "Quiz section title"
+  },
+  
+  "procedures": "නීතිමය ක්‍රියාමාර්ග",
+  "@procedures": {
+    "description": "Legal procedures section title"
+  },
+  
+  "acts": "නීති",
+  "@acts": {
+    "description": "Acts/legislation section title"
+  },
+  
+  "leaderboard": "ප්‍රමුඛතා ලැයිස්තුව",
+  "@leaderboard": {
+    "description": "Leaderboard section title"
+  },
+  
+  "testYourKnowledge": "ශ්‍රී ලංකා නීතිය පිළිබඳ ඔබේ දැනුම පරීක්ෂා කරන්න",
+  "@testYourKnowledge": {
+    "description": "Description for quiz feature"
+  },
+  
+  "exploreProcesses": "නීතිමය ක්‍රියාමාර්ග සහ ක්‍රම ගවේෂණය කරන්න",
+  "@exploreProcesses": {
+    "description": "Description for legal procedures feature"
+  },
+  
+  "studyLegislation": "ශ්‍රී ලංකා නීති සහ අයිනය අධ්‍යයනය කරන්න",
+  "@studyLegislation": {
+    "description": "Description for acts/legislation feature"
+  },
+  
+  "competeFriends": "මිතුරන් සමඟ තරඟ කර ප්‍රගතිය පිළිබඳව නිරීක්ෂණය කරන්න",
+  "@competeFriends": {
+    "description": "Description for leaderboard feature"
+  },
+  
+  "@@comment_settings": "============================================================================",
+  "@@comment_settings_title": "SETTINGS PAGE",
+  "@@comment_settings_end": "============================================================================",
+  
+  "settings": "සැකසුම්",
+  "@settings": {
+    "description": "Settings page title"
+  },
+  
+  "services": "සේවාවන්",
+  "@services": {
+    "description": "Services section header in settings"
+  },
+  
+  "account": "ගිණුම",
+  "@account": {
+    "description": "Account section header in settings"
+  },
+  
+  "preferences": "මනාපයන්",
+  "@preferences": {
+    "description": "Preferences section header in settings"
+  },
+  
+  "information": "තොරතුරු",
+  "@information": {
+    "description": "Information section header in settings"
+  },
+  
+  "language": "භාෂාව",
+  "@language": {
+    "description": "Language setting option"
+  },
+  
+  "selectLanguage": "භාෂාව තෝරන්න",
+  "@selectLanguage": {
+    "description": "Language selection dialog title"
+  },
+  
+  "english": "English",
+  "@english": {
+    "description": "English language option - kept in English"
+  },
+  
+  "sinhala": "සිංහල",
+  "@sinhala": {
+    "description": "Sinhala language option"
+  },
+  
+  "darkMode": "අඳුරු මාදිලිය",
+  "@darkMode": {
+    "description": "Dark mode setting option"
+  },
+  
+  "toggleDarkMode": "අඳුරු මාදිලිය මාරු කරන්න",
+  "@toggleDarkMode": {
+    "description": "Dark mode toggle description"
+  },
+  
+  "toggleLightMode": "ආලෝක මාදිලිය මාරු කරන්න",
+  "@toggleLightMode": {
+    "description": "Light mode toggle description"
+  },
+  
+  "darkModeComingSoon": "අඳුරු මාදිලිය ක්‍රියාකාරිත්වය ඊළඟ යාවත්කාලීනයේදී ලබා ගත හැකිය!",
+  "@darkModeComingSoon": {
+    "description": "Message shown when dark mode is not yet available"
+  },
+  
+  "profile": "පැතිකඩ",
+  "@profile": {
+    "description": "User profile option"
+  },
+  
+  "user": "පරිශීලක",
+  "@user": {
+    "description": "User label"
+  },
+  
+  "logout": "ඉවත් වන්න",
+  "@logout": {
+    "description": "Logout option"
+  },
+  
+  "logoutConfirmation": "ඔබට ඇත්තටම ඉවත් වීමට අවශ්‍යද?",
+  "@logoutConfirmation": {
+    "description": "Logout confirmation dialog message"
+  },
+  
+  "about": "පිළිබඳව",
+  "@about": {
+    "description": "About option"
+  },
+  
+  "aboutApp": "නීති සම්බන්ධය පිළිබඳව",
+  "@aboutApp": {
+    "description": "About app dialog title"
+  },
+  
+  "aboutDescription": "නීති සම්බන්ධය යනු අන්තර්ක්‍රියාකාරී ප්‍රශ්නාවලි, නීතිමය ක්‍රියාමාර්ග සහ සම්පූර්ණ නීති අයිනය දත්ත ගබඩාව හරහා ශ්‍රී ලංකා නීතිය ඉගෙන ගැනීමට පරිශීලකයින්ට උදව් කිරීම සඳහා නිර්මාණය කරන ලද සම්පූර්ණ නීති අධ්‍යාපන වේදිකාවකි.",
+  "@aboutDescription": {
+    "description": "Detailed description of the app's purpose and features"
+  },
+  
+  "version": "අනුවාදය",
+  "@version": {
+    "description": "Version label"
+  },
+  
+  "privacyPolicy": "පෞද්ගලිකත්ව ප්‍රතිපත්තිය",
+  "@privacyPolicy": {
+    "description": "Privacy policy option"
+  },
+  
+  "privacyPolicyContent": "නීති සම්බන්ධය සඳහා පෞද්ගලිකත්ව ප්‍රතිපත්තිය\n\nමෙම පෞද්ගලිකත්ව ප්‍රතිපත්තිය ඔබ අපගේ යෙදුම භාවිතා කරන විට ඔබේ පුද්ගලික තොරතුරු එකතු කරන, භාවිතා කරන සහ බෙදා ගන්නා ආකාරය විස්තර කරයි.\n\nඅප එකතු කරන තොරතුරු:\n• ගිණුම් තොරතුරු (ඊමේල්, නම)\n• භාවිත දත්ත සහ මනාපයන්\n• උපකරණ තොරතුරු\n\nඅපි ඔබේ තොරතුරු භාවිතා කරන ආකාරය:\n• අපගේ සේවාව සැපයීමට සහ නඩත්තු කිරීමට\n• ඔබේ අත්දැකීම පුද්ගලීකරණය කිරීමට\n• අපගේ යෙදුම වැඩිදියුණු කිරීමට\n\nඅප සම්බන්ධ කර ගන්න:\nමෙම පෞද්ගලිකත්ව ප්‍රතිපත්තිය පිළිබඳ ඔබට කිසියම් ප්‍රශ්නයක් ඇත්නම්, කරුණාකර අප සම්බන්ධ කර ගන්න.",
+  "@privacyPolicyContent": {
+    "description": "Full privacy policy content"
+  },
+  
+  "@@comment_quiz": "============================================================================",
+  "@@comment_quiz_title": "QUIZ PAGES",
+  "@@comment_quiz_end": "============================================================================",
+  
+  "quizGame": "ප්‍රශ්නාවලිය",
+  "@quizGame": {
+    "description": "Quiz game page title"
+  },
+  
+  "chooseQuizCategory": "ප්‍රශ්නාවලි වර්ගයක් තෝරන්න",
+  "@chooseQuizCategory": {
+    "description": "Instruction to choose a quiz category"
+  },
+  
+  "testKnowledgeLaw": "නීතියේ විවිධ ක්ෂේත්‍රවල ඔබේ දැනුම පරීක්ෂා කරන්න",
+  "@testKnowledgeLaw": {
+    "description": "Description for testing knowledge in various areas of law"
+  },
+  
+  "rankings": "ශ්‍රේණිගත කිරීම්",
+  "@rankings": {
+    "description": "Rankings section title"
+  },
+  
+  "consumerLaw": "පරිභෝජක නීතිය",
+  "@consumerLaw": {
+    "description": "Consumer law quiz category"
+  },
+  
+  "consumerAffairsQuiz": "පරිභෝජක කටයුතු ප්‍රශ්නාවලිය",
+  "@consumerAffairsQuiz": {
+    "description": "Consumer affairs quiz title"
+  },
+  
+  "criminalLaw": "අපරාධ නීතිය",
+  "@criminalLaw": {
+    "description": "Criminal law quiz category"
+  },
+  
+  "civilLaw": "සිවිල් නීතිය",
+  "@civilLaw": {
+    "description": "Civil law quiz category"
+  },
+  
+  "employmentLaw": "රැකියා නීතිය",
+  "@employmentLaw": {
+    "description": "Employment law quiz category"
+  },
+  
+  "restartQuiz": "ප්‍රශ්නාවලිය නැවත ආරම්භ කරන්න",
+  "@restartQuiz": {
+    "description": "Option to restart the quiz"
+  },
+  
+  "viewLeaderboard": "ප්‍රමුඛතා ලැයිස්තුව බලන්න",
+  "@viewLeaderboard": {
+    "description": "Option to view the leaderboard"
+  },
+  
+  "percentage": "ප්‍රතිශතය: {percent}%",
+  "@percentage": {
+    "description": "Shows percentage score",
+    "placeholders": {
+      "percent": {
+        "type": "String",
+        "description": "The percentage value"
+      }
+    }
+  },
+  
+  "@@comment_procedures": "============================================================================",
+  "@@comment_procedures_title": "LEGAL PROCEDURES PAGE",
+  "@@comment_procedures_end": "============================================================================",
+  
+  "legalProcedures": "නීතිමය ක්‍රියාමාර්ග",
+  "@legalProcedures": {
+    "description": "Legal procedures page title"
+  },
+  
+  "searchProcedures": "ක්‍රියාමාර්ග සොයන්න...",
+  "@searchProcedures": {
+    "description": "Search placeholder text for procedures"
+  },
+  
+  "all": "සියල්ල",
+  "@all": {
+    "description": "All categories filter option"
+  },
+  
+  "traffic": "ගමනාගමන",
+  "@traffic": {
+    "description": "Traffic category"
+  },
+  
+  "business": "ව්‍යාපාර",
+  "@business": {
+    "description": "Business category"
+  },
+  
+  "property": "දේපල",
+  "@property": {
+    "description": "Property category"
+  },
+  
+  "marriage": "විවාහ",
+  "@marriage": {
+    "description": "Marriage category"
+  },
+  
+  "consumer": "පාරිභෝගික",
+  "@consumer": {
+    "description": "Consumer category"
+  },
+  
+  "court": "අධිකරණ",
+  "@court": {
+    "description": "Court category"
+  },
+  
+  "stepCompleted": "පියවර {stepNumber} සම්පූර්ණ කරන ලදී!",
+  "@stepCompleted": {
+    "description": "Message shown when a step is completed",
+    "placeholders": {
+      "stepNumber": {
+        "type": "String",
+        "description": "The step number that was completed"
+      }
+    }
+  },
+  
+  "commentAddedSuccessfully": "අදහස සාර්ථකව එකතු කරන ලදී",
+  "@commentAddedSuccessfully": {
+    "description": "Success message when a comment is added"
+  },
+  
+  "failedToAddComment": "අදහස එකතු කිරීමට අසමත් විය",
+  "@failedToAddComment": {
+    "description": "Error message when adding a comment fails"
+  },
+  
+  "commentDeletedSuccessfully": "අදහස සාර්ථකව මකා දමන ලදී",
+  "@commentDeletedSuccessfully": {
+    "description": "Success message when a comment is deleted"
+  },
+  
+  "failedToDeleteComment": "අදහස මකා දැමීමට අසමත් විය",
+  "@failedToDeleteComment": {
+    "description": "Error message when deleting a comment fails"
+  },
+  
+  "delete": "මකන්න",
+  "@delete": {
+    "description": "Delete action button"
+  },
+  
+  "@@comment_chatbot": "============================================================================",
+  "@@comment_chatbot_title": "CHATBOT",
+  "@@comment_chatbot_end": "============================================================================",
+  
+  "lawlinkAi": "නීති සම්බන්ධය AI",
+  "@lawlinkAi": {
+    "description": "AI chatbot name - LawLink AI"
+  },
+  
+  "chatWithAi": "නීතිමය මාර්ගෝපදේශ සඳහා අපගේ AI සහායක සමඟ කතා කරන්න",
+  "@chatWithAi": {
+    "description": "Description for chatting with AI assistant for legal guidance"
+  },
+  "openLawlinkAi": "නීති සම්බන්ධය AI විවෘත කරන්න",
+  "@openLawlinkAi": {
+    "description": "Dialog title for opening AI chat"
+  },
+  "howToOpenAiChat": "ඔබට AI චැට් එක කෙසේ විවෘත කිරීමට අවශ්‍යද?",
+  "@howToOpenAiChat": {
+    "description": "Dialog message for AI chat loading options"
+  },
+  "openNow": "දැන් විවෘත කරන්න",
+  "@openNow": {
+    "description": "Button to open AI chat immediately"
+  },
+  "loadInBackground": "පසුබිමෙහි ප්‍රවේශ කරන්න",
+  "@loadInBackground": {
+    "description": "Button to load AI chat in background"
+  },
+  "loadingAiInBackground": "නීති සම්බන්ධය AI පසුබිමෙහි ප්‍රවේශ කරමින්...",
+  "@loadingAiInBackground": {
+    "description": "Snackbar message when AI is loading in background"
+  },
+  "aiAlreadyLoading": "නීති සම්බන්ධය AI දැනටමත් පසුබිමෙහි ප්‍රවේශ වෙමින් පවතී",
+  "@aiAlreadyLoading": {
+    "description": "Snackbar message when AI is already loading"
+  },
+  "aiReadyNotificationTitle": "නීති සම්බන්ධය AI සූදානම්! 🤖",
+  "@aiReadyNotificationTitle": {
+    "description": "Notification title when AI chat is ready"
+  },
+  "aiReadyNotificationBody": "ඔබගේ AI නීති සහායකයා දැන් උදව් කිරීමට සූදානම්. චැට් ආරම්භ කිරීමට ටැප් කරන්න!",
+  "@aiReadyNotificationBody": {
+    "description": "Notification body when AI chat is ready"
+  },
+  "aiErrorNotificationTitle": "නීති සම්බන්ධය AI දෝෂය ⚠️",
+  "@aiErrorNotificationTitle": {
+    "description": "Notification title when AI chat fails to load"
+  },
+  "aiErrorNotificationBody": "AI චැට් ප්‍රවේශ කළ නොහැක. කරුණාකර නැවත උත්සාහ කරන්න.",
+  "@aiErrorNotificationBody": {
+    "description": "Notification body when AI chat fails to load"
+  },
+  
+  "@@comment_common": "============================================================================",
+  "@@comment_common_title": "COMMON UI ELEMENTS & DIALOG ACTIONS",
+  "@@comment_common_end": "============================================================================",
+  
+  "ok": "හරි",
+  "@ok": {
+    "description": "OK button text"
+  },
+  
+  "cancel": "අවලංගු කරන්න",
+  "@cancel": {
+    "description": "Cancel button text"
+  },
+  
+  "yes": "ඔව්",
+  "@yes": {
+    "description": "Yes button text"
+  },
+  
+  "no": "නැත",
+  "@no": {
+    "description": "No button text"
+  },
+  
+  "comingSoon": "ඉදිරියේදී",
+  "@comingSoon": {
+    "description": "Coming soon text"
+  },
+  
+  "soon": "ඉක්මනින්",
+  "@soon": {
+    "description": "Soon text"
+  },
+  
+  "comingSoonExclamation": "ඉදිරියේදී!",
+  "@comingSoonExclamation": {
+    "description": "Coming soon with exclamation"
+  },
+  
+  "featureComingSoon": "මෙම විශේෂාංගය අනාගත යාවත්කාලීනයකදී ලබා ගත හැකිය.",
+  "@featureComingSoon": {
+    "description": "Generic message for features that are coming soon"
+  },
+  
+  "quizWillBeAvailable": "{quizType} ප්‍රශ්නාවලිය අනාගත යාවත්කාලීනයකදී ලබා ගත හැකිය!",
+  "@quizWillBeAvailable": {
+    "description": "Message for quiz types that will be available in future updates",
+    "placeholders": {
+      "quizType": {
+        "type": "String",
+        "description": "The type of quiz that will be available"
+      }
+    }
+  },
+  
+  "@@comment_profile": "============================================================================",
+  "@@comment_profile_title": "USER PROFILE PAGE",
+  "@@comment_profile_end": "============================================================================",
+  
+  "myProfile": "මගේ පැතිකඩ",
+  "@myProfile": {
+    "description": "User profile page title"
+  },
+  "logOut": "ඉවත් වන්න",
+  "@logOut": {
+    "description": "Log out button text"
+  },
+  "noUserLoggedIn": "පරිශීලක ප්‍රවේශ වී නැත",
+  "@noUserLoggedIn": {
+    "description": "Message when no user is logged in"
+  },
+  "verifiedAccount": "සත්‍යාපිත ගිණුම",
+  "@verifiedAccount": {
+    "description": "Verified account status text"
+  },
+  "emailNotVerified": "ඊමේල් සත්‍යාපනය කර නැත",
+  "@emailNotVerified": {
+    "description": "Unverified email status text"
+  },
+  "accountInformation": "ගිණුම් තොරතුරු",
+  "@accountInformation": {
+    "description": "Account information section title"
+  },
+  "name": "නම",
+  "@name": {
+    "description": "Name field label"
+  },
+  "email": "ඊමේල්",
+  "@email": {
+    "description": "Email field label"
+  },
+  "memberSince": "සාමාජිකත්වය ලබා දුන් දිනය",
+  "@memberSince": {
+    "description": "Member since field label"
+  },
+  "notSet": "සකසා නැත",
+  "@notSet": {
+    "description": "Text when a field is not set"
+  },
+  "security": "ආරක්ෂාව",
+  "@security": {
+    "description": "Security section title"
+  },
+  "changePassword": "මුරපදය වෙනස් කරන්න",
+  "@changePassword": {
+    "description": "Change password option"
+  },
+  "twoFactorAuth": "ද්විමාන සත්‍යාපනය",
+  "@twoFactorAuth": {
+    "description": "Two-factor authentication option"
+  }
+}

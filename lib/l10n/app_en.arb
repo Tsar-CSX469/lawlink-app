@@ -1,0 +1,437 @@
+{
+  "@@locale": "en",
+  
+  "@@comment_app_branding": "============================================================================",
+  "@@comment_app_branding_title": "APP BRANDING",
+  "@@comment_app_branding_end": "============================================================================",
+  
+  "appTitle": "LawLink",
+  "@appTitle": {
+    "description": "The title of the application"
+  },
+  "ok": "OK",
+  "@ok": {
+    "description": "OK button"
+  },
+  "cancel": "Cancel",
+  "@cancel": {
+    "description": "Cancel button"
+  },
+  "yes": "Yes",
+  "@yes": {
+    "description": "Yes button"
+  },
+  "no": "No",
+  "@no": {
+    "description": "No button"
+  },
+  "comingSoon": "Coming Soon",
+  "@comingSoon": {
+    "description": "Coming soon message"
+  },
+  "comingSoonExclamation": "Coming Soon!",
+  "@comingSoonExclamation": {
+    "description": "Coming soon dialog title"
+  },
+  "featureComingSoon": "This feature will be available in a future update.",
+  "@featureComingSoon": {
+    "description": "Feature coming soon message"
+  },
+  "soon": "Soon",
+  "@soon": {
+    "description": "Soon badge text"
+  },
+  "delete": "Delete",
+  "@delete": {
+    "description": "Delete button text"  },
+  
+  "@@comment_greetings": "============================================================================",
+  "@@comment_greetings_title": "GREETINGS & WELCOME",
+  "@@comment_greetings_end": "============================================================================",
+  
+  "goodMorning": "Good Morning",
+  "@goodMorning": {
+    "description": "Morning greeting"
+  },
+  "goodAfternoon": "Good Afternoon",
+  "@goodAfternoon": {
+    "description": "Afternoon greeting"
+  },
+  "goodEvening": "Good Evening",
+  "@goodEvening": {
+    "description": "Evening greeting"
+  },
+  "welcomeBack": "Welcome back, {name}!",
+  "@welcomeBack": {
+    "description": "Welcome message with user name",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "John"
+      }
+    }
+  },
+  "welcomeToApp": "Welcome to LawLink",
+  "@welcomeToApp": {
+    "description": "Welcome message in banner"
+  },
+
+  "@@comment_auth": "============================================================================",
+  "@@comment_auth_title": "AUTHENTICATION & USER",
+  "@@comment_auth_end": "============================================================================",
+
+  "logout": "Logout",
+  "@logout": {
+    "description": "Logout option"
+  },
+  "logoutConfirmation": "Are you sure you want to logout?",
+  "@logoutConfirmation": {
+    "description": "Logout confirmation message"
+  },
+  "profile": "Profile",
+  "@profile": {
+    "description": "Profile option"
+  },
+  "user": "User",
+  "@user": {
+    "description": "Default user name"
+  },
+
+  "@@comment_lang": "============================================================================",
+  "@@comment_lang_title": "LANGUAGE & LOCALIZATION", 
+  "@@comment_lang_end": "============================================================================",
+
+  "language": "Language",
+  "@language": {
+    "description": "Language option"
+  },
+  "english": "English",
+  "@english": {
+    "description": "English language"
+  },
+  "sinhala": "සිංහල",
+  "@sinhala": {
+    "description": "Sinhala language"
+  },
+  "selectLanguage": "Select Language",
+  "@selectLanguage": {
+    "description": "Language selection title"
+  },
+
+  "@@comment_main": "============================================================================",
+  "@@comment_main_title": "MAIN/HOME SCREEN",
+  "@@comment_main_end": "============================================================================",
+
+  "lawGamePlatform": "Your comprehensive legal education platform",
+  "@lawGamePlatform": {
+    "description": "App subtitle description"
+  },
+  "services": "Services",
+  "@services": {
+    "description": "Services section title"
+  },
+  "quiz": "Quiz",
+  "@quiz": {
+    "description": "Quiz button text"
+  },
+  "procedures": "Legal Procedures",
+  "@procedures": {
+    "description": "Legal Procedures button text"
+  },
+  "acts": "Legal Acts",
+  "@acts": {
+    "description": "Legal Acts button text"
+  },
+  "leaderboard": "Leaderboard",
+  "@leaderboard": {
+    "description": "Leaderboard button text"
+  },
+  "testYourKnowledge": "Test your knowledge of Sri Lankan law",
+  "@testYourKnowledge": {
+    "description": "Quiz description"
+  },
+  "exploreProcesses": "Explore legal processes and procedures",
+  "@exploreProcesses": {
+    "description": "Procedures description"
+  },
+  "studyLegislation": "Study Sri Lankan legislation and acts",
+  "@studyLegislation": {
+    "description": "Acts description"
+  },
+  "competeFriends": "Compete with friends and track progress",
+  "@competeFriends": {
+    "description": "Leaderboard description"
+  },
+
+  "@@comment_quiz": "============================================================================",
+  "@@comment_quiz_title": "QUIZ MODULE",
+  "@@comment_quiz_end": "============================================================================",
+
+  "quizGame": "Quiz Game",
+  "@quizGame": {
+    "description": "Quiz game page title"
+  },
+  "chooseQuizCategory": "Choose a Quiz Category",
+  "@chooseQuizCategory": {
+    "description": "Quiz category selection header"
+  },
+  "testKnowledgeLaw": "Test your knowledge in different areas of law",
+  "@testKnowledgeLaw": {
+    "description": "Quiz category selection subtitle"
+  },
+  "rankings": "Rankings",
+  "@rankings": {
+    "description": "Rankings button text"
+  },
+  "consumerLaw": "Consumer Law",
+  "@consumerLaw": {
+    "description": "Consumer law quiz category"
+  },
+  "consumerAffairsQuiz": "Consumer Affairs Quiz",
+  "@consumerAffairsQuiz": {
+    "description": "Consumer affairs quiz subtitle"
+  },
+  "criminalLaw": "Criminal Law",
+  "@criminalLaw": {
+    "description": "Criminal law quiz category"
+  },
+  "civilLaw": "Civil Law",
+  "@civilLaw": {
+    "description": "Civil law quiz category"
+  },
+  "employmentLaw": "Employment Law",
+  "@employmentLaw": {
+    "description": "Employment law quiz category"
+  },
+  "quizWillBeAvailable": "{quizType} quiz will be available in a future update!",
+  "@quizWillBeAvailable": {
+    "description": "Quiz coming soon message",
+    "placeholders": {
+      "quizType": {
+        "type": "String",
+        "example": "Criminal Law"
+      }
+    }
+  },
+  "restartQuiz": "Restart Quiz",
+  "@restartQuiz": {
+    "description": "Restart quiz button"
+  },
+  "viewLeaderboard": "View Leaderboard",
+  "@viewLeaderboard": {
+    "description": "View leaderboard button"
+  },
+  "percentage": "Percentage: {percent}%",
+  "@percentage": {
+    "description": "Percentage display",
+    "placeholders": {
+      "percent": {
+        "type": "String",
+        "example": "85"
+      }
+    }
+  },
+
+  "@@comment_procedures": "============================================================================",
+  "@@comment_procedures_title": "LEGAL PROCEDURES MODULE",
+  "@@comment_procedures_end": "============================================================================",
+
+  "legalProcedures": "Legal Procedures",
+  "@legalProcedures": {
+    "description": "Legal procedures page title"
+  },
+  "searchProcedures": "Search procedures...",
+  "@searchProcedures": {
+    "description": "Search placeholder text for procedures"
+  },
+  "all": "All",
+  "@all": {
+    "description": "All categories filter option"
+  },
+  "traffic": "Traffic",
+  "@traffic": {
+    "description": "Traffic category"
+  },
+  "business": "Business",
+  "@business": {
+    "description": "Business category"
+  },
+  "property": "Property",
+  "@property": {
+    "description": "Property category"
+  },
+  "marriage": "Marriage",
+  "@marriage": {
+    "description": "Marriage category"
+  },
+  "consumer": "Consumer",
+  "@consumer": {
+    "description": "Consumer category"
+  },
+  "court": "Court",
+  "@court": {
+    "description": "Court category"
+  },
+  "stepCompleted": "Step {stepNumber} completed!",
+  "@stepCompleted": {
+    "description": "Step completion message",
+    "placeholders": {
+      "stepNumber": {
+        "type": "String",
+        "example": "1"
+      }
+    }
+  },
+  "commentAddedSuccessfully": "Comment added successfully",
+  "@commentAddedSuccessfully": {
+    "description": "Comment success message"
+  },
+  "failedToAddComment": "Failed to add comment",
+  "@failedToAddComment": {
+    "description": "Comment failure message"
+  },
+  "commentDeletedSuccessfully": "Comment deleted successfully",
+  "@commentDeletedSuccessfully": {
+    "description": "Comment delete success message"
+  },
+  "failedToDeleteComment": "Failed to delete comment",
+  "@failedToDeleteComment": {
+    "description": "Comment delete failure message"
+  },
+
+  "@@comment_chatbot": "============================================================================",
+  "@@comment_chatbot_title": "CHATBOT/AI MODULE",
+  "@@comment_chatbot_end": "============================================================================",
+
+  "lawlinkAi": "LawLink AI",
+  "@lawlinkAi": {
+    "description": "LawLink AI feature name"
+  },
+  "chatWithAi": "Chat with our AI assistant for legal guidance",
+  "@chatWithAi": {
+    "description": "AI chatbot description"
+  },
+
+  "@@comment_settings": "============================================================================",
+  "@@comment_settings_title": "SETTINGS MODULE",
+  "@@comment_settings_end": "============================================================================",
+
+  "settings": "Settings",
+  "@settings": {
+    "description": "Settings screen title"
+  },
+  "account": "Account",
+  "@account": {
+    "description": "Account section header in settings"
+  },
+  "preferences": "Preferences",
+  "@preferences": {
+    "description": "Preferences section header in settings"
+  },
+  "information": "Information",
+  "@information": {
+    "description": "Information section header in settings"
+  },
+  "about": "About",
+  "@about": {
+    "description": "About option"
+  },
+  "aboutApp": "About LawLink",
+  "@aboutApp": {
+    "description": "About app title"
+  },
+  "aboutDescription": "LawLink is a comprehensive legal education platform designed to help users learn Sri Lankan law through interactive quizzes, legal procedures, and comprehensive legal acts database.",
+  "@aboutDescription": {
+    "description": "About app description"
+  },
+  "version": "Version",
+  "@version": {
+    "description": "Version label"
+  },
+  "privacyPolicy": "Privacy Policy",
+  "@privacyPolicy": {
+    "description": "Privacy Policy option"
+  },
+  "privacyPolicyContent": "Privacy Policy for LawLink\n\nThis Privacy Policy describes how your personal information is collected, used, and shared when you use our application.\n\nInformation We Collect:\n• Account information (email, name)\n• Usage data and preferences\n• Device information\n\nHow We Use Your Information:\n• To provide and maintain our service\n• To personalize your experience\n• To improve our application\n\nContact Us:\nIf you have any questions about this Privacy Policy, please contact us.",
+  "@privacyPolicyContent": {
+    "description": "Privacy policy content"
+  },
+
+  "@@comment_profile": "============================================================================",
+  "@@comment_profile_title": "USER PROFILE PAGE",
+  "@@comment_profile_end": "============================================================================",
+
+  "myProfile": "My Profile",
+  "@myProfile": {
+    "description": "User profile page title"
+  },
+  "logOut": "Log Out",
+  "@logOut": {
+    "description": "Log out button text"
+  },
+  "noUserLoggedIn": "No user logged in",
+  "@noUserLoggedIn": {
+    "description": "Message when no user is logged in"
+  },
+  "verifiedAccount": "Verified Account",
+  "@verifiedAccount": {
+    "description": "Verified account status text"
+  },
+  "emailNotVerified": "Email not verified",
+  "@emailNotVerified": {
+    "description": "Unverified email status text"
+  },
+  "accountInformation": "Account Information",
+  "@accountInformation": {
+    "description": "Account information section title"
+  },
+  "name": "Name",
+  "@name": {
+    "description": "Name field label"
+  },
+  "email": "Email",
+  "@email": {
+    "description": "Email field label"
+  },
+  "memberSince": "Member Since",
+  "@memberSince": {
+    "description": "Member since field label"
+  },
+  "notSet": "Not set",
+  "@notSet": {
+    "description": "Text when a field is not set"
+  },
+  "security": "Security",
+  "@security": {
+    "description": "Security section title"
+  },
+  "changePassword": "Change Password",
+  "@changePassword": {
+    "description": "Change password option"
+  },
+  "twoFactorAuth": "Two-Factor Authentication",
+  "@twoFactorAuth": {
+    "description": "Two-factor authentication option"
+  },
+
+  "@@comment_theme": "============================================================================",
+  "@@comment_theme_title": "THEME & UI",
+  "@@comment_theme_end": "============================================================================",
+
+  "darkMode": "Dark Mode",
+  "@darkMode": {
+    "description": "Dark mode toggle"
+  },
+  "toggleDarkMode": "Toggle Dark Mode",
+  "@toggleDarkMode": {
+    "description": "Dark mode toggle tooltip"
+  },
+  "toggleLightMode": "Toggle Light Mode",
+  "@toggleLightMode": {
+    "description": "Toggle light mode tooltip"
+  },
+  "darkModeComingSoon": "Dark mode functionality will be available in the next update!",
+  "@darkModeComingSoon": {
+    "description": "Dark mode coming soon message"
+  }
+}
