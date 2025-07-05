@@ -16,7 +16,9 @@ import 'package:lawlink/services/language_service.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:lawlink/services/enhanced_notification_service.dart';
-
+import 'package:lawlink/services/navigation_service.dart';
+import 'package:lawlink/services/background_chat_service.dart';
+import 'package:lawlink/services/chatbot_initialization_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,7 +36,23 @@ void main() async {
     print('Notification service initialization failed: $e');
   }
 
-   runApp(
+  // Initialize background chat service
+  try {
+    await BackgroundChatService.initialize();
+  } catch (e) {
+    print('Background chat service initialization failed: $e');
+  }
+
+  // Pre-initialize chatbot service (non-blocking)
+  ChatbotInitializationService.initializeAsync()
+      .then((success) {
+        print('Chatbot initialization ${success ? 'completed' : 'failed'}');
+      })
+      .catchError((e) {
+        print('Chatbot initialization error: $e');
+      });
+
+  runApp(
     ChangeNotifierProvider(
       create: (context) => LanguageService(),
       child: const LegalQuizGame(),
@@ -52,6 +70,7 @@ class LegalQuizGame extends StatelessWidget {
           title: 'LawLink',
           theme: ThemeData(primarySwatch: Colors.blue),
           home: const AuthWrapper(),
+          navigatorKey: NavigationService.navigatorKey,
           locale: languageService.currentLocale,
           localizationsDelegates: const [
             AppLocalizations.delegate,
@@ -71,7 +90,6 @@ class LegalQuizGame extends StatelessWidget {
             '/leaderboard': (context) => const LeaderboardPage(),
           },
         );
-
       },
     );
   }

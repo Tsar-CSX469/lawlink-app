@@ -377,6 +377,46 @@
   "@chatWithAi": {
     "description": "Description for chatting with AI assistant for legal guidance"
   },
+  "openLawlinkAi": "නීති සම්බන්ධය AI විවෘත කරන්න",
+  "@openLawlinkAi": {
+    "description": "Dialog title for opening AI chat"
+  },
+  "howToOpenAiChat": "ඔබට AI චැට් එක කෙසේ විවෘත කිරීමට අවශ්‍යද?",
+  "@howToOpenAiChat": {
+    "description": "Dialog message for AI chat loading options"
+  },
+  "openNow": "දැන් විවෘත කරන්න",
+  "@openNow": {
+    "description": "Button to open AI chat immediately"
+  },
+  "loadInBackground": "පසුබිමෙහි ප්‍රවේශ කරන්න",
+  "@loadInBackground": {
+    "description": "Button to load AI chat in background"
+  },
+  "loadingAiInBackground": "නීති සම්බන්ධය AI පසුබිමෙහි ප්‍රවේශ කරමින්...",
+  "@loadingAiInBackground": {
+    "description": "Snackbar message when AI is loading in background"
+  },
+  "aiAlreadyLoading": "නීති සම්බන්ධය AI දැනටමත් පසුබිමෙහි ප්‍රවේශ වෙමින් පවතී",
+  "@aiAlreadyLoading": {
+    "description": "Snackbar message when AI is already loading"
+  },
+  "aiReadyNotificationTitle": "නීති සම්බන්ධය AI සූදානම්! 🤖",
+  "@aiReadyNotificationTitle": {
+    "description": "Notification title when AI chat is ready"
+  },
+  "aiReadyNotificationBody": "ඔබගේ AI නීති සහායකයා දැන් උදව් කිරීමට සූදානම්. චැට් ආරම්භ කිරීමට ටැප් කරන්න!",
+  "@aiReadyNotificationBody": {
+    "description": "Notification body when AI chat is ready"
+  },
+  "aiErrorNotificationTitle": "නීති සම්බන්ධය AI දෝෂය ⚠️",
+  "@aiErrorNotificationTitle": {
+    "description": "Notification title when AI chat fails to load"
+  },
+  "aiErrorNotificationBody": "AI චැට් ප්‍රවේශ කළ නොහැක. කරුණාකර නැවත උත්සාහ කරන්න.",
+  "@aiErrorNotificationBody": {
+    "description": "Notification body when AI chat fails to load"
+  },
   
   "@@comment_common": "============================================================================",
   "@@comment_common_title": "COMMON UI ELEMENTS & DIALOG ACTIONS",
