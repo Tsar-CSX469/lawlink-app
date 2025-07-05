@@ -284,7 +284,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
         );
       }
     });
-    
+
     // Additional delayed scroll attempt to ensure it works
     Future.delayed(const Duration(milliseconds: 100), () {
       if (_scrollController.hasClients && _messages.isNotEmpty) {
