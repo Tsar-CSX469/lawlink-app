@@ -10,12 +10,13 @@ This document describes the CI/CD pipeline for the LawLink Flutter application.
 - Unit tests with coverage reporting
 - Triggered on pushes to `main`/`develop` and PRs to `main`
 
-**Step 2: Build APK**
+**Step 2: Build APK** 
 - Debug APK build
 - Release APK build
 - Android App Bundle (AAB) build
 - Upload artifacts with retention policies
 - Dynamic build numbering
+- Uses Flutter 3.29.3 (Dart 3.7.2)
 
 ## Local Testing
 
