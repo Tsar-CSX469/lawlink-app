@@ -23,42 +23,66 @@ import 'package:lawlink/services/chatbot_initialization_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  print('🚀 App starting...');
 
-  // Load environment variables
-  await dotenv.load(fileName: ".env");
-
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-
-  // Initialize notification service
+  // Load environment variables (optional - may not exist in all environments)
   try {
-    await NotificationService.initialize();
-    await NotificationService.requestPermissions();
+    await dotenv.load(fileName: ".env");
+    print('✅ Environment variables loaded successfully');
   } catch (e) {
-    print('Notification service initialization failed: $e');
+    print('⚠️ Environment variables not found or failed to load: $e');
+    // Continue without .env file
   }
 
-  // Initialize background chat service
+  // Initialize Firebase
   try {
-    await BackgroundChatService.initialize();
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    print('✅ Firebase initialized successfully');
   } catch (e) {
-    print('Background chat service initialization failed: $e');
+    print('❌ Firebase initialization failed: $e');
+    // This might cause issues, but let's see what happens
   }
 
-  // Pre-initialize chatbot service (non-blocking)
-  ChatbotInitializationService.initializeAsync()
-      .then((success) {
-        print('Chatbot initialization ${success ? 'completed' : 'failed'}');
-      })
-      .catchError((e) {
-        print('Chatbot initialization error: $e');
-      });
+  // Initialize services with error handling
+  await initializeServices();
 
+  print('🎯 Starting app widget...');
   runApp(
     ChangeNotifierProvider(
       create: (context) => LanguageService(),
       child: const LegalQuizGame(),
     ),
   );
+}
+
+Future<void> initializeServices() async {
+  // Initialize notification service
+  try {
+    await NotificationService.initialize();
+    await NotificationService.requestPermissions();
+    print('✅ Notification service initialized successfully');
+  } catch (e) {
+    print('⚠️ Notification service initialization failed: $e');
+    // Continue without notifications
+  }
+
+  // Initialize background chat service
+  try {
+    await BackgroundChatService.initialize();
+    print('✅ Background chat service initialized successfully');
+  } catch (e) {
+    print('⚠️ Background chat service initialization failed: $e');
+    // Continue without background chat service
+  }
+
+  // Pre-initialize chatbot service (non-blocking)
+  ChatbotInitializationService.initializeAsync()
+      .then((success) {
+        print('✅ Chatbot initialization ${success ? 'completed' : 'failed'}');
+      })
+      .catchError((e) {
+        print('⚠️ Chatbot initialization error: $e');
+      });
 }
 
 class LegalQuizGame extends StatelessWidget {
